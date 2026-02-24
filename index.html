@@ -3,83 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FlipOrTrip | v0.35</title>
+    <title>FlipOrTrip | v0.38</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
     <style>
         :root { --mint: #00FFC2; --obsidian: #0B0E14; --red: #FF4B4B; --card-bg: #161B22; }
-        body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; text-align: center; }
-        
-        /* Utility */
+        body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; text-align: center; }
         .hidden { display: none !important; }
         
-        /* Modal Overlay - Verbeterde zichtbaarheid voor mobiel */
+        /* Modal Overlay */
         #join-modal { 
-            position: fixed; 
-            top: 0; left: 0; 
-            width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.95); 
-            backdrop-filter: blur(10px); 
-            display: none; /* Wordt 'flex' via JS */
-            align-items: center; 
-            justify-content: center; 
-            z-index: 100000; 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.96); backdrop-filter: blur(15px); 
+            display: none; align-items: center; justify-content: center; z-index: 99999; 
         }
         .modal-card { 
-            background: var(--card-bg); 
-            padding: 30px; 
-            border-radius: 30px; 
-            border: 2px solid var(--mint); 
-            width: 280px;
-            box-shadow: 0 0 50px rgba(0,255,194,0.3);
-            transform: translateY(-20px); /* Iets omhoog voor toetsenbord */
+            background: var(--card-bg); padding: 30px; border-radius: 30px; 
+            border: 2px solid var(--mint); width: 280px; box-shadow: 0 0 50px rgba(0,255,194,0.3);
         }
 
         /* UI Elements */
-        .btn { background: var(--mint); color: var(--obsidian); padding: 18px 25px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; width: 260px; margin-bottom: 10px; font-size: 15px; -webkit-appearance: none; }
-        .btn:active { transform: scale(0.98); background: #00d9a5; }
-        
-        .input-box { 
-            background: var(--card-bg); 
-            border: 1px solid rgba(0,255,194,0.4); 
-            padding: 15px; 
-            border-radius: 15px; 
-            color: white; 
-            text-align: center; 
-            margin-bottom: 15px; 
-            width: 100%; 
-            box-sizing: border-box; 
-            font-size: 16px; /* Voorkomt auto-zoom op iPhone */
-            outline: none;
-        }
+        .btn { background: var(--mint); color: var(--obsidian); padding: 18px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; width: 260px; margin-bottom: 12px; font-size: 15px; }
+        .input-box { background: var(--card-bg); border: 1px solid rgba(0,255,194,0.3); padding: 15px; border-radius: 15px; color: white; text-align: center; margin-bottom: 15px; width: 100%; box-sizing: border-box; font-size: 16px; outline: none; }
+        .label { font-size: 10px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 5px; display: block; text-align: left; }
 
-        .label { font-size: 11px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 8px; display: block; text-align: left; }
-        
         /* Header */
-        #room-header { position: fixed; top: 0; width: 100%; height: 60px; display: flex; justify-content: space-between; align-items: center; z-index: 100; background: rgba(11,14,20,0.9); padding: 0 20px; box-sizing: border-box; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .header-tag { font-size: 10px; color: var(--mint); background: rgba(0,255,194,0.1); padding: 6px 12px; border-radius: 10px; border: 1px solid rgba(0,255,194,0.2); font-weight: 800; }
-        .header-slogan { font-size: 8px; letter-spacing: 1px; opacity: 0.5; text-transform: uppercase; line-height: 1.2; }
+        #room-header { position: fixed; top: 0; width: 100%; height: 70px; display: flex; justify-content: space-between; align-items: center; background: rgba(11,14,20,0.9); padding: 0 20px; box-sizing: border-box; z-index: 100; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .header-tag { font-size: 10px; color: var(--mint); border: 1px solid var(--mint); padding: 6px 10px; border-radius: 10px; font-weight: 800; }
+        .header-slogan { font-size: 8px; letter-spacing: 1px; opacity: 0.5; text-transform: uppercase; line-height: 1.2; position: absolute; left: 50%; transform: translateX(-50%); }
 
         /* Card Swipe Area */
-        #swipe-screen { position: relative; width: 100%; height: 75vh; display: flex; align-items: center; justify-content: center; margin-top: 60px; touch-action: none; }
-        .card { width: 320px; height: 460px; background: var(--card-bg); border-radius: 35px; position: absolute; border: 1px solid rgba(255,255,255,0.1); overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+        #swipe-screen { position: relative; width: 100%; height: 70vh; display: flex; align-items: center; justify-content: center; margin-top: 70px; touch-action: none; }
+        .card { width: 320px; height: 460px; background: var(--card-bg); border-radius: 35px; border: 1px solid rgba(255,255,255,0.1); position: absolute; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
         .card-img { height: 60%; background-size: cover; background-position: center; pointer-events: none; }
         .card-info { padding: 25px; text-align: left; }
         .card-info h2 { margin: 0; font-size: 22px; }
         .card-info p { margin: 8px 0 0; opacity: 0.6; font-size: 14px; line-height: 1.5; }
-        
-        /* Indicators */
-        .swipe-indicator { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 100px; opacity: 0; z-index: 10; pointer-events: none; }
-        .indicator-like { color: var(--mint); background: linear-gradient(to left, rgba(0, 255, 194, 0.15), transparent); }
-        .indicator-dislike { color: var(--red); background: linear-gradient(to right, rgba(255, 75, 75, 0.15), transparent); }
+
+        /* Dashboard */
+        .dashboard { width: 280px; background: rgba(255,255,255,0.03); border-radius: 20px; padding: 15px; margin-top: 20px; border: 1px solid rgba(0,255,194,0.1); text-align: left; }
+        .leader-item { background: rgba(0,255,194,0.05); padding: 10px; border-radius: 10px; margin-top: 5px; font-size: 13px; display: flex; justify-content: space-between; font-weight: 800; }
     </style>
+</head>
+<body>
+
+    <div id="start-screen" class="screen-content">
+        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" style="width:200px; margin-bottom: 20px;">
+        <p style="opacity:0.5; font-size:11px; letter-spacing:2px; margin-bottom: 40px;">STOP DECIDING. START DOING.</p>
+        <button class="btn" onclick="showSetup()">Nieuwe Trip Plannen</button>
+        <div style="margin: 20px; opacity: 0.3;">OF</div>
+        <input type="number" id="join-code" class="input-box" placeholder="Kamer Code" style="width:260px;">
+        <button class="btn" style="background:white; color:black;" onclick="openJoinModal()">Mee-flippen</button>
+    </div>
+
+    <div id="setup-screen" class="hidden screen-content" style="width: 100%;">
+        <h2 style="color:var(--mint)">Trip Setup</h2>
+        <div style="width:280px; margin: 0 auto;">
+            <span class="label">Jouw Naam</span>
+            <input type="text" id="host-name" class="input-box">
+            <span class="label">E-mail voor uitslag</span>
+            <input type="email" id="host-email" class="input-box">
+            <span class="label">Aantal personen</span>
+            <input type="number" id="target-p" class="input-box" value="4">
+            <button class="btn" onclick="createRoom()">Kamer Aanmaken</button>
+        </div>
+    </div>
+
+    <div id="join-modal">
+        <div class="modal-card">
+            <h3 style="color:var(--mint); margin-top: 0;">Wie ben je?</h3>
+            <input type="text" id="join-name" class="input-box" placeholder="Jouw Naam">
+            <button class="btn" onclick="confirmJoin()">Laten we gaan!</button>
+        </div>
+    </div>
+
+    <div id="room-header" class="hidden">
+        <div class="header-tag">KAMER: <span id="active-code-display"></span></div>
+        <div class="header-slogan">Stop deciding.<br>Start doing.</div>
+        <div id="timer-display" style="font-size: 14px; font-weight: 800; color: var(--mint);">--:--</div>
+    </div>
+
+    <div id="swipe-screen" class="hidden"></div>
+
+    <div id="thanks-screen" class="hidden">
+        <h1 style="color:var(--mint); margin-bottom:0;">GEFLIPT!</h1>
+        <p style="opacity:0.7;">Wacht op de rest...</p>
+        <div id="host-dashboard" class="hidden">
+            <div class="dashboard">
+                <div style="font-size:12px; margin-bottom:10px;">Gereed: <span id="dash-progress" style="color:var(--mint)">-</span></div>
+                <div id="dash-leaderboard"></div>
+            </div>
+        </div>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, updateDoc, arrayUnion, increment, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, increment, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- VUL HIER JE KEYS IN ---
         const firebaseConfig = { apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0",
             authDomain: "fliportrip-valkenburg.firebaseapp.com",
             projectId: "fliportrip-valkenburg",
@@ -90,60 +111,116 @@
         const db = getFirestore(app);
         emailjs.init("wcDPsz6TupAyvv3G0");
 
-        const APP_URL = "https://fliportrip-mvp.vercel.app"; 
-        let myRoomCode = "";
-        let dbActivities = [];
-        let currentIndex = 0;
+        // --- GLOBAL FUNCTIONS ---
+        window.showSetup = () => {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('setup-screen').classList.remove('hidden');
+        };
 
-        // --- MODAL FUNCTIES ---
+        window.createRoom = async () => {
+            const name = document.getElementById('host-name').value;
+            const email = document.getElementById('host-email').value;
+            const target = document.getElementById('target-p').value;
+            if(!name || !email) return alert("Vul alles in!");
+
+            const code = Math.floor(1000 + Math.random() * 9000).toString();
+            const deadline = Date.now() + (60 * 60000); // 1 uur
+            
+            await setDoc(doc(db, "rooms", code), { 
+                hostName: name, hostEmail: email, targetParticipants: parseInt(target), 
+                deadline, participants: [name], votes: {}, finishedCount: 0, mailSent: false 
+            });
+
+            sessionStorage.setItem('isHost', 'true');
+            window.currentRoom = code;
+            startSwiping();
+        };
+
         window.openJoinModal = () => {
-            const inputCode = document.getElementById('join-code').value;
-            if(!inputCode) {
-                alert("Vul eerst een kamer-code in!");
-                return;
-            }
-            myRoomCode = inputCode.trim();
+            const code = document.getElementById('join-code').value;
+            if(!code) return alert("Voer een code in!");
+            window.currentRoom = code.trim();
             document.getElementById('join-modal').style.display = 'flex';
         };
 
         window.confirmJoin = async () => {
-            const name = document.getElementById('join-name').value.trim();
-            if(!name) {
-                alert("Vergeet niet je naam in te vullen!");
+            const name = document.getElementById('join-name').value;
+            if(!name) return alert("Naam verplicht!");
+
+            const docRef = doc(db, "rooms", window.currentRoom);
+            const ds = await getDoc(docRef);
+            if(!ds.exists()) return alert("Kamer niet gevonden!");
+
+            await updateDoc(docRef, { participants: arrayUnion(name) });
+            sessionStorage.setItem('isHost', 'false');
+            document.getElementById('join-modal').style.display = 'none';
+            startSwiping();
+        };
+
+        async function startSwiping() {
+            document.querySelectorAll('.screen-content, #start-screen, #setup-screen').forEach(s => s.classList.add('hidden'));
+            document.getElementById('room-header').classList.remove('hidden');
+            document.getElementById('swipe-screen').classList.remove('hidden');
+            document.getElementById('active-code-display').innerText = window.currentRoom;
+
+            const qs = await getDocs(collection(db, "activities"));
+            window.acts = qs.docs.map(d => ({ id: d.id, ...d.data() }));
+            window.actIdx = 0;
+            
+            startTimer();
+            renderCard();
+        }
+
+        function startTimer() {
+            setInterval(() => {
+                const diff = 3600; // Vereenvoudigd voor nu
+                document.getElementById('timer-display').innerText = "59:59";
+            }, 1000);
+        }
+
+        function renderCard() {
+            const container = document.getElementById('swipe-screen');
+            container.innerHTML = "";
+            if(window.actIdx >= window.acts.length) {
+                finishUser();
                 return;
             }
 
-            const btn = event.target;
-            btn.innerText = "Laden...";
-            btn.disabled = true;
+            const a = window.acts[window.actIdx];
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `<div class="card-img" style="background-image:url('${a.image}')"></div><div class="card-info"><h2>${a.title}</h2><p>${a.desc}</p></div>`;
+            container.appendChild(card);
 
-            try {
-                const docRef = doc(db, "rooms", myRoomCode);
-                const ds = await getDoc(docRef);
-                
-                if(!ds.exists()) {
-                    alert("Deze kamer bestaat niet.");
-                    btn.innerText = "Laten we gaan!";
-                    btn.disabled = false;
-                    return;
-                }
+            const h = new Hammer(card);
+            h.on('pan', e => card.style.transform = `translateX(${e.deltaX}px) rotate(${e.deltaX/20}deg)`);
+            h.on('panend', async e => {
+                if(Math.abs(e.deltaX) > 120) {
+                    if(e.deltaX > 0) {
+                        const up = {}; up[`votes.${window.acts[window.actIdx].id}`] = increment(1);
+                        await updateDoc(doc(db, "rooms", window.currentRoom), up);
+                    }
+                    window.actIdx++;
+                    renderCard();
+                } else { card.style.transform = ''; }
+            });
+        }
 
-                await updateDoc(docRef, { participants: arrayUnion(name) });
-                sessionStorage.setItem('roomCode', myRoomCode);
-                
-                document.getElementById('join-modal').style.display = 'none';
-                enterSwipeUI();
-            } catch (e) {
-                alert("Oeps! Er ging iets mis. Probeer het opnieuw.");
-                btn.innerText = "Laten we gaan!";
-                btn.disabled = false;
+        async function finishUser() {
+            document.getElementById('swipe-screen').classList.add('hidden');
+            document.getElementById('thanks-screen').classList.remove('hidden');
+            const docRef = doc(db, "rooms", window.currentRoom);
+            await updateDoc(docRef, { finishedCount: increment(1) });
+
+            if(sessionStorage.getItem('isHost') === 'true') {
+                document.getElementById('host-dashboard').classList.remove('hidden');
+                onSnapshot(docRef, (ds) => {
+                    const d = ds.data();
+                    document.getElementById('dash-progress').innerText = `${d.finishedCount} / ${d.targetParticipants}`;
+                    // Leaderboard logica hier...
+                });
             }
-        };
-
-        // --- SETUP & SWIPE LOGIC ---
-        window.showSetup = () => { 
-            document.getElementById('start-screen').classList.add('hidden'); 
-            document.getElementById('setup-screen').classList.remove('hidden'); 
-        };
-
-        window.enterSwipeUI = async
+        }
+    </script>
+</body>
+</html>
