@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FlipOrTrip | v0.30</title>
+    <title>FlipOrTrip | v0.33</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
@@ -18,58 +18,57 @@
         .glow-effect { position: absolute; width: 70px; height: 70px; background: var(--mint); filter: blur(40px); border-radius: 50%; opacity: 0.7; z-index: 1; animation: pulseGlow 3s infinite ease-in-out; }
         @keyframes pulseGlow { 0%, 100% { opacity: 0.4; transform: scale(1); filter: blur(40px); } 50% { opacity: 0.9; transform: scale(1.8); filter: blur(50px); } }
         
+        .slogan { opacity: 0.5; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; font-weight: 300; }
+
         /* UI Elements */
         .btn { background: var(--mint); color: var(--obsidian); padding: 16px 25px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; width: 260px; margin-bottom: 10px; font-size: 15px; transition: transform 0.2s; box-shadow: 0 4px 15px rgba(0,255,194,0.3); }
         .btn:active { transform: scale(0.96); }
         .input-box { background: var(--card-bg); border: 1px solid rgba(0,255,194,0.2); padding: 12px; border-radius: 12px; color: white; text-align: center; margin-bottom: 8px; width: 260px; font-size: 15px; outline: none; }
         .label { font-size: 10px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 3px; display: block; text-align: left; margin-left: 10px; }
         
-        /* Header & Info */
-        #room-header { position: fixed; top: 12px; width: 90%; display: flex; justify-content: space-between; align-items: center; z-index: 100; }
-        .header-left { display: flex; align-items: center; gap: 8px; }
-        .header-tag { font-size: 10px; color: var(--mint); background: rgba(0,0,0,0.6); padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(0,255,194,0.2); backdrop-filter: blur(8px); cursor: pointer; }
-        .timer-tag { font-size: 10px; color: white; background: rgba(255,75,75,0.2); padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(255,75,75,0.3); }
+        /* Header Enhanced */
+        #room-header { position: fixed; top: 0; width: 100%; height: 60px; display: flex; justify-content: space-between; align-items: center; z-index: 100; background: linear-gradient(to bottom, rgba(11,14,20,0.9), transparent); padding: 0 15px; box-sizing: border-box; }
+        .header-left { display: flex; align-items: center; gap: 6px; }
+        .header-tag { font-size: 10px; color: var(--mint); background: rgba(0,255,194,0.1); padding: 6px 10px; border-radius: 12px; border: 1px solid rgba(0,255,194,0.2); cursor: pointer; font-weight: 800; }
+        .header-slogan { font-size: 8px; letter-spacing: 1px; opacity: 0.4; text-transform: uppercase; font-weight: 300; position: absolute; left: 50%; transform: translateX(-50%); width: 100px; line-height: 1.2; }
+        .timer-tag { font-size: 11px; font-weight: 800; color: white; background: rgba(255,255,255,0.05); padding: 6px 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
 
-        /* Custom Modal for Name Input */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .modal-card { background: var(--card-bg); padding: 30px; border-radius: 25px; border: 1px solid var(--mint); width: 300px; }
+        /* Swipe Feedback */
+        .swipe-indicator { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 120px; opacity: 0; pointer-events: none; z-index: 20; border-radius: 30px; }
+        .indicator-like { color: var(--mint); background: linear-gradient(to left, rgba(0, 255, 194, 0.2), transparent); }
+        .indicator-dislike { color: var(--red); background: linear-gradient(to right, rgba(255, 75, 75, 0.2), transparent); }
 
-        /* Card UI */
-        #swipe-screen { position: relative; width: 100%; height: 70vh; display: flex; align-items: center; justify-content: center; }
-        .card { width: 310px; height: 440px; background: var(--card-bg); border-radius: 30px; position: absolute; border: 1px solid rgba(255,255,255,0.1); touch-action: none; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-        .card-img { height: 58%; background-size: cover; background-position: center; pointer-events: none; }
-        .card-info { padding: 18px; text-align: left; }
-        .card-info h2 { margin:0; font-size: 20px; }
-        .card-info p { margin: 5px 0 0; opacity: 0.6; font-size: 14px; }
+        /* Card Layout */
+        #swipe-screen { position: relative; width: 100%; height: 80vh; display: flex; align-items: center; justify-content: center; margin-top: 40px; }
+        .card { width: 320px; height: 460px; background: var(--card-bg); border-radius: 30px; position: absolute; border: 1px solid rgba(255,255,255,0.1); touch-action: none; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .card-img { height: 60%; background-size: cover; background-position: center; pointer-events: none; }
+        .card-info { padding: 20px; text-align: left; }
+        .card-info h2 { margin:0; font-size: 22px; color: white; }
+        .card-info p { margin: 6px 0 0; opacity: 0.6; font-size: 14px; line-height: 1.4; }
         
         .screen-content { display: flex; flex-direction: column; align-items: center; width: 100%; max-height: 98vh; padding: 15px; box-sizing: border-box; }
         .code-display { font-size: 52px; font-weight: 800; color: var(--mint); letter-spacing: 5px; margin: 10px 0; text-shadow: 0 0 20px rgba(0,255,194,0.4); }
 
-        .leader-item { background: rgba(0,255,194,0.08); padding: 10px 14px; border-radius: 12px; margin-top: 8px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; font-weight: 800; }
-        .dashboard { width: 280px; background: rgba(255,255,255,0.04); border-radius: 20px; padding: 15px; margin: 15px auto; border: 1px solid rgba(255,255,255,0.08); text-align: left; }
+        .dashboard { width: 290px; background: rgba(255,255,255,0.03); border-radius: 24px; padding: 20px; margin: 15px auto; border: 1px solid rgba(255,255,255,0.08); text-align: left; }
+        .leader-item { background: rgba(0,255,194,0.05); padding: 12px 16px; border-radius: 14px; margin-top: 10px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; font-weight: 800; border: 1px solid rgba(0,255,194,0.1); }
     </style>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, setDoc, updateDoc, arrayUnion, increment, getDoc, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- 1. FIREBASE CONFIG: VUL HIER JE EIGEN DATA IN ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0",
+        // --- CONFIG ---
+        const firebaseConfig = { apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0",
             authDomain: "fliportrip-valkenburg.firebaseapp.com",
             projectId: "fliportrip-valkenburg",
             storageBucket: "fliportrip-valkenburg.firebasestorage.app",
             messagingSenderId: "1050989330669",
-            appId: "1:1050989330669:web:6649f61cbec8ee3b3f8ce4"
-        };
-
+            appId: "1:1050989330669:web:6649f61cbec8ee3b3f8ce4" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-
-        // --- 2. EMAILJS PUBLIC KEY: VUL HIER JE PUBLIC KEY IN ---
         emailjs.init("wcDPsz6TupAyvv3G0");
 
-        const APP_URL = "https://fliportrip.vercel.app"; 
+        const APP_URL = "https://fliportrip-mvp.vercel.app"; 
 
         let myRoomCode = "";
         let dbActivities = [];
@@ -83,7 +82,7 @@
             const name = document.getElementById('host-name').value;
             const email = document.getElementById('host-email').value;
             const target = document.getElementById('target-p').value;
-            if(!name || !email || !target) return alert("Vul alles in!");
+            if(!name || !email || !target) return alert("Vul alle velden in.");
             
             myRoomCode = Math.floor(1000 + Math.random() * 9000).toString();
             const mins = document.getElementById('deadline-min').value;
@@ -101,7 +100,7 @@
             document.getElementById('share-screen').classList.remove('hidden');
             document.getElementById('final-code-display').innerText = myRoomCode;
             
-            const shareText = `Flip mee voor onze trip! 🌴\nCode: *${myRoomCode}*\nDoe mee via: ${APP_URL}`;
+            const shareText = `Flip mee voor onze trip naar Valkenburg! 🌴\nKamer Code: *${myRoomCode}*\nDoe direct mee via: ${APP_URL}`;
             document.getElementById('whatsapp-btn').onclick = () => { window.location.href = `whatsapp://send?text=${encodeURIComponent(shareText)}`; };
         }
 
@@ -115,7 +114,7 @@
             const name = document.getElementById('join-name').value;
             if(!name) return alert("Naam verplicht!");
             const ds = await getDoc(doc(db, "rooms", myRoomCode));
-            if(!ds.exists()) return alert("Code niet gevonden!");
+            if(!ds.exists()) return alert("Kamer niet gevonden!");
             await updateDoc(doc(db, "rooms", myRoomCode), { participants: arrayUnion(name) });
             sessionStorage.setItem('isHost', 'false');
             sessionStorage.setItem('roomCode', myRoomCode);
@@ -124,7 +123,7 @@
         };
 
         window.shareActiveCode = () => {
-            const shareText = `Kom je flippen? Onze kamer code is: *${myRoomCode}*`;
+            const shareText = `Flip je mee? Kamer: *${myRoomCode}*\nLink: ${APP_URL}`;
             window.location.href = `whatsapp://send?text=${encodeURIComponent(shareText)}`;
         };
 
@@ -145,16 +144,11 @@
                 if(!ds.exists()) return;
                 const deadline = ds.data().deadline;
                 timerInterval = setInterval(() => {
-                    const now = Date.now();
-                    const diff = deadline - now;
-                    if(diff <= 0) {
-                        clearInterval(timerInterval);
-                        document.getElementById('timer-display').innerText = "TIJD OM!";
-                        return;
-                    }
-                    const mins = Math.floor(diff / 60000);
-                    const secs = Math.floor((diff % 60000) / 1000);
-                    document.getElementById('timer-display').innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+                    const diff = deadline - Date.now();
+                    if(diff <= 0) { clearInterval(timerInterval); document.getElementById('timer-display').innerText = "00:00"; return; }
+                    const m = Math.floor(diff / 60000);
+                    const s = Math.floor((diff % 60000) / 1000);
+                    document.getElementById('timer-display').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
                 }, 1000);
             };
             updateTimer();
@@ -172,13 +166,32 @@
             const act = dbActivities[currentIndex];
             const card = document.createElement('div');
             card.className = 'card';
-            card.innerHTML = `<div class="card-img" style="background-image: url('${act.image}')"></div><div class="card-info"><h2>${act.title}</h2><p>${act.desc}</p></div>`;
+            card.innerHTML = `
+                <div class="swipe-indicator indicator-like">♥</div>
+                <div class="swipe-indicator indicator-dislike">✕</div>
+                <div class="card-img" style="background-image: url('${act.image}')"></div>
+                <div class="card-info"><h2>${act.title}</h2><p>${act.desc}</p></div>
+            `;
             container.appendChild(card);
+            
             const h = new Hammer(card);
-            h.on('pan', (e) => card.style.transform = `translateX(${e.deltaX}px) rotate(${e.deltaX/20}deg)`);
+            h.on('pan', (e) => {
+                card.style.transform = `translateX(${e.deltaX}px) rotate(${e.deltaX/20}deg)`;
+                const opacity = Math.min(Math.abs(e.deltaX) / 100, 0.8);
+                if(e.deltaX > 0) {
+                    card.querySelector('.indicator-like').style.opacity = opacity;
+                    card.querySelector('.indicator-dislike').style.opacity = 0;
+                } else {
+                    card.querySelector('.indicator-dislike').style.opacity = opacity;
+                    card.querySelector('.indicator-like').style.opacity = 0;
+                }
+            });
             h.on('panend', (e) => {
                 if(Math.abs(e.deltaX) > 100) vote(e.deltaX > 0 ? 'yes' : 'no', card);
-                else card.style.transform = '';
+                else {
+                    card.style.transform = '';
+                    card.querySelectorAll('.swipe-indicator').forEach(i => i.style.opacity = 0);
+                }
             });
         }
 
@@ -198,20 +211,16 @@
             await updateDoc(doc(db, "rooms", myRoomCode), { finishedCount: increment(1) });
             if(sessionStorage.getItem('isHost') === 'true') {
                 document.getElementById('host-dashboard').classList.remove('hidden');
-                startMonitor();
+                onSnapshot(doc(db, "rooms", myRoomCode), (ds) => {
+                    const d = ds.data();
+                    document.getElementById('dash-progress').innerText = `${d.finishedCount} / ${d.targetParticipants}`;
+                    let res = dbActivities.map(act => ({ title: act.title, perc: Math.round(((d.votes[act.id] || 0) / d.participants.length) * 100) })).sort((a,b) => b.perc - a.perc).slice(0,3);
+                    const list = document.getElementById('dash-leaderboard');
+                    list.innerHTML = "";
+                    res.forEach(r => { list.innerHTML += `<div class="leader-item"><span>${r.title}</span><span style="color:var(--mint)">${r.perc}%</span></div>`; });
+                });
             }
             checkMail();
-        }
-
-        function startMonitor() {
-            onSnapshot(doc(db, "rooms", myRoomCode), (ds) => {
-                const d = ds.data();
-                document.getElementById('dash-progress').innerText = `${d.finishedCount} / ${d.targetParticipants}`;
-                let results = dbActivities.map(act => ({ title: act.title, perc: Math.round(((d.votes[act.id] || 0) / d.participants.length) * 100) })).sort((a,b) => b.perc - a.perc).slice(0,3);
-                const list = document.getElementById('dash-leaderboard');
-                list.innerHTML = "";
-                results.forEach(r => { list.innerHTML += `<div class="leader-item"><span>${r.title}</span><span style="color:var(--mint)">${r.perc}%</span></div>`; });
-            });
         }
 
         async function checkMail() {
@@ -221,14 +230,7 @@
                 await updateDoc(doc(db, "rooms", myRoomCode), { mailSent: true });
                 let res = dbActivities.map(act => ({ title: act.title, perc: Math.round(((d.votes[act.id] || 0) / d.participants.length) * 100) })).sort((a,b) => b.perc - a.perc).slice(0,3);
                 const top3 = res.map((r,i) => `${i+1}. ${r.title} (${r.perc}%)`).join('\n');
-                
-                // --- 3. JOUW EMAILJS SERVICE & TEMPLATE ID ---
-                emailjs.send("service_pceg3i8", "template_tr613kg", { 
-                    host_name: d.hostName, 
-                    to_email: d.hostEmail, 
-                    room_code: myRoomCode, 
-                    winner: top3 
-                });
+                emailjs.send("service_pceg3i8", "template_tr613kg", { host_name: d.hostName, to_email: d.hostEmail, room_code: myRoomCode, winner: top3 });
             }
         }
     </script>
@@ -237,9 +239,9 @@
 
     <div id="room-header" class="hidden">
         <div class="header-left">
-            <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_beeldmerk.png" style="width:22px;">
-            <div class="header-tag" onclick="shareActiveCode()">Kamer: <span id="active-code-display"></span> 🔗</div>
+            <div class="header-tag" onclick="shareActiveCode()">ROOM: <span id="active-code-display"></span> 🔗</div>
         </div>
+        <div class="header-slogan">Stop deciding.<br>Start doing.</div>
         <div class="timer-tag">⏳ <span id="timer-display">--:--</span></div>
     </div>
 
@@ -265,7 +267,7 @@
     </div>
 
     <div id="setup-screen" class="hidden screen-content">
-        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_beeldmerk.png" style="width:70px; margin-bottom:10px;">
+        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_beeldmerk.png" style="width:60px; margin-bottom:10px;">
         <h2 style="margin:0 0 15px 0; font-size: 20px;">Trip Setup</h2>
         <div style="text-align:left; width:260px;">
             <span class="label">Jouw Naam</span>
