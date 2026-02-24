@@ -3,23 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FlipOrTrip | Alpha v0.8</title>
+    <title>FlipOrTrip | Asynchroon</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         :root { --mint: #00FFC2; --obsidian: #0B0E14; --blue: #007AFF; }
         body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; text-align: center; }
         .hidden { display: none !important; }
         .orb { width: 50px; height: 50px; background: linear-gradient(135deg, var(--mint), var(--blue)); border-radius: 50%; margin: 0 auto 20px; box-shadow: 0 0 20px var(--mint); }
-        .input-box { background: #161B22; border: 1px solid var(--mint); padding: 15px; border-radius: 12px; color: white; text-align: center; margin-bottom: 15px; width: 250px; font-size: 16px; outline: none; }
+        .input-box { background: #161B22; border: 1px solid var(--mint); padding: 15px; border-radius: 12px; color: white; text-align: center; margin-bottom: 15px; width: 280px; font-size: 16px; outline: none; border: 1px solid rgba(0,255,194,0.3); }
         .btn { background: var(--mint); color: var(--obsidian); padding: 15px 30px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; width: 280px; margin-bottom: 10px; }
-        .btn:disabled { opacity: 0.3; cursor: not-allowed; }
-        .label { font-size: 11px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 5px; display: block; text-align: left; margin-left: 25px; }
+        .label { font-size: 11px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 5px; display: block; text-align: left; margin-left: 10px; }
         .card { width: 320px; height: 480px; background: #161B22; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; overflow: hidden; }
         .card-img { height: 65%; background-size: cover; background-position: center; background-color: #21262d; }
         .card-info { padding: 20px; text-align: left; }
         .card-info h2 { margin: 0; font-size: 24px; color: white; }
         .card-info p { margin: 5px 0 0; opacity: 0.6; font-size: 14px; line-height: 1.4; }
-        #timer-display { font-family: monospace; color: #FF4B4B; font-size: 18px; margin: 10px 0; font-weight: 800; }
         .controls { display: flex; gap: 40px; margin-top: 30px; }
         .btn-vote { width: 80px; height: 80px; border-radius: 50%; border: none; font-size: 35px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     </style>
@@ -28,7 +27,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, setDoc, updateDoc, arrayUnion, increment, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- FIREBASE CONFIG ---
+        // --- FIREBASE CONFIG (ZELF INVULLEN) ---
         const firebaseConfig = {
             apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0",
             authDomain: "fliportrip-valkenburg.firebaseapp.com",
@@ -41,11 +40,13 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // --- EMAILJS INIT (ZELF INVULLEN) ---
+        emailjs.init("JOUW_PUBLIC_KEY");
+
         let myRoomCode = "";
-        let isHost = sessionStorage.getItem('isHost') === 'true';
+        let isHost = false;
         let dbActivities = [];
         let currentIndex = 0;
-        let timerInterval = null;
 
         async function fetchActivities() {
             const querySnapshot = await getDocs(collection(db, "activities"));
@@ -59,102 +60,53 @@
 
         window.createRoom = async () => {
             const name = document.getElementById('host-name').value;
-            const maxP = parseInt(document.getElementById('max-p').value);
-            const mins = parseInt(document.getElementById('deadline-min').value) || 5;
-            if(!name) return alert("Naam verplicht!");
+            const email = document.getElementById('host-email').value;
+            const mins = parseInt(document.getElementById('deadline-min').value) || 60;
+            
+            if(!name || !email) return alert("Naam en Email verplicht!");
 
             myRoomCode = Math.floor(1000 + Math.random() * 9000).toString();
             const deadline = Date.now() + (mins * 60000);
 
             await setDoc(doc(db, "rooms", myRoomCode), {
-                status: 'lobby',
+                status: 'flipping',
+                hostName: name,
+                hostEmail: email,
                 participants: [name],
-                maxParticipants: maxP,
                 deadline: deadline,
-                votes: {}
+                votes: {},
+                finishedParticipants: []
             });
 
             isHost = true;
             sessionStorage.setItem('isHost', 'true');
-            enterLobbyUI();
+            enterSwipeUI();
         };
 
         window.joinExisting = async () => {
             myRoomCode = document.getElementById('join-code').value;
             const name = prompt("Wat is je naam?"); 
             if(!myRoomCode || !name) return alert("Code en naam verplicht!");
-            await updateDoc(doc(db, "rooms", myRoomCode), { participants: arrayUnion(name) });
+            
+            await updateDoc(doc(db, "rooms", myRoomCode), { 
+                participants: arrayUnion(name) 
+            });
             isHost = false;
             sessionStorage.setItem('isHost', 'false');
-            enterLobbyUI();
+            enterSwipeUI();
         };
 
-        async function enterLobbyUI() {
+        async function enterSwipeUI() {
             document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
-            document.getElementById('waiting-screen').classList.remove('hidden');
-            document.getElementById('display-room-code').innerText = myRoomCode;
-            await fetchActivities();
-            listenToRoom();
-        }
-
-        function listenToRoom() {
-            onSnapshot(doc(db, "rooms", myRoomCode), (docSnap) => {
-                const data = docSnap.data();
-                if(!data) return;
-
-                // Update deelnemerslijst
-                document.getElementById('participant-list').innerHTML = data.participants.map(p => `<li>${p}</li>`).join('');
-                document.getElementById('participant-count').innerText = `${data.participants.length} / ${data.maxParticipants} spelers`;
-
-                // Timer Logica
-                if(timerInterval) clearInterval(timerInterval);
-                timerInterval = setInterval(() => {
-                    const now = Date.now();
-                    const diff = data.deadline - now;
-                    if(diff <= 0) {
-                        document.getElementById('timer-display').innerText = "TIJD IS OM!";
-                        clearInterval(timerInterval);
-                    } else {
-                        const m = Math.floor(diff / 60000);
-                        const s = Math.floor((diff % 60000) / 1000);
-                        document.getElementById('timer-display').innerText = `Tijd over: ${m}m ${s}s`;
-                    }
-                }, 1000);
-
-                // Start Knop Logica (Zichtbaar voor iedereen als lobby vol is)
-                const startBtn = document.getElementById('start-btn');
-                if(data.participants.length >= data.maxParticipants) {
-                    startBtn.classList.remove('hidden');
-                    startBtn.disabled = false;
-                    startBtn.innerText = "START NU";
-                } else {
-                    startBtn.innerText = "Wachten op meer mensen...";
-                    startBtn.disabled = true;
-                    startBtn.classList.remove('hidden');
-                }
-
-                if(data.status === 'flipping' && document.getElementById('swipe-screen').classList.contains('hidden')) startFlipping();
-                if(data.status === 'finished') showMatch(data.winner);
-            });
-        }
-
-        window.startApp = async () => {
-            await updateDoc(doc(db, "rooms", myRoomCode), { status: 'flipping' });
-        };
-
-        function startFlipping() {
-            clearInterval(timerInterval);
-            document.getElementById('waiting-screen').classList.add('hidden');
             document.getElementById('swipe-screen').classList.remove('hidden');
+            await fetchActivities();
             renderCard();
         }
 
         function renderCard() {
             const container = document.getElementById('card-container');
             if(currentIndex >= dbActivities.length) {
-                container.innerHTML = "<h2>Wachten op de rest...</h2>";
-                document.getElementById('vote-controls').classList.add('hidden');
-                if(isHost) checkWinnerTrigger();
+                finishUser();
                 return;
             }
             const act = dbActivities[currentIndex];
@@ -178,55 +130,65 @@
             renderCard();
         };
 
-        async function checkWinnerTrigger() {
-            setTimeout(async () => {
-                const docSnap = await getDoc(doc(db, "rooms", myRoomCode));
-                const data = docSnap.data();
-                const votes = data.votes || {};
-                let winnerTitle = "Geen match";
-                let maxV = -1;
-                dbActivities.forEach(a => {
-                    let v = votes[a.id] || 0;
-                    if(v > maxV) { maxV = v; winnerTitle = a.title; }
-                });
-                await updateDoc(doc(db, "rooms", myRoomCode), { status: 'finished', winner: winnerTitle });
-            }, 3000);
+        async function finishUser() {
+            document.getElementById('swipe-screen').classList.add('hidden');
+            document.getElementById('thanks-screen').classList.remove('hidden');
+            
+            const docRef = doc(db, "rooms", myRoomCode);
+            await updateDoc(docRef, {
+                finishedParticipants: arrayUnion(Date.now())
+            });
+
+            // Als Host, luister of we klaar zijn voor resultaat
+            if (isHost) {
+                checkFinalResult();
+            }
         }
 
-        function showMatch(winner) {
-            document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
-            document.getElementById('match-screen').classList.remove('hidden');
-            document.getElementById('winner-name').innerText = winner;
+        async function checkFinalResult() {
+            const docSnap = await getDoc(doc(db, "rooms", myRoomCode));
+            const data = docSnap.data();
+            
+            let winnerTitle = "Geen match";
+            let maxV = -1;
+            dbActivities.forEach(a => {
+                let v = (data.votes && data.votes[a.id]) || 0;
+                if(v > maxV) { maxV = v; winnerTitle = a.title; }
+            });
+
+            document.getElementById('winner-display').innerText = winnerTitle;
+            
+            // Mail versturen via EmailJS
+            emailjs.send("JOUW_SERVICE_ID", "JOUW_TEMPLATE_ID", {
+                to_email: data.hostEmail,
+                room_code: myRoomCode,
+                winner: winnerTitle
+            });
         }
     </script>
 </head>
 <body>
+
     <div id="start-screen">
         <div class="orb"></div>
         <h1>FLIP<span>OR</span>TRIP</h1>
         <button class="btn" onclick="showSetup()">Nieuwe Trip Starten</button>
         <p style="opacity:0.5; margin:10px 0;">of</p>
-        <input type="text" id="join-code" class="input-box" placeholder="Code">
-        <button class="btn" style="background:white" onclick="joinExisting()">Deelnemen</button>
+        <input type="text" id="join-code" class="input-box" placeholder="Code van groepsapp">
+        <button class="btn" style="background:white" onclick="joinExisting()">Mee-swipen</button>
     </div>
 
     <div id="setup-screen" class="hidden">
-        <h2>Setup</h2>
-        <span class="label">Aantal deelnemers</span>
-        <input type="number" id="max-p" class="input-box" value="2">
-        <span class="label">Tijd (minuten)</span>
-        <input type="number" id="deadline-min" class="input-box" value="5">
-        <span class="label">Naam</span>
-        <input type="text" id="host-name" class="input-box">
-        <button class="btn" onclick="createRoom()">Start Lobby</button>
-    </div>
-
-    <div id="waiting-screen" class="hidden">
-        <h2>Code: <span id="display-room-code" style="color:var(--mint)"></span></h2>
-        <div id="timer-display"></div>
-        <ul id="participant-list" style="list-style:none; padding:0; font-size:24px; color:var(--mint); margin:20px 0;"></ul>
-        <p id="participant-count"></p>
-        <button id="start-btn" class="btn hidden" onclick="startApp()">Wachten...</button>
+        <h2>Trip Setup</h2>
+        <div style="text-align:left; width:280px; margin:0 auto;">
+            <span class="label">Jouw Naam</span>
+            <input type="text" id="host-name" class="input-box">
+            <span class="label">Jouw Email (voor resultaat)</span>
+            <input type="email" id="host-email" class="input-box">
+            <span class="label">Deadline (minuten vanaf nu)</span>
+            <input type="number" id="deadline-min" class="input-box" value="60">
+        </div>
+        <button class="btn" onclick="createRoom()">Genereer Code</button>
     </div>
 
     <div id="swipe-screen" class="hidden">
@@ -237,10 +199,16 @@
         </div>
     </div>
 
-    <div id="match-screen" class="hidden">
-        <h1 style="color:var(--mint)">IT'S A MATCH!</h1>
-        <div id="winner-name" style="font-size:45px; font-weight:800; margin:20px 0;"></div>
-        <button class="btn" onclick="location.reload()">Opnieuw</button>
+    <div id="thanks-screen" class="hidden">
+        <h1 style="color:var(--mint)">BEDANKT!</h1>
+        <p>Jouw stemmen zijn opgeslagen.</p>
+        <p style="opacity:0.6">Zodra de deadline is verstreken wordt de winnaar bepaald.</p>
+        <div id="host-only-result">
+            <hr style="border:0; border-top:1px solid #333; margin:20px 0;">
+            <p>Tussenstand winnaar:</p>
+            <h2 id="winner-display" style="color:var(--mint)">...</h2>
+        </div>
     </div>
+
 </body>
 </html>
