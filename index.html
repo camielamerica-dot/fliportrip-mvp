@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FlipOrTrip | Alpha v0.4</title>
+    <title>FlipOrTrip | Alpha v0.5</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     
     <style>
@@ -15,17 +15,22 @@
         .input-box { background: #161B22; border: 1px solid var(--mint); padding: 15px; border-radius: 12px; color: white; text-align: center; margin-bottom: 15px; width: 250px; font-size: 16px; outline: none; }
         .btn { background: var(--mint); color: var(--obsidian); padding: 15px 30px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; width: 280px; margin-bottom: 10px; }
         .label { font-size: 11px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 5px; display: block; text-align: left; margin-left: 25px; }
-        .card { width: 300px; height: 420px; background: #161B22; border-radius: 25px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; overflow: hidden; position: relative; }
-        .card-img { height: 60%; background: #21262d; display: flex; align-items: center; justify-content: center; font-size: 80px; }
-        .card-info { padding: 20px; }
+        
+        /* De Nieuwe Card Styling */
+        .card { width: 320px; height: 480px; background: #161B22; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
+        .card-img { height: 65%; background-size: cover; background-position: center; display: flex; align-items: flex-end; }
+        .card-category { background: var(--mint); color: var(--obsidian); font-size: 10px; font-weight: 800; padding: 5px 12px; border-radius: 20px; margin: 15px; text-transform: uppercase; }
+        .card-info { padding: 20px; text-align: left; }
+        .card-info h2 { margin: 0; font-size: 24px; color: white; }
+        .card-info p { margin: 5px 0 0; opacity: 0.6; font-size: 14px; line-height: 1.4; }
+
         .controls { display: flex; gap: 40px; margin-top: 30px; }
-        .btn-vote { width: 80px; height: 80px; border-radius: 50%; border: none; font-size: 35px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; -webkit-tap-highlight-color: transparent; }
-        #timer-display { font-family: monospace; color: #FF4B4B; font-size: 18px; margin-top: 10px; font-weight: 800; }
+        .btn-vote { width: 80px; height: 80px; border-radius: 50%; border: none; font-size: 35px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     </style>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, setDoc, updateDoc, arrayUnion, increment, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, setDoc, updateDoc, arrayUnion, increment, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // --- PLAK HIER JE FIREBASE CONFIG ---
         const firebaseConfig = {
@@ -44,16 +49,17 @@
         let isHost = false;
         let myName = "";
         let currentIndex = 0;
+        let dbActivities = [];
 
-        const activities = [
-            { id: 'bike', title: "Grotbiken", icon: "🚲", desc: "Cross door de grotten." },
-            { id: 'vlaai', title: "Vlaaien Bakken", icon: "🥧", desc: "Echte Limburgse vlaai." },
-            { id: 'beer', title: "Bierproeverij", icon: "🍺", desc: "Lokale bieren proeven." },
-            { id: 'escape', title: "Escape Room", icon: "🔒", desc: "Ontsnap uit de mijnen." },
-            { id: 'scoot', title: "Scootertocht", icon: "🛵", desc: "Tour door de heuvels." }
-        ];
+        // HAAL ACTIVITEITEN UIT DE DATABASE
+        async function loadActivities() {
+            const querySnapshot = await getDocs(collection(db, "activities"));
+            dbActivities = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            if(dbActivities.length === 0) {
+                alert("Geen activiteiten gevonden in de database!");
+            }
+        }
 
-        // Maak functies globaal voor HTML knoppen
         window.showSetup = () => {
             document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('setup-screen').classList.remove('hidden');
@@ -61,21 +67,15 @@
 
         window.createRoom = async () => {
             myName = document.getElementById('host-name').value;
-            const maxP = parseInt(document.getElementById('max-p').value);
-            const mins = parseInt(document.getElementById('deadline-min').value);
+            const maxP = document.getElementById('max-p').value;
             if(!myName) return alert("Naam verplicht!");
-
             myRoomCode = Math.floor(1000 + Math.random() * 9000).toString();
-            const deadline = new Date(Date.now() + mins * 60000).getTime();
-
             await setDoc(doc(db, "rooms", myRoomCode), {
                 status: 'lobby',
                 participants: [myName],
-                maxParticipants: maxP,
-                deadline: deadline,
+                maxParticipants: parseInt(maxP),
                 votes: {}
             });
-
             isHost = true;
             enterLobbyUI();
         };
@@ -84,11 +84,7 @@
             myRoomCode = document.getElementById('join-code').value;
             myName = prompt("Wat is je naam?"); 
             if(!myRoomCode || !myName) return alert("Code en naam verplicht!");
-
-            await updateDoc(doc(db, "rooms", myRoomCode), {
-                participants: arrayUnion(myName)
-            });
-
+            await updateDoc(doc(db, "rooms", myRoomCode), { participants: arrayUnion(myName) });
             enterLobbyUI();
         };
 
@@ -103,25 +99,16 @@
             onSnapshot(doc(db, "rooms", myRoomCode), (docSnap) => {
                 const data = docSnap.data();
                 if(!data) return;
-
-                const list = document.getElementById('participant-list');
-                list.innerHTML = data.participants.map(p => `<li>${p}</li>`).join('');
+                document.getElementById('participant-list').innerHTML = data.participants.map(p => `<li>${p}</li>`).join('');
                 document.getElementById('participant-count').innerText = `${data.participants.length} / ${data.maxParticipants} spelers`;
-
-                if(isHost || data.participants.length >= data.maxParticipants) {
-                    document.getElementById('start-btn').classList.remove('hidden');
-                }
-
-                if(data.status === 'flipping' && document.getElementById('swipe-screen').classList.contains('hidden')) {
-                    startFlipping();
-                }
-                if(data.status === 'finished') {
-                    showMatch(data.winner);
-                }
+                if(isHost || data.participants.length >= data.maxParticipants) document.getElementById('start-btn').classList.remove('hidden');
+                if(data.status === 'flipping' && document.getElementById('swipe-screen').classList.contains('hidden')) startFlipping();
+                if(data.status === 'finished') showMatch(data.winner);
             });
         }
 
         window.startApp = async () => {
+            await loadActivities(); // DATA LADEN VOORDAT WE STARTEN
             await updateDoc(doc(db, "rooms", myRoomCode), { status: 'flipping' });
         };
 
@@ -132,16 +119,18 @@
         }
 
         function renderCard() {
-            if(currentIndex >= activities.length) {
+            if(currentIndex >= dbActivities.length) {
                 document.getElementById('card-container').innerHTML = "<h2>Klaar! Wachten op de rest...</h2>";
                 document.getElementById('vote-controls').classList.add('hidden');
-                checkWinnerTrigger();
+                if(isHost) checkWinnerTrigger();
                 return;
             }
-            const act = activities[currentIndex];
+            const act = dbActivities[currentIndex];
             document.getElementById('card-container').innerHTML = `
-                <div class="card" id="active-card">
-                    <div class="card-img">${act.icon}</div>
+                <div class="card">
+                    <div class="card-img" style="background-image: url('${act.image || ''}')">
+                        <span class="card-category">Valkenburg Tip</span>
+                    </div>
                     <div class="card-info">
                         <h2>${act.title}</h2>
                         <p>${act.desc}</p>
@@ -151,41 +140,28 @@
         }
 
         window.vote = async (type) => {
-            if(currentIndex >= activities.length) return;
-            const actId = activities[currentIndex].id;
-            
+            const actId = dbActivities[currentIndex].id;
             if(type === 'yes') {
-                const updateObj = {};
-                updateObj[`votes.${actId}`] = increment(1);
+                const updateObj = {}; updateObj[`votes.${actId}`] = increment(1);
                 await updateDoc(doc(db, "rooms", myRoomCode), updateObj);
             }
-
             currentIndex++;
             renderCard();
         };
 
         async function checkWinnerTrigger() {
-            // Wacht even tot iedereen klaar is en de host berekent de winnaar
-            if(isHost) {
-                setTimeout(async () => {
-                    const docSnap = await getDoc(doc(db, "rooms", myRoomCode));
-                    const data = docSnap.data();
-                    const votes = data.votes || {};
-                    
-                    let winnerTitle = activities[0].title;
-                    let maxV = -1;
-
-                    activities.forEach(a => {
-                        let v = votes[a.id] || 0;
-                        if(v > maxV) { maxV = v; winnerTitle = a.title; }
-                    });
-
-                    await updateDoc(doc(db, "rooms", myRoomCode), { 
-                        status: 'finished', 
-                        winner: winnerTitle 
-                    });
-                }, 4000);
-            }
+            setTimeout(async () => {
+                const docSnap = await getDoc(doc(db, "rooms", myRoomCode));
+                const data = docSnap.data();
+                const votes = data.votes || {};
+                let winnerTitle = dbActivities[0].title;
+                let maxV = -1;
+                dbActivities.forEach(a => {
+                    let v = votes[a.id] || 0;
+                    if(v > maxV) { maxV = v; winnerTitle = a.title; }
+                });
+                await updateDoc(doc(db, "rooms", myRoomCode), { status: 'finished', winner: winnerTitle });
+            }, 4000);
         }
 
         function showMatch(winner) {
@@ -210,8 +186,6 @@
         <h2>Setup</h2>
         <span class="label">Aantal deelnemers</span>
         <input type="number" id="max-p" class="input-box" value="2">
-        <span class="label">Tijd (min)</span>
-        <input type="number" id="deadline-min" class="input-box" value="5">
         <span class="label">Naam</span>
         <input type="text" id="host-name" class="input-box">
         <button class="btn" onclick="createRoom()">Start Lobby</button>
