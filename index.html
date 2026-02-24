@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FlipOrTrip | v0.24</title>
+    <title>FlipOrTrip | v0.25</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
@@ -12,29 +12,25 @@
         body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; text-align: center; touch-action: none; }
         .hidden { display: none !important; }
         
-        /* Branding Assets */
-        .brand-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 30px; }
-        .orb-icon { width: 80px; height: 80px; margin-bottom: 20px; animation: pulse 3s infinite ease-in-out; }
-        .logo-main { width: 220px; filter: drop-shadow(0 0 15px rgba(0,255,194,0.15)); }
+        /* Branding & Glow */
+        .logo-glow-container { position: relative; display: inline-block; margin-bottom: 30px; }
+        .logo-main { width: 260px; position: relative; z-index: 2; }
+        .glow-effect { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 120px; height: 120px; background: var(--mint); filter: blur(60px); opacity: 0.3; z-index: 1; animation: pulseGlow 4s infinite ease-in-out; }
         
-        @keyframes pulse { 
-            0%, 100% { transform: scale(1); filter: brightness(1); } 
-            50% { transform: scale(1.08); filter: brightness(1.2) drop-shadow(0 0 15px var(--mint)); } 
-        }
+        @keyframes pulseGlow { 0%, 100% { opacity: 0.2; transform: translate(-50%, -50%) scale(1); } 50% { opacity: 0.5; transform: translate(-50%, -50%) scale(1.3); } }
         
+        .setup-orb-large { width: 100px; height: 100px; margin-bottom: 15px; filter: drop-shadow(0 0 15px rgba(0,255,194,0.4)); }
         .slogan { opacity: 0.6; font-size: 12px; margin-top: 10px; letter-spacing: 2px; font-weight: 300; text-transform: uppercase; }
 
         /* UI Elements */
         .btn { background: var(--mint); color: var(--obsidian); padding: 18px 30px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; width: 280px; margin-bottom: 12px; font-size: 16px; transition: transform 0.2s; box-shadow: 0 4px 20px rgba(0,255,194,0.25); }
         .btn:active { transform: scale(0.96); }
+        .btn-secondary { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; box-shadow: none; margin-top: 10px; }
+        
         .input-box { background: var(--card-bg); border: 1px solid rgba(0,255,194,0.3); padding: 14px; border-radius: 14px; color: white; text-align: center; margin-bottom: 12px; width: 280px; font-size: 16px; outline: none; }
         .label { font-size: 11px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 5px; display: block; text-align: left; margin-left: 10px; }
         
-        /* Setup Screen Spacing */
-        .setup-header { margin-bottom: 25px; }
-        .setup-orb { width: 60px; margin-bottom: 10px; }
-
-        /* Card & Swipe UI */
+        /* Card UI */
         #swipe-screen { position: relative; width: 100%; height: 70vh; display: flex; align-items: center; justify-content: center; }
         .card { width: 320px; height: 460px; background: var(--card-bg); border-radius: 35px; position: absolute; border: 1px solid rgba(255,255,255,0.1); touch-action: none; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.6); }
         .card-img { height: 60%; background-size: cover; background-position: center; pointer-events: none; }
@@ -47,7 +43,7 @@
         .indicator-like { color: var(--mint); background: linear-gradient(to left, rgba(0, 255, 194, 0.25), transparent); }
         .indicator-dislike { color: var(--red); background: linear-gradient(to right, rgba(255, 75, 75, 0.25), transparent); }
 
-        /* Header & Dashboard */
+        /* Header */
         #room-header { position: fixed; top: 15px; left: 15px; display: flex; align-items: center; gap: 10px; z-index: 100; }
         .header-tag { font-size: 11px; color: var(--mint); background: rgba(0,0,0,0.6); padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(0,255,194,0.2); backdrop-filter: blur(10px); }
         .header-orb { width: 25px; height: 25px; }
@@ -61,7 +57,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, setDoc, updateDoc, arrayUnion, increment, getDoc, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- CONFIG ---
+        // --- FIREBASE CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0",
             authDomain: "fliportrip-valkenburg.firebaseapp.com",
@@ -82,6 +78,11 @@
         window.showSetup = () => {
             document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('setup-screen').classList.remove('hidden');
+        };
+
+        window.goBack = () => {
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('start-screen').classList.remove('hidden');
         };
 
         window.createRoom = async () => {
@@ -237,11 +238,11 @@
     </div>
 
     <div id="start-screen">
-        <div class="brand-container">
-            <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_beeldmerk.png" class="orb-icon">
+        <div class="logo-glow-container">
+            <div class="glow-effect"></div>
             <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" class="logo-main">
-            <p class="slogan">Stop deciding. Start doing.</p>
         </div>
+        <p class="slogan" style="margin-bottom: 40px;">Stop deciding. Start doing.</p>
         <button class="btn" onclick="showSetup()">Nieuwe Trip Plannen</button>
         <div style="margin: 10px; opacity: 0.3;">of</div>
         <input type="text" id="join-code" class="input-box" placeholder="Kamer Code">
@@ -249,10 +250,8 @@
     </div>
 
     <div id="setup-screen" class="hidden">
-        <div class="setup-header">
-            <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_beeldmerk.png" class="setup-orb">
-            <h2 style="margin:0;">Nieuwe Trip Plannen</h2>
-        </div>
+        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_beeldmerk.png" class="setup-orb-large">
+        <h2 style="margin:0 0 25px 0;">Nieuwe Trip Plannen</h2>
         <div style="text-align:left; width:280px; margin:0 auto;">
             <span class="label">Jouw Naam</span>
             <input type="text" id="host-name" class="input-box">
@@ -264,15 +263,13 @@
             <input type="number" id="deadline-min" class="input-box" value="60">
         </div>
         <button class="btn" onclick="createRoom()">Kamer Aanmaken</button>
+        <button class="btn btn-secondary" onclick="goBack()">Terug</button>
     </div>
 
     <div id="share-screen" class="hidden">
-        <div class="brand-container">
-            <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_beeldmerk.png" class="orb-icon" style="width:60px; height:60px;">
-            <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" class="logo-main" style="width:180px;">
-        </div>
+        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" class="logo-main" style="width:180px; margin-bottom:20px;">
         <div class="code-display" id="final-code-display">----</div>
-        <p style="opacity:0.5; font-size:12px; margin-bottom:20px; text-transform:uppercase; letter-spacing:1px;">Deel de code met je groep</p>
+        <p style="opacity:0.5; font-size:12px; margin-bottom:30px; text-transform:uppercase; letter-spacing:1px;">Deel de code met je groep</p>
         <button class="btn" id="whatsapp-btn" style="background:#25D366; color:white; box-shadow: 0 4px 20px rgba(37,211,102,0.3);">DEEL VIA WHATSAPP</button>
         <button class="btn" onclick="enterSwipeUI()" style="background:transparent; border:2px solid white; color:white; box-shadow:none;">START ZELF</button>
     </div>
@@ -280,14 +277,13 @@
     <div id="swipe-screen" class="hidden"></div>
 
     <div id="thanks-screen" class="hidden">
-        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_beeldmerk.png" class="orb-icon" style="width:50px; height:50px; margin-bottom:10px;">
+        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_beeldmerk.png" style="width:60px; margin-bottom:20px;">
         <h1 style="color:var(--mint); margin-top:0;">GEFLIPT!</h1>
         <div id="host-dashboard" class="hidden">
             <div class="dashboard">
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
                     <strong>Gereed:</strong> <span id="dash-progress" style="color:var(--mint)">...</span>
                 </div>
-                <div style="font-size: 11px; opacity: 0.6;">Tussenstand Top 3:</div>
                 <div id="dash-leaderboard"></div>
             </div>
         </div>
