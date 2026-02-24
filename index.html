@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FlipOrTrip | Alpha v0.6</title>
+    <title>FlipOrTrip | Alpha v0.8</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
-    
     <style>
         :root { --mint: #00FFC2; --obsidian: #0B0E14; --blue: #007AFF; }
         body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; text-align: center; }
@@ -15,23 +14,21 @@
         .btn { background: var(--mint); color: var(--obsidian); padding: 15px 30px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; width: 280px; margin-bottom: 10px; }
         .btn:disabled { opacity: 0.3; cursor: not-allowed; }
         .label { font-size: 11px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 5px; display: block; text-align: left; margin-left: 25px; }
-        
-        .card { width: 320px; height: 480px; background: #161B22; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; overflow: hidden; position: relative; }
-        .card-img { height: 65%; background-size: cover; background-position: center; }
+        .card { width: 320px; height: 480px; background: #161B22; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; overflow: hidden; }
+        .card-img { height: 65%; background-size: cover; background-position: center; background-color: #21262d; }
         .card-info { padding: 20px; text-align: left; }
         .card-info h2 { margin: 0; font-size: 24px; color: white; }
         .card-info p { margin: 5px 0 0; opacity: 0.6; font-size: 14px; line-height: 1.4; }
-
+        #timer-display { font-family: monospace; color: #FF4B4B; font-size: 18px; margin: 10px 0; font-weight: 800; }
         .controls { display: flex; gap: 40px; margin-top: 30px; }
         .btn-vote { width: 80px; height: 80px; border-radius: 50%; border: none; font-size: 35px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        #timer-display { font-family: monospace; color: #FF4B4B; font-size: 18px; margin-top: 10px; font-weight: 800; }
     </style>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, setDoc, updateDoc, arrayUnion, increment, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- PLAK HIER JE FIREBASE CONFIG ---
+        // --- FIREBASE CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0",
             authDomain: "fliportrip-valkenburg.firebaseapp.com",
@@ -45,10 +42,15 @@
         const db = getFirestore(app);
 
         let myRoomCode = "";
-        let isHost = false;
-        let myName = "";
-        let currentIndex = 0;
+        let isHost = sessionStorage.getItem('isHost') === 'true';
         let dbActivities = [];
+        let currentIndex = 0;
+        let timerInterval = null;
+
+        async function fetchActivities() {
+            const querySnapshot = await getDocs(collection(db, "activities"));
+            dbActivities = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        }
 
         window.showSetup = () => {
             document.getElementById('start-screen').classList.add('hidden');
@@ -56,38 +58,42 @@
         };
 
         window.createRoom = async () => {
-            myName = document.getElementById('host-name').value;
+            const name = document.getElementById('host-name').value;
             const maxP = parseInt(document.getElementById('max-p').value);
-            const mins = parseInt(document.getElementById('deadline-min').value);
-            if(!myName) return alert("Naam verplicht!");
+            const mins = parseInt(document.getElementById('deadline-min').value) || 5;
+            if(!name) return alert("Naam verplicht!");
 
             myRoomCode = Math.floor(1000 + Math.random() * 9000).toString();
             const deadline = Date.now() + (mins * 60000);
 
             await setDoc(doc(db, "rooms", myRoomCode), {
                 status: 'lobby',
-                participants: [myName],
+                participants: [name],
                 maxParticipants: maxP,
                 deadline: deadline,
                 votes: {}
             });
 
             isHost = true;
+            sessionStorage.setItem('isHost', 'true');
             enterLobbyUI();
         };
 
         window.joinExisting = async () => {
             myRoomCode = document.getElementById('join-code').value;
-            myName = prompt("Wat is je naam?"); 
-            if(!myRoomCode || !myName) return alert("Code en naam verplicht!");
-            await updateDoc(doc(db, "rooms", myRoomCode), { participants: arrayUnion(myName) });
+            const name = prompt("Wat is je naam?"); 
+            if(!myRoomCode || !name) return alert("Code en naam verplicht!");
+            await updateDoc(doc(db, "rooms", myRoomCode), { participants: arrayUnion(name) });
+            isHost = false;
+            sessionStorage.setItem('isHost', 'false');
             enterLobbyUI();
         };
 
-        function enterLobbyUI() {
+        async function enterLobbyUI() {
             document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
             document.getElementById('waiting-screen').classList.remove('hidden');
             document.getElementById('display-room-code').innerText = myRoomCode;
+            await fetchActivities();
             listenToRoom();
         }
 
@@ -96,25 +102,35 @@
                 const data = docSnap.data();
                 if(!data) return;
 
+                // Update deelnemerslijst
                 document.getElementById('participant-list').innerHTML = data.participants.map(p => `<li>${p}</li>`).join('');
                 document.getElementById('participant-count').innerText = `${data.participants.length} / ${data.maxParticipants} spelers`;
 
-                // Timer
-                const timeLeft = Math.round((data.deadline - Date.now()) / 1000);
-                if(timeLeft > 0) {
-                    document.getElementById('timer-display').innerText = `Tijd: ${Math.floor(timeLeft/60)}m ${timeLeft%60}s`;
-                } else {
-                    document.getElementById('timer-display').innerText = "TIJD OM!";
-                }
+                // Timer Logica
+                if(timerInterval) clearInterval(timerInterval);
+                timerInterval = setInterval(() => {
+                    const now = Date.now();
+                    const diff = data.deadline - now;
+                    if(diff <= 0) {
+                        document.getElementById('timer-display').innerText = "TIJD IS OM!";
+                        clearInterval(timerInterval);
+                    } else {
+                        const m = Math.floor(diff / 60000);
+                        const s = Math.floor((diff % 60000) / 1000);
+                        document.getElementById('timer-display').innerText = `Tijd over: ${m}m ${s}s`;
+                    }
+                }, 1000);
 
-                // Start button logica
+                // Start Knop Logica (Zichtbaar voor iedereen als lobby vol is)
                 const startBtn = document.getElementById('start-btn');
                 if(data.participants.length >= data.maxParticipants) {
-                    startBtn.disabled = false;
                     startBtn.classList.remove('hidden');
+                    startBtn.disabled = false;
+                    startBtn.innerText = "START NU";
                 } else {
+                    startBtn.innerText = "Wachten op meer mensen...";
                     startBtn.disabled = true;
-                    startBtn.innerText = `Wachten op spelers...`;
+                    startBtn.classList.remove('hidden');
                 }
 
                 if(data.status === 'flipping' && document.getElementById('swipe-screen').classList.contains('hidden')) startFlipping();
@@ -123,35 +139,26 @@
         }
 
         window.startApp = async () => {
-            const querySnapshot = await getDocs(collection(db, "activities"));
-            dbActivities = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            if(dbActivities.length === 0) return alert("Database is leeg! Voeg eerst iets toe in /admin.html");
-            
             await updateDoc(doc(db, "rooms", myRoomCode), { status: 'flipping' });
         };
 
         function startFlipping() {
-            if(dbActivities.length === 0) loadAndStart(); // Fallback als db nog niet geladen is
+            clearInterval(timerInterval);
             document.getElementById('waiting-screen').classList.add('hidden');
             document.getElementById('swipe-screen').classList.remove('hidden');
             renderCard();
         }
 
-        async function loadAndStart() {
-            const querySnapshot = await getDocs(collection(db, "activities"));
-            dbActivities = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderCard();
-        }
-
         function renderCard() {
+            const container = document.getElementById('card-container');
             if(currentIndex >= dbActivities.length) {
-                document.getElementById('card-container').innerHTML = "<h2>Wachten op de rest...</h2>";
+                container.innerHTML = "<h2>Wachten op de rest...</h2>";
                 document.getElementById('vote-controls').classList.add('hidden');
                 if(isHost) checkWinnerTrigger();
                 return;
             }
             const act = dbActivities[currentIndex];
-            document.getElementById('card-container').innerHTML = `
+            container.innerHTML = `
                 <div class="card">
                     <div class="card-img" style="background-image: url('${act.image}')"></div>
                     <div class="card-info">
@@ -187,14 +194,13 @@
         }
 
         function showMatch(winner) {
-            document.getElementById('swipe-screen').classList.add('hidden');
+            document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
             document.getElementById('match-screen').classList.remove('hidden');
             document.getElementById('winner-name').innerText = winner;
         }
     </script>
 </head>
 <body>
-
     <div id="start-screen">
         <div class="orb"></div>
         <h1>FLIP<span>OR</span>TRIP</h1>
@@ -220,7 +226,7 @@
         <div id="timer-display"></div>
         <ul id="participant-list" style="list-style:none; padding:0; font-size:24px; color:var(--mint); margin:20px 0;"></ul>
         <p id="participant-count"></p>
-        <button id="start-btn" class="btn hidden" onclick="startApp()">IEDEREEN IS ER!</button>
+        <button id="start-btn" class="btn hidden" onclick="startApp()">Wachten...</button>
     </div>
 
     <div id="swipe-screen" class="hidden">
@@ -236,6 +242,5 @@
         <div id="winner-name" style="font-size:45px; font-weight:800; margin:20px 0;"></div>
         <button class="btn" onclick="location.reload()">Opnieuw</button>
     </div>
-
 </body>
 </html>
