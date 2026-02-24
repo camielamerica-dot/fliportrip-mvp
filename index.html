@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FlipOrTrip | v0.38</title>
+    <title>FlipOrTrip | v0.40</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
@@ -12,90 +12,37 @@
         body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; text-align: center; }
         .hidden { display: none !important; }
         
-        /* Modal Overlay */
-        #join-modal { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.96); backdrop-filter: blur(15px); 
-            display: none; align-items: center; justify-content: center; z-index: 99999; 
-        }
-        .modal-card { 
-            background: var(--card-bg); padding: 30px; border-radius: 30px; 
-            border: 2px solid var(--mint); width: 280px; box-shadow: 0 0 50px rgba(0,255,194,0.3);
-        }
+        /* Modals & Overlays */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); backdrop-filter: blur(10px); display: none; align-items: center; justify-content: center; z-index: 99999; padding: 20px; box-sizing: border-box; }
+        .modal-card { background: var(--card-bg); padding: 30px; border-radius: 30px; border: 2px solid var(--mint); width: 100%; max-width: 320px; }
 
         /* UI Elements */
         .btn { background: var(--mint); color: var(--obsidian); padding: 18px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; width: 260px; margin-bottom: 12px; font-size: 15px; }
+        .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; }
         .input-box { background: var(--card-bg); border: 1px solid rgba(0,255,194,0.3); padding: 15px; border-radius: 15px; color: white; text-align: center; margin-bottom: 15px; width: 100%; box-sizing: border-box; font-size: 16px; outline: none; }
         .label { font-size: 10px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 5px; display: block; text-align: left; }
 
         /* Header */
         #room-header { position: fixed; top: 0; width: 100%; height: 70px; display: flex; justify-content: space-between; align-items: center; background: rgba(11,14,20,0.9); padding: 0 20px; box-sizing: border-box; z-index: 100; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .header-tag { font-size: 10px; color: var(--mint); border: 1px solid var(--mint); padding: 6px 10px; border-radius: 10px; font-weight: 800; }
+        .header-tag { font-size: 10px; color: var(--mint); border: 1px solid var(--mint); padding: 6px 10px; border-radius: 10px; font-weight: 800; cursor: pointer; }
         .header-slogan { font-size: 8px; letter-spacing: 1px; opacity: 0.5; text-transform: uppercase; line-height: 1.2; position: absolute; left: 50%; transform: translateX(-50%); }
 
-        /* Card Swipe Area */
+        /* Swipe Indicators */
+        .swipe-indicator { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 100px; opacity: 0; z-index: 10; pointer-events: none; font-weight: 800; }
+        .indicator-like { color: var(--mint); background: radial-gradient(circle, rgba(0,255,194,0.2) 0%, transparent 70%); }
+        .indicator-dislike { color: var(--red); background: radial-gradient(circle, rgba(255,75,75,0.2) 0%, transparent 70%); }
+
+        /* Stats & Dashboard */
+        .dashboard-list { text-align: left; margin-top: 15px; }
+        .stat-row { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; font-size: 14px; border: 1px solid rgba(255,255,255,0.05); }
+        .host-link { font-size: 12px; opacity: 0.6; text-decoration: underline; margin-top: 20px; cursor: pointer; }
+
+        /* Swipe Card */
         #swipe-screen { position: relative; width: 100%; height: 70vh; display: flex; align-items: center; justify-content: center; margin-top: 70px; touch-action: none; }
-        .card { width: 320px; height: 460px; background: var(--card-bg); border-radius: 35px; border: 1px solid rgba(255,255,255,0.1); position: absolute; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
-        .card-img { height: 60%; background-size: cover; background-position: center; pointer-events: none; }
+        .card { width: 320px; height: 460px; background: var(--card-bg); border-radius: 35px; border: 1px solid rgba(255,255,255,0.1); position: absolute; overflow: hidden; }
+        .card-img { height: 60%; background-size: cover; background-position: center; }
         .card-info { padding: 25px; text-align: left; }
-        .card-info h2 { margin: 0; font-size: 22px; }
-        .card-info p { margin: 8px 0 0; opacity: 0.6; font-size: 14px; line-height: 1.5; }
-
-        /* Dashboard */
-        .dashboard { width: 280px; background: rgba(255,255,255,0.03); border-radius: 20px; padding: 15px; margin-top: 20px; border: 1px solid rgba(0,255,194,0.1); text-align: left; }
-        .leader-item { background: rgba(0,255,194,0.05); padding: 10px; border-radius: 10px; margin-top: 5px; font-size: 13px; display: flex; justify-content: space-between; font-weight: 800; }
     </style>
-</head>
-<body>
-
-    <div id="start-screen" class="screen-content">
-        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" style="width:200px; margin-bottom: 20px;">
-        <p style="opacity:0.5; font-size:11px; letter-spacing:2px; margin-bottom: 40px;">STOP DECIDING. START DOING.</p>
-        <button class="btn" onclick="showSetup()">Nieuwe Trip Plannen</button>
-        <div style="margin: 20px; opacity: 0.3;">OF</div>
-        <input type="number" id="join-code" class="input-box" placeholder="Kamer Code" style="width:260px;">
-        <button class="btn" style="background:white; color:black;" onclick="openJoinModal()">Mee-flippen</button>
-    </div>
-
-    <div id="setup-screen" class="hidden screen-content" style="width: 100%;">
-        <h2 style="color:var(--mint)">Trip Setup</h2>
-        <div style="width:280px; margin: 0 auto;">
-            <span class="label">Jouw Naam</span>
-            <input type="text" id="host-name" class="input-box">
-            <span class="label">E-mail voor uitslag</span>
-            <input type="email" id="host-email" class="input-box">
-            <span class="label">Aantal personen</span>
-            <input type="number" id="target-p" class="input-box" value="4">
-            <button class="btn" onclick="createRoom()">Kamer Aanmaken</button>
-        </div>
-    </div>
-
-    <div id="join-modal">
-        <div class="modal-card">
-            <h3 style="color:var(--mint); margin-top: 0;">Wie ben je?</h3>
-            <input type="text" id="join-name" class="input-box" placeholder="Jouw Naam">
-            <button class="btn" onclick="confirmJoin()">Laten we gaan!</button>
-        </div>
-    </div>
-
-    <div id="room-header" class="hidden">
-        <div class="header-tag">KAMER: <span id="active-code-display"></span></div>
-        <div class="header-slogan">Stop deciding.<br>Start doing.</div>
-        <div id="timer-display" style="font-size: 14px; font-weight: 800; color: var(--mint);">--:--</div>
-    </div>
-
-    <div id="swipe-screen" class="hidden"></div>
-
-    <div id="thanks-screen" class="hidden">
-        <h1 style="color:var(--mint); margin-bottom:0;">GEFLIPT!</h1>
-        <p style="opacity:0.7;">Wacht op de rest...</p>
-        <div id="host-dashboard" class="hidden">
-            <div class="dashboard">
-                <div style="font-size:12px; margin-bottom:10px;">Gereed: <span id="dash-progress" style="color:var(--mint)">-</span></div>
-                <div id="dash-leaderboard"></div>
-            </div>
-        </div>
-    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -111,31 +58,7 @@
         const db = getFirestore(app);
         emailjs.init("wcDPsz6TupAyvv3G0");
 
-        // --- GLOBAL FUNCTIONS ---
-        window.showSetup = () => {
-            document.getElementById('start-screen').classList.add('hidden');
-            document.getElementById('setup-screen').classList.remove('hidden');
-        };
-
-        window.createRoom = async () => {
-            const name = document.getElementById('host-name').value;
-            const email = document.getElementById('host-email').value;
-            const target = document.getElementById('target-p').value;
-            if(!name || !email) return alert("Vul alles in!");
-
-            const code = Math.floor(1000 + Math.random() * 9000).toString();
-            const deadline = Date.now() + (60 * 60000); // 1 uur
-            
-            await setDoc(doc(db, "rooms", code), { 
-                hostName: name, hostEmail: email, targetParticipants: parseInt(target), 
-                deadline, participants: [name], votes: {}, finishedCount: 0, mailSent: false 
-            });
-
-            sessionStorage.setItem('isHost', 'true');
-            window.currentRoom = code;
-            startSwiping();
-        };
-
+        // --- GLOBAL ACTIONS ---
         window.openJoinModal = () => {
             const code = document.getElementById('join-code').value;
             if(!code) return alert("Voer een code in!");
@@ -143,84 +66,175 @@
             document.getElementById('join-modal').style.display = 'flex';
         };
 
-        window.confirmJoin = async () => {
-            const name = document.getElementById('join-name').value;
-            if(!name) return alert("Naam verplicht!");
+        window.openHostLogin = () => {
+            document.getElementById('host-login-modal').style.display = 'flex';
+        };
 
+        window.verifyHost = async () => {
+            const code = document.getElementById('login-code').value.trim();
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
+            
+            const ds = await getDoc(doc(db, "rooms", code));
+            if(ds.exists() && ds.data().hostEmail.toLowerCase() === email) {
+                window.currentRoom = code;
+                document.getElementById('host-login-modal').style.display = 'none';
+                window.showLiveStats();
+            } else {
+                alert("Gegevens onjuist. Check de code en het e-mailadres.");
+            }
+        };
+
+        window.showLiveStats = () => {
+            document.getElementById('stats-modal').style.display = 'flex';
+            const docRef = doc(db, "rooms", window.currentRoom);
+            onSnapshot(docRef, async (ds) => {
+                const d = ds.data();
+                document.getElementById('live-progress').innerText = `${d.finishedCount} / ${d.targetParticipants} personen klaar`;
+                
+                const qs = await getDocs(collection(db, "activities"));
+                const acts = qs.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                
+                let scores = acts.map(a => ({ title: a.title, count: d.votes[a.id] || 0 }))
+                    .sort((a,b) => b.count - a.count).slice(0, 4);
+                
+                document.getElementById('live-leaderboard').innerHTML = scores.map(s => 
+                    `<div class="stat-row"><span>${s.title}</span><span style="color:var(--mint)">${s.count} 👍</span></div>`
+                ).join('');
+            });
+        };
+
+        window.confirmJoin = async () => {
+            const name = document.getElementById('join-name').value.trim();
+            if(!name) return alert("Naam verplicht!");
             const docRef = doc(db, "rooms", window.currentRoom);
             const ds = await getDoc(docRef);
             if(!ds.exists()) return alert("Kamer niet gevonden!");
-
             await updateDoc(docRef, { participants: arrayUnion(name) });
-            sessionStorage.setItem('isHost', 'false');
             document.getElementById('join-modal').style.display = 'none';
             startSwiping();
         };
 
+        window.createRoom = async () => {
+            const name = document.getElementById('host-name').value;
+            const email = document.getElementById('host-email').value.toLowerCase();
+            const target = document.getElementById('target-p').value;
+            if(!name || !email) return alert("Vul naam en e-mail in!");
+
+            const code = Math.floor(1000 + Math.random() * 9000).toString();
+            const deadline = Date.now() + (60 * 60000); 
+            
+            await setDoc(doc(db, "rooms", code), { 
+                hostName: name, hostEmail: email, targetParticipants: parseInt(target), 
+                deadline, participants: [name], votes: {}, finishedCount: 0, mailSent: false 
+            });
+
+            window.currentRoom = code;
+            alert(`Kamer aangemaakt! Code: ${code}. Deel deze met je vrienden.`);
+            startSwiping();
+        };
+
+        // --- SWIPE LOGIC (SAME AS v0.39) ---
         async function startSwiping() {
-            document.querySelectorAll('.screen-content, #start-screen, #setup-screen').forEach(s => s.classList.add('hidden'));
+            document.querySelectorAll('.screen-content').forEach(s => s.classList.add('hidden'));
             document.getElementById('room-header').classList.remove('hidden');
             document.getElementById('swipe-screen').classList.remove('hidden');
             document.getElementById('active-code-display').innerText = window.currentRoom;
-
+            
             const qs = await getDocs(collection(db, "activities"));
             window.acts = qs.docs.map(d => ({ id: d.id, ...d.data() }));
             window.actIdx = 0;
-            
-            startTimer();
             renderCard();
-        }
-
-        function startTimer() {
-            setInterval(() => {
-                const diff = 3600; // Vereenvoudigd voor nu
-                document.getElementById('timer-display').innerText = "59:59";
-            }, 1000);
         }
 
         function renderCard() {
             const container = document.getElementById('swipe-screen');
             container.innerHTML = "";
             if(window.actIdx >= window.acts.length) {
-                finishUser();
+                container.innerHTML = "<div><h1 style='color:var(--mint)'>GEFLIPT!</h1><p>Check je dashboard voor de stand.</p></div>";
+                updateDoc(doc(db, "rooms", window.currentRoom), { finishedCount: increment(1) });
                 return;
             }
-
             const a = window.acts[window.actIdx];
             const card = document.createElement('div');
             card.className = 'card';
-            card.innerHTML = `<div class="card-img" style="background-image:url('${a.image}')"></div><div class="card-info"><h2>${a.title}</h2><p>${a.desc}</p></div>`;
+            card.innerHTML = `<div class="swipe-indicator indicator-like">♥</div><div class="swipe-indicator indicator-dislike">✕</div><div class="card-img" style="background-image:url('${a.image}')"></div><div class="card-info"><h2>${a.title}</h2><p>${a.desc}</p></div>`;
             container.appendChild(card);
-
             const h = new Hammer(card);
-            h.on('pan', e => card.style.transform = `translateX(${e.deltaX}px) rotate(${e.deltaX/20}deg)`);
+            h.on('pan', e => {
+                card.style.transform = `translateX(${e.deltaX}px) rotate(${e.deltaX/20}deg)`;
+                const opacity = Math.min(Math.abs(e.deltaX) / 100, 0.8);
+                card.querySelector(e.deltaX > 0 ? '.indicator-like' : '.indicator-dislike').style.opacity = opacity;
+            });
             h.on('panend', async e => {
                 if(Math.abs(e.deltaX) > 120) {
                     if(e.deltaX > 0) {
                         const up = {}; up[`votes.${window.acts[window.actIdx].id}`] = increment(1);
                         await updateDoc(doc(db, "rooms", window.currentRoom), up);
                     }
-                    window.actIdx++;
-                    renderCard();
-                } else { card.style.transform = ''; }
+                    window.actIdx++; renderCard();
+                } else { card.style.transform = ''; card.querySelectorAll('.swipe-indicator').forEach(i => i.style.opacity = 0); }
             });
         }
-
-        async function finishUser() {
-            document.getElementById('swipe-screen').classList.add('hidden');
-            document.getElementById('thanks-screen').classList.remove('hidden');
-            const docRef = doc(db, "rooms", window.currentRoom);
-            await updateDoc(docRef, { finishedCount: increment(1) });
-
-            if(sessionStorage.getItem('isHost') === 'true') {
-                document.getElementById('host-dashboard').classList.remove('hidden');
-                onSnapshot(docRef, (ds) => {
-                    const d = ds.data();
-                    document.getElementById('dash-progress').innerText = `${d.finishedCount} / ${d.targetParticipants}`;
-                    // Leaderboard logica hier...
-                });
-            }
-        }
     </script>
+</head>
+<body>
+
+    <div id="start-screen" class="screen-content">
+        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" style="width:180px; margin-bottom: 30px;">
+        <button class="btn" onclick="document.getElementById('start-screen').classList.add('hidden'); document.getElementById('setup-screen').classList.remove('hidden');">Trip Plannen</button>
+        <div style="margin: 10px; opacity: 0.3;">of</div>
+        <input type="number" id="join-code" class="input-box" placeholder="Kamer Code" style="width:260px;">
+        <button class="btn" style="background:white; color:black;" onclick="openJoinModal()">Mee-flippen</button>
+        <div class="host-link" onclick="openHostLogin()">Ben je host? Bekijk voortgang</div>
+    </div>
+
+    <div id="host-login-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h3 style="color:var(--mint); margin-top:0;">Host Log-in</h3>
+            <input type="number" id="login-code" class="input-box" placeholder="Kamer Code">
+            <input type="email" id="login-email" class="input-box" placeholder="Jouw E-mail">
+            <button class="btn" onclick="verifyHost()">Bekijk Dashboard</button>
+            <p style="font-size:12px; opacity:0.5;" onclick="document.getElementById('host-login-modal').style.display='none'">Terug</p>
+        </div>
+    </div>
+
+    <div id="stats-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h3 style="color:var(--mint); margin:0;">Dashboard</h3>
+            <p id="live-progress" style="font-size:13px; opacity:0.7; margin-bottom:20px;">Laden...</p>
+            <div id="live-leaderboard" class="dashboard-list"></div>
+            <button class="btn btn-outline" style="margin-top:20px;" onclick="document.getElementById('stats-modal').style.display='none'">Sluiten</button>
+        </div>
+    </div>
+
+    <div id="setup-screen" class="hidden screen-content">
+        <h2 style="color:var(--mint)">Plan je Trip</h2>
+        <div style="width:280px; margin: 0 auto;">
+            <span class="label">Naam</span>
+            <input type="text" id="host-name" class="input-box">
+            <span class="label">Email voor uitslag</span>
+            <input type="email" id="host-email" class="input-box">
+            <span class="label">Groepsgrootte</span>
+            <input type="number" id="target-p" class="input-box" value="4">
+            <button class="btn" onclick="createRoom()">Start Kamer</button>
+        </div>
+    </div>
+
+    <div id="join-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h3 style="color:var(--mint); margin:0 0 20px 0;">Wie ben je?</h3>
+            <input type="text" id="join-name" class="input-box" placeholder="Naam">
+            <button class="btn" onclick="confirmJoin()">Start</button>
+        </div>
+    </div>
+
+    <div id="room-header" class="hidden">
+        <div class="header-tag" onclick="showLiveStats()">ROOM: <span id="active-code-display"></span> 📊</div>
+        <div class="header-slogan">Stop deciding.<br>Start doing.</div>
+        <div style="font-size: 14px; font-weight: 800; color: var(--mint);">LIVE</div>
+    </div>
+
+    <div id="swipe-screen" class="hidden"></div>
+
 </body>
 </html>
