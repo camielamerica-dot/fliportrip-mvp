@@ -30,6 +30,19 @@
     </style>
 
     <script type="module">
+        
+        window.onload = () => {
+    const savedCode = sessionStorage.getItem('roomCode');
+    if (savedCode) {
+        const goBack = confirm(`Je zat nog in kamer ${savedCode}. Wil je daar verder gaan?`);
+        if (goBack) {
+            myRoomCode = savedCode;
+            enterSwipeUI();
+        } else {
+            sessionStorage.clear();
+        }
+    }
+};
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, setDoc, updateDoc, arrayUnion, increment, getDoc, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -100,12 +113,17 @@
         };
 
         window.enterSwipeUI = async () => {
-            myRoomCode = sessionStorage.getItem('roomCode');
-            document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
-            document.getElementById('swipe-screen').classList.remove('hidden');
-            await fetchActivities();
-            renderCard();
-        };
+    myRoomCode = sessionStorage.getItem('roomCode');
+    
+    // Toon de code in de hoek
+    document.getElementById('room-header').classList.remove('hidden');
+    document.getElementById('active-code-display').innerText = myRoomCode;
+
+    document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
+    document.getElementById('swipe-screen').classList.remove('hidden');
+    await fetchActivities();
+    renderCard();
+};
 
         function renderCard() {
             if(currentIndex >= dbActivities.length) { finishUser(); return; }
@@ -186,6 +204,9 @@
             }).then(() => alert("Top 3 gemaild naar " + data.hostEmail));
         };
     </script>
+    <div id="room-header" class="hidden" style="position: fixed; top: 10px; left: 10px; font-size: 12px; color: var(--mint); opacity: 0.7; z-index: 100;">
+    Kamer: <span id="active-code-display"></span>
+</div>
 </head>
 <body>
 
