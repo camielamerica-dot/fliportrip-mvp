@@ -26,7 +26,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, setDoc, updateDoc, arrayUnion, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, setDoc, updateDoc, arrayUnion, increment, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // 1. PLAK HIER JE FIREBASE CONFIG (Vervang dit hele blok!)
         const firebaseConfig = {
@@ -174,13 +174,35 @@
         };
 
         async function checkWinner() {
-            // Voor de MVP forceert de host de winnaar (simpele logica)
-            if(isHost) {
-                await updateDoc(doc(db, "rooms", myRoomCode), { 
-                    status: 'finished', 
-                    winner: "Grotbiken" 
-                });
-            }
+            // Alleen de Host voert de definitieve berekening uit om dubbele data te voorkomen
+            if(!isHost) return;
+
+            // Haal de meest verse data op uit de database
+            const roomRef = doc(db, "rooms", myRoomCode);
+            const docSnap = await getDoc(roomRef); // Voeg 'getDoc' toe aan je imports bovenin!
+            const data = docSnap.data();
+            const votes = data.votes || {};
+
+            let winnerId = "";
+            let maxVotes = -1;
+
+            // Loop door alle activiteiten en kijk wie de meeste stemmen heeft
+            activities.forEach(act => {
+                const count = votes[act.id] || 0;
+                if(count > maxVotes) {
+                    maxVotes = count;
+                    winnerId = act.title;
+                }
+            });
+
+            // Als er helemaal niet gestemd is, kies de eerste als fallback
+            if(maxVotes === 0) winnerId = activities[0].title;
+
+            // Update de status naar 'finished' zodat iedereen het resultaat ziet
+            await updateDoc(roomRef, { 
+                status: 'finished', 
+                winner: winnerId 
+            });
         }
 
         function showMatch(winner) {
