@@ -1,12 +1,34 @@
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FlipOrTrip | Alpha v0.2</title>
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FlipOrTrip | Alpha v0.3</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     
+    <style>
+        :root { --mint: #00FFC2; --obsidian: #0B0E14; --blue: #007AFF; }
+        body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; text-align: center; }
+        .hidden { display: none !important; }
+        .orb { width: 50px; height: 50px; background: linear-gradient(135deg, var(--mint), var(--blue)); border-radius: 50%; margin: 0 auto 20px; box-shadow: 0 0 20px var(--mint); }
+        h1 span { color: var(--mint); }
+        .input-box { background: #161B22; border: 1px solid var(--mint); padding: 15px; border-radius: 12px; color: white; text-align: center; margin-bottom: 15px; width: 250px; font-size: 16px; outline: none; }
+        .btn { background: var(--mint); color: var(--obsidian); padding: 15px 30px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; transition: 0.2s; width: 280px; margin-bottom: 10px; }
+        .btn:active { transform: scale(0.95); }
+        .label { font-size: 11px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 5px; display: block; text-align: left; margin-left: 25px; }
+        #timer-display { font-family: monospace; color: #FF4B4B; font-size: 18px; margin-top: 10px; font-weight: 800; }
+        .card { width: 300px; height: 420px; background: #161B22; border-radius: 25px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; overflow: hidden; }
+        .card-img { height: 60%; background: #21262d; display: flex; align-items: center; justify-content: center; font-size: 80px; }
+        .card-info { padding: 20px; }
+        .controls { display: flex; gap: 40px; margin-top: 30px; }
+        .btn-vote { width: 70px; height: 70px; border-radius: 50%; border: none; font-size: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    </style>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, onSnapshot, setDoc, updateDoc, arrayUnion, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- PLAK HIER WEER JE EIGEN FIREBASE CONFIG ---
+        // 1. PLAK HIER JE FIREBASE CONFIG (Vervang dit hele blok!)
         const firebaseConfig = {
             apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0",
             authDomain: "fliportrip-valkenburg.firebaseapp.com",
@@ -14,46 +36,94 @@
             storageBucket: "fliportrip-valkenburg.firebasestorage.app",
             messagingSenderId: "1050989330669",
             appId: "1:1050989330669:web:6649f61cbec8ee3b3f8ce4"
-    };
+        };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Dynamische Kamer Code op basis van URL (bijv #1234)
-        const roomCode = window.location.hash ? window.location.hash.substring(1) : "vlk-test";
+        // --- APP LOGICA ---
+        let myRoomCode = "";
+        let isHost = false;
         let myName = "";
         let currentIndex = 0;
 
         const activities = [
             { id: 'bike', title: "Grotbiken", icon: "🚲", desc: "Cross door de grotten van Valkenburg." },
             { id: 'vlaai', title: "Vlaaien Bakken", icon: "🥧", desc: "De enige echte Limburgse vlaai." },
-            { id: 'beer', title: "Bierproeverij", icon: "🍺", desc: "Lokale bieren in een historische kelder." },
-            { id: 'escape', title: "Escape Room", icon: "🔒", desc: "Ontsnap uit de Valkenburgse mijnen." },
-            { id: 'scoot', title: "Scootertocht", icon: "🛵", desc: "Tour door de Limburgse heuvels." }
+            { id: 'beer', title: "Bierproeverij", icon: "🍺", desc: "Lokale bieren in een kelder." },
+            { id: 'escape', title: "Escape Room", icon: "🔒", desc: "Ontsnap uit de mijnen." },
+            { id: 'scoot', title: "Scootertocht", icon: "🛵", desc: "Tour door de heuvels." }
         ];
 
-        window.joinRoom = async () => {
-            myName = document.getElementById('username').value;
-            if(!myName) return alert("Vul je naam in!");
-            
-            await setDoc(doc(db, "rooms", roomCode), {
-                status: 'lobby',
-                participants: arrayUnion(myName)
-            }, { merge: true });
-
-            document.getElementById('lobby').classList.add('hidden');
-            document.getElementById('waiting').classList.remove('hidden');
-            document.getElementById('display-room-code').innerText = roomCode;
-            listenToRoom();
+        window.showSetup = () => {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('setup-screen').classList.remove('hidden');
         };
 
+        window.createRoom = async () => {
+            myName = document.getElementById('host-name').value;
+            const maxP = parseInt(document.getElementById('max-p').value);
+            const mins = parseInt(document.getElementById('deadline-min').value);
+            
+            if(!myName) return alert("Naam verplicht!");
+
+            myRoomCode = Math.floor(1000 + Math.random() * 9000).toString();
+            const deadline = new Date(Date.now() + mins * 60000).getTime();
+
+            await setDoc(doc(db, "rooms", myRoomCode), {
+                status: 'lobby',
+                participants: [myName],
+                maxParticipants: maxP,
+                deadline: deadline,
+                votes: {}
+            });
+
+            isHost = true;
+            enterLobbyUI();
+        };
+
+        window.joinExisting = async () => {
+            myRoomCode = document.getElementById('join-code').value;
+            myName = prompt("Wat is je naam?"); 
+            if(!myRoomCode || !myName) return alert("Code en naam verplicht!");
+
+            await updateDoc(doc(db, "rooms", myRoomCode), {
+                participants: arrayUnion(myName)
+            });
+
+            enterLobbyUI();
+        };
+
+        function enterLobbyUI() {
+            document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
+            document.getElementById('waiting-screen').classList.remove('hidden');
+            document.getElementById('display-room-code').innerText = myRoomCode;
+            listenToRoom();
+        }
+
         function listenToRoom() {
-            onSnapshot(doc(db, "rooms", roomCode), (doc) => {
-                const data = doc.data();
+            onSnapshot(doc(db, "rooms", myRoomCode), (docSnap) => {
+                const data = docSnap.data();
                 if(!data) return;
-                
+
                 const list = document.getElementById('participant-list');
                 list.innerHTML = data.participants.map(p => `<li>${p}</li>`).join('');
+                document.getElementById('participant-count').innerText = `${data.participants.length} / ${data.maxParticipants} spelers`;
+
+                // Timer update
+                const updateTimer = () => {
+                    const timeLeft = Math.round((data.deadline - Date.now()) / 1000);
+                    if(timeLeft > 0) {
+                        document.getElementById('timer-display').innerText = `Tijd: ${Math.floor(timeLeft/60)}m ${timeLeft%60}s`;
+                    } else {
+                        document.getElementById('timer-display').innerText = "TIJD IS OM!";
+                    }
+                };
+                updateTimer();
+
+                if(isHost || data.participants.length >= data.maxParticipants) {
+                    document.getElementById('start-btn').classList.remove('hidden');
+                }
 
                 if(data.status === 'flipping' && document.getElementById('swipe-screen').classList.contains('hidden')) {
                     startFlipping();
@@ -65,23 +135,23 @@
         }
 
         window.startApp = async () => {
-            await updateDoc(doc(db, "rooms", roomCode), { status: 'flipping' });
+            await updateDoc(doc(db, "rooms", myRoomCode), { status: 'flipping' });
         };
 
         function startFlipping() {
-            document.getElementById('waiting').classList.add('hidden');
+            document.getElementById('waiting-screen').classList.add('hidden');
             document.getElementById('swipe-screen').classList.remove('hidden');
             renderCard();
         }
 
         function renderCard() {
             if(currentIndex >= activities.length) {
-                document.getElementById('card-container').innerHTML = "<h3>Wachten op de rest...</h3>";
+                document.getElementById('card-container').innerHTML = "<h2>Klaar! Wachten op de rest...</h2>";
                 return;
             }
             const act = activities[currentIndex];
             document.getElementById('card-container').innerHTML = `
-                <div class="card" id="active-card">
+                <div class="card">
                     <div class="card-img">${act.icon}</div>
                     <div class="card-info">
                         <h2>${act.title}</h2>
@@ -94,28 +164,23 @@
         window.vote = async (type) => {
             if(currentIndex >= activities.length) return;
             const actId = activities[currentIndex].id;
-            
             if(type === 'yes') {
-                const update = {};
-                update[`votes.${actId}`] = increment(1);
-                await updateDoc(doc(db, "rooms", roomCode), update);
+                const update = {}; update[`votes.${actId}`] = increment(1);
+                await updateDoc(doc(db, "rooms", myRoomCode), update);
             }
-
             currentIndex++;
             renderCard();
-
-            // Automatische check of we klaar zijn (simpel voor demo)
-            if(currentIndex === activities.length) {
-                setTimeout(() => finalize(), 2000);
-            }
+            if(currentIndex === activities.length) setTimeout(() => checkWinner(), 3000);
         };
 
-        async function finalize() {
-            // Hier zou de logica komen die de hoogste score kiest
-            await updateDoc(doc(db, "rooms", roomCode), { 
-                status: 'finished',
-                winner: "Grotbiken" 
-            });
+        async function checkWinner() {
+            // Voor de MVP forceert de host de winnaar (simpele logica)
+            if(isHost) {
+                await updateDoc(doc(db, "rooms", myRoomCode), { 
+                    status: 'finished', 
+                    winner: "Grotbiken" 
+                });
+            }
         }
 
         function showMatch(winner) {
@@ -124,51 +189,49 @@
             document.getElementById('winner-name').innerText = winner;
         }
     </script>
-
-    <style>
-        :root { --mint: #00FFC2; --obsidian: #0B0E14; }
-        body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
-        .hidden { display: none !important; }
-        .orb { width: 50px; height: 50px; background: linear-gradient(135deg, var(--mint), #007AFF); border-radius: 50%; margin-bottom: 20px; box-shadow: 0 0 20px var(--mint); }
-        .input-box { background: #161B22; border: 1px solid var(--mint); padding: 15px; border-radius: 12px; color: white; text-align: center; margin-bottom: 15px; }
-        .btn { background: var(--mint); color: var(--obsidian); padding: 15px 30px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; transition: 0.2s; }
-        .btn:active { transform: scale(0.95); }
-        .card { width: 300px; height: 420px; background: #161B22; border-radius: 25px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; overflow: hidden; }
-        .card-img { height: 60%; background: #21262d; display: flex; align-items: center; justify-content: center; font-size: 80px; }
-        .card-info { padding: 20px; text-align: center; }
-        .controls { display: flex; gap: 40px; margin-top: 30px; }
-        .btn-vote { width: 70px; height: 70px; border-radius: 50%; border: none; font-size: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-    </style>
 </head>
 <body>
 
-    <div id="lobby">
+    <div id="start-screen">
         <div class="orb"></div>
         <h1>FLIP<span>OR</span>TRIP</h1>
-        <p style="opacity: 0.5;">Voer je naam in om te starten</p>
-        <input type="text" id="username" class="input-box" placeholder="Naam...">
-        <br>
-        <button class="btn" onclick="joinRoom()">Enter Lobby</button>
+        <button class="btn" onclick="showSetup()">Nieuwe Trip Starten</button>
+        <p style="margin: 10px 0; opacity: 0.5;">of</p>
+        <input type="text" id="join-code" class="input-box" placeholder="Voer 4-cijferige code in">
+        <button class="btn" style="background: white;" onclick="joinExisting()">Deelnemen</button>
     </div>
 
-    <div id="waiting" class="hidden" style="text-align: center;">
-        <h2>Lobby: <span id="display-room-code" style="color: var(--mint);"></span></h2>
-        <ul id="participant-list" style="list-style: none; padding: 0; font-size: 24px; font-weight: 800; color: var(--mint); margin: 30px 0;"></ul>
-        <button class="btn" onclick="startApp()">IEDEREEN IS ER!</button>
+    <div id="setup-screen" class="hidden">
+        <h2>Instellingen</h2>
+        <span class="label">Aantal deelnemers</span>
+        <input type="number" id="max-p" class="input-box" value="6">
+        <span class="label">Tijd (minuten)</span>
+        <input type="number" id="deadline-min" class="input-box" value="5">
+        <span class="label">Jouw Naam</span>
+        <input type="text" id="host-name" class="input-box" placeholder="Naam...">
+        <button class="btn" onclick="createRoom()">Start Lobby</button>
+    </div>
+
+    <div id="waiting-screen" class="hidden">
+        <h2>Code: <span id="display-room-code" style="color: var(--mint);"></span></h2>
+        <div id="timer-display"></div>
+        <ul id="participant-list" style="list-style: none; padding: 0; font-size: 24px; font-weight: 800; color: var(--mint); margin: 20px 0;"></ul>
+        <p id="participant-count">0 / 0 spelers</p>
+        <button id="start-btn" class="btn hidden" onclick="startApp()">START NU</button>
     </div>
 
     <div id="swipe-screen" class="hidden">
         <div id="card-container"></div>
         <div class="controls">
-            <button class="btn-vote" style="background: rgba(255,75,75,0.2); color: #FF4B4B; border: 2px solid #FF4B4B;" onclick="vote('no')">✕</button>
-            <button class="btn-vote" style="background: rgba(0,255,194,0.2); color: var(--mint); border: 2px solid var(--mint);" onclick="vote('yes')">♥</button>
+            <button class="btn-vote" style="background: rgba(255,0,0,0.1); color: red; border: 2px solid red;" onclick="vote('no')">✕</button>
+            <button class="btn-vote" style="background: rgba(0,255,194,0.1); color: var(--mint); border: 2px solid var(--mint);" onclick="vote('yes')">♥</button>
         </div>
     </div>
 
-    <div id="match-screen" class="hidden" style="text-align: center; padding: 20px;">
-        <h1 style="color: var(--mint); letter-spacing: 2px;">IT'S A MATCH!</h1>
+    <div id="match-screen" class="hidden">
+        <h1 style="color: var(--mint);">IT'S A MATCH!</h1>
         <div id="winner-name" style="font-size: 45px; font-weight: 800; margin: 20px 0;"></div>
-        <button class="btn" style="background: white;" onclick="location.reload()">Nieuwe Trip</button>
+        <button class="btn" onclick="location.reload()">Opnieuw</button>
     </div>
 
 </body>
