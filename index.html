@@ -143,11 +143,24 @@
             card.className = 'card';
             card.innerHTML = `<div class="swipe-indicator indicator-like">♥</div><div class="swipe-indicator indicator-dislike">✕</div><div class="card-img" style="background-image:url('${a.image}')"></div><div class="card-info"><h2>${a.title}</h2><p>${a.desc}</p></div>`;
             container.appendChild(card);
+            
             const h = new Hammer(card);
+            const likeInd = card.querySelector('.indicator-like');
+            const dislikeInd = card.querySelector('.indicator-dislike');
+
             h.on('pan', e => {
                 card.style.transform = `translateX(${e.deltaX}px) rotate(${e.deltaX/20}deg)`;
-                card.querySelector(e.deltaX > 0 ? '.indicator-like' : '.indicator-dislike').style.opacity = Math.min(Math.abs(e.deltaX) / 100, 0.8);
+                
+                // Kleur indicators aansturen op basis van richting
+                if (e.deltaX > 0) {
+                    likeInd.style.opacity = Math.min(e.deltaX / 100, 0.8);
+                    dislikeInd.style.opacity = 0;
+                } else {
+                    dislikeInd.style.opacity = Math.min(Math.abs(e.deltaX) / 100, 0.8);
+                    likeInd.style.opacity = 0;
+                }
             });
+
             h.on('panend', async e => {
                 if(Math.abs(e.deltaX) > 100) {
                     if(e.deltaX > 0) {
@@ -155,10 +168,13 @@
                         await updateDoc(doc(db, "rooms", window.currentRoom), up);
                     }
                     window.actIdx++; renderCard();
-                } else { card.style.transform = ''; card.querySelectorAll('.swipe-indicator').forEach(i => i.style.opacity = 0); }
+                } else { 
+                    card.style.transform = ''; 
+                    likeInd.style.opacity = 0; 
+                    dislikeInd.style.opacity = 0; 
+                }
             });
         }
-
         window.showLiveStats = () => {
             document.getElementById('stats-modal').style.display = 'flex';
             onSnapshot(doc(db, "rooms", window.currentRoom), async (ds) => {
