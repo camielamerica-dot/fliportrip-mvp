@@ -167,19 +167,40 @@
         window.checkFinalResult = async () => {
             const docSnap = await getDoc(doc(db, "rooms", myRoomCode));
             const data = docSnap.data();
-            let winnerTitle = "Geen match"; let maxV = -1;
-            dbActivities.forEach(a => {
-                let v = (data.votes && data.votes[a.id]) || 0;
-                if(v > maxV) { maxV = v; winnerTitle = a.title; }
-            });
-            document.getElementById('winner-display').innerText = "Resultaat: " + winnerTitle;
+            const totalParticipants = data.participants.length;
             
-            emailjs.send("service_pceg3i8", "template_tr613kg", {
+            if (dbActivities.length === 0) await fetchActivities();
+
+            // Bereken resultaten voor alle activiteiten
+            let results = dbActivities.map(act => {
+                const jaStemmen = (data.votes && data.votes[act.id]) || 0;
+                const percentage = Math.round((jaStemmen / totalParticipants) * 100);
+                return { title: act.title, percentage: percentage };
+            });
+
+            // Sorteren: Hoogste percentage eerst
+            results.sort((a, b) => b.percentage - a.percentage);
+
+            // Top 3 tonen op scherm
+            const top3 = results.slice(0, 3);
+            const leaderboard = document.getElementById('leaderboard');
+            leaderboard.innerHTML = '<h3>Top 3 Resultaten:</h3>';
+            top3.forEach((res, index) => {
+                leaderboard.innerHTML += `
+                    <div class="leader-item">
+                        <span class="leader-name">${index + 1}. ${res.title}</span>
+                        <span class="leader-perc">${res.percentage}%</span>
+                    </div>`;
+            });
+
+            // Email versturen met Top 3
+            const emailBody = top3.map((r, i) => `${i+1}. ${r.title} (${r.percentage}%)`).join('\n');
+            emailjs.send("JOUW_SERVICE_ID", "JOUW_TEMPLATE_ID", {
                 host_name: data.hostName,
                 to_email: data.hostEmail,
                 room_code: myRoomCode,
-                winner: winnerTitle
-            }).then(() => alert("Gemaild naar " + data.hostEmail));
+                winner: emailBody // We sturen de hele top 3 naar de {{winner}} placeholder
+            }).then(() => alert("Top 3 gemaild!"));
         };
     </script>
 </head>
