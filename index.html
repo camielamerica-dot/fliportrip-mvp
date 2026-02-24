@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FlipOrTrip | v0.13</title>
+    <title>FlipOrTrip | v0.14</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
@@ -23,8 +23,6 @@
         .btn-vote { width: 70px; height: 70px; border-radius: 50%; border: none; font-size: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         #participant-monitor { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; margin: 15px auto; font-size: 14px; text-align: left; width: 260px; border: 1px solid rgba(255,255,255,0.1); }
         .stat-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
-        
-        /* Leaderboard Styles */
         #leaderboard { margin-top: 20px; text-align: left; width: 280px; margin-left: auto; margin-right: auto; }
         .leader-item { background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--mint); }
         .leader-name { font-weight: 800; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
@@ -35,7 +33,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, setDoc, updateDoc, arrayUnion, increment, getDoc, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- CONFIG (VUL JE EIGEN GEGEVENS IN) ---
         const firebaseConfig = {
             apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0",
             authDomain: "fliportrip-valkenburg.firebaseapp.com",
@@ -69,19 +66,14 @@
             const email = document.getElementById('host-email').value;
             const target = document.getElementById('target-p').value;
             const mins = document.getElementById('deadline-min').value;
-
-            if(!name || !email || !target) return alert("Vul alle velden in!");
+            if(!name || !email || !target) return alert("Vul alles in!");
 
             myRoomCode = Math.floor(1000 + Math.random() * 9000).toString();
             const deadlineTS = Date.now() + (mins * 60000);
 
             await setDoc(doc(db, "rooms", myRoomCode), {
-                hostName: name,
-                hostEmail: email,
-                targetParticipants: parseInt(target),
-                deadline: deadlineTS,
-                participants: [name],
-                votes: {}
+                hostName: name, hostEmail: email, targetParticipants: parseInt(target),
+                deadline: deadlineTS, participants: [name], votes: {}
             });
 
             sessionStorage.setItem('isHost', 'true');
@@ -93,7 +85,7 @@
             document.getElementById('setup-screen').classList.add('hidden');
             document.getElementById('share-screen').classList.remove('hidden');
             document.getElementById('final-code-display').innerText = code;
-            const msg = encodeURIComponent(`Help mee kiezen voor Valkenburg! 🌴\nCode: ${code}\nDeadline: over ${mins} minuten\nLink: https://fliportrip-mvp.vercel.app`);
+            const msg = encodeURIComponent(`Swipe mee voor Valkenburg! 🌴\nCode: ${code}\nLink: https://fliportrip-mvp.vercel.app`);
             document.getElementById('whatsapp-btn').onclick = () => { window.location.href = `whatsapp://send?text=${msg}`; };
         }
 
@@ -113,7 +105,7 @@
             document.getElementById('swipe-screen').classList.remove('hidden');
             await fetchActivities();
             renderCard();
-        }
+        };
 
         function renderCard() {
             if(currentIndex >= dbActivities.length) { finishUser(); return; }
@@ -161,39 +153,37 @@
             const docSnap = await getDoc(doc(db, "rooms", myRoomCode));
             const data = docSnap.data();
             const totalParticipants = data.participants.length;
-            
             if (dbActivities.length === 0) await fetchActivities();
 
-            // Bereken resultaten voor alle activiteiten
             let results = dbActivities.map(act => {
                 const jaStemmen = (data.votes && data.votes[act.id]) || 0;
-                const percentage = Math.round((jaStemmen / totalParticipants) * 100);
+                const percentage = totalParticipants > 0 ? Math.round((jaStemmen / totalParticipants) * 100) : 0;
                 return { title: act.title, percentage: percentage };
             });
 
-            // Sorteren: Hoogste percentage eerst
             results.sort((a, b) => b.percentage - a.percentage);
-
-            // Top 3 tonen op scherm
             const top3 = results.slice(0, 3);
             const leaderboard = document.getElementById('leaderboard');
-            leaderboard.innerHTML = '<h3>Top 3 Resultaten:</h3>';
+            leaderboard.innerHTML = '<h3>Tussenstand Top 3:</h3>';
             top3.forEach((res, index) => {
-                leaderboard.innerHTML += `
-                    <div class="leader-item">
-                        <span class="leader-name">${index + 1}. ${res.title}</span>
-                        <span class="leader-perc">${res.percentage}%</span>
-                    </div>`;
+                leaderboard.innerHTML += `<div class="leader-item"><span class="leader-name">${index + 1}. ${res.title}</span><span class="leader-perc">${res.percentage}%</span></div>`;
             });
+            document.getElementById('mail-button-final').classList.remove('hidden');
+        };
 
-            // Email versturen met Top 3
-            const emailBody = top3.map((r, i) => `${i+1}. ${r.title} (${r.percentage}%)`).join('\n');
+        window.sendFinalEmail = async () => {
+            const docSnap = await getDoc(doc(db, "rooms", myRoomCode));
+            const data = docSnap.data();
+            const leaderboardItems = document.querySelectorAll('.leader-item');
+            let emailText = "";
+            leaderboardItems.forEach(item => { emailText += item.innerText + "\n"; });
+
             emailjs.send("service_pceg3i8", "template_tr613kg", {
                 host_name: data.hostName,
-                to_email: data.hostEmail,
+                to_email: data.hostEmail, // Zorg dat dit {{to_email}} is in EmailJS
                 room_code: myRoomCode,
-                winner: emailBody // We sturen de hele top 3 naar de {{winner}} placeholder
-            }).then(() => alert("Top 3 gemaild!"));
+                winner: emailText
+            }).then(() => alert("Top 3 gemaild naar " + data.hostEmail));
         };
     </script>
 </head>
@@ -246,8 +236,9 @@
                 <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:10px 0;">
                 <div style="font-size:12px; opacity:0.6;" id="p-list">Laden...</div>
             </div>
-            <button class="btn" onclick="checkFinalResult()">BEPAAL TOP 3 & MAIL</button>
+            <button class="btn" onclick="checkFinalResult()">BEKIJK TUSSENSTAND</button>
             <div id="leaderboard"></div>
+            <button id="mail-button-final" class="btn hidden" style="background:white; margin-top:10px;" onclick="sendFinalEmail()">MAIL DEFINITIEVE UITSLAG</button>
         </div>
         <p id="guest-msg">Je stemmen zijn opgeslagen!</p>
     </div>
