@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FlipOrTrip | v0.11</title>
+    <title>FlipOrTrip | v0.12</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
@@ -11,7 +11,7 @@
         body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; text-align: center; }
         .hidden { display: none !important; }
         .orb { width: 50px; height: 50px; background: linear-gradient(135deg, var(--mint), var(--blue)); border-radius: 50%; margin: 0 auto 20px; box-shadow: 0 0 20px var(--mint); }
-        .input-box { background: #161B22; border: 1px solid var(--mint); padding: 15px; border-radius: 12px; color: white; text-align: center; margin-bottom: 15px; width: 280px; font-size: 16px; outline: none; border: 1px solid rgba(0,255,194,0.3); }
+        .input-box { background: #161B22; border: 1px solid var(--mint); padding: 12px; border-radius: 12px; color: white; text-align: center; margin-bottom: 10px; width: 280px; font-size: 16px; outline: none; border: 1px solid rgba(0,255,194,0.3); }
         .btn { background: var(--mint); color: var(--obsidian); padding: 15px 30px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; width: 280px; margin-bottom: 10px; }
         .label { font-size: 11px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 5px; display: block; text-align: left; margin-left: 10px; }
         .card { width: 320px; height: 420px; background: #161B22; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; overflow: hidden; }
@@ -21,14 +21,15 @@
         .card-info p { margin: 5px 0 0; opacity: 0.6; font-size: 13px; }
         .controls { display: flex; gap: 40px; margin-top: 20px; }
         .btn-vote { width: 70px; height: 70px; border-radius: 50%; border: none; font-size: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        #participant-monitor { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; margin-top: 10px; font-size: 14px; text-align: left; width: 250px; margin-left: auto; margin-right: auto; }
+        #participant-monitor { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; margin: 15px auto; font-size: 14px; text-align: left; width: 260px; border: 1px solid rgba(255,255,255,0.1); }
+        .stat-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
     </style>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, setDoc, updateDoc, arrayUnion, increment, getDoc, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- CONFIG (INVULLEN) ---
+        // --- CONFIG (PLAK HIER JE EIGEN GEGEVENS) ---
         const firebaseConfig = {
             apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0",
             authDomain: "fliportrip-valkenburg.firebaseapp.com",
@@ -45,6 +46,7 @@
         let myRoomCode = "";
         let dbActivities = [];
         let currentIndex = 0;
+        let timerInt = null;
 
         async function fetchActivities() {
             const querySnapshot = await getDocs(collection(db, "activities"));
@@ -59,28 +61,35 @@
         window.createRoom = async () => {
             const name = document.getElementById('host-name').value;
             const email = document.getElementById('host-email').value;
-            if(!name || !email) return alert("Naam en Email verplicht!");
+            const target = document.getElementById('target-p').value;
+            const mins = document.getElementById('deadline-min').value;
+
+            if(!name || !email || !target) return alert("Vul alle velden in!");
 
             myRoomCode = Math.floor(1000 + Math.random() * 9000).toString();
+            const deadlineTS = Date.now() + (mins * 60000);
+
             await setDoc(doc(db, "rooms", myRoomCode), {
                 hostName: name,
                 hostEmail: email,
+                targetParticipants: parseInt(target),
+                deadline: deadlineTS,
                 participants: [name],
                 votes: {}
             });
 
             sessionStorage.setItem('isHost', 'true');
             sessionStorage.setItem('roomCode', myRoomCode);
-            showShareScreen();
+            
+            showShareScreen(myRoomCode, mins);
         };
 
-        function showShareScreen() {
+        function showShareScreen(code, mins) {
             document.getElementById('setup-screen').classList.add('hidden');
             document.getElementById('share-screen').classList.remove('hidden');
-            document.getElementById('final-code-display').innerText = myRoomCode;
+            document.getElementById('final-code-display').innerText = code;
 
-            const msg = encodeURIComponent(`Help mee kiezen voor onze trip! 🌴 Code: ${myRoomCode} op https://fliportrip-mvp.vercel.app`);
-            // Betere WhatsApp link
+            const msg = encodeURIComponent(`Help mee kiezen voor Valkenburg! 🌴\nCode: ${code}\nDeadline: over ${mins} minuten\nLink: https://fliportrip-mvp.vercel.app`);
             document.getElementById('whatsapp-btn').onclick = () => {
                 window.location.href = `whatsapp://send?text=${msg}`;
             };
@@ -130,16 +139,28 @@
             document.getElementById('thanks-screen').classList.remove('hidden');
             if (sessionStorage.getItem('isHost') === 'true') {
                 document.getElementById('host-controls').classList.remove('hidden');
-                monitorParticipants();
+                monitorRoom();
             }
         }
 
-        // LIVE MONITORING VOOR DE HOST
-        function monitorParticipants() {
+        function monitorRoom() {
             onSnapshot(doc(db, "rooms", myRoomCode), (docSnap) => {
                 const data = docSnap.data();
                 document.getElementById('p-list').innerText = data.participants.join(', ');
-                document.getElementById('p-count').innerText = data.participants.length;
+                document.getElementById('p-progress').innerText = `${data.participants.length} / ${data.targetParticipants}`;
+                
+                if(timerInt) clearInterval(timerInt);
+                timerInt = setInterval(() => {
+                    const diff = data.deadline - Date.now();
+                    if(diff <= 0) {
+                        document.getElementById('time-left').innerText = "Deadline verstreken";
+                        clearInterval(timerInt);
+                    } else {
+                        const m = Math.floor(diff / 60000);
+                        const s = Math.floor((diff % 60000) / 1000);
+                        document.getElementById('time-left').innerText = `${m}m ${s}s over`;
+                    }
+                }, 1000);
             });
         }
 
@@ -154,7 +175,7 @@
             document.getElementById('winner-display').innerText = "Resultaat: " + winnerTitle;
             
             emailjs.send("service_pceg3i8", "template_tr613kg", {
-                host_name: data.hostName, // VERSTUURT NU DE NAAM
+                host_name: data.hostName,
                 to_email: data.hostEmail,
                 room_code: myRoomCode,
                 winner: winnerTitle
@@ -175,8 +196,16 @@
 
     <div id="setup-screen" class="hidden">
         <h2>Trip Setup</h2>
-        <input type="text" id="host-name" class="input-box" placeholder="Jouw Naam">
-        <input type="email" id="host-email" class="input-box" placeholder="E-mail voor uitslag">
+        <div style="text-align:left; width:280px; margin:0 auto;">
+            <span class="label">Jouw Naam</span>
+            <input type="text" id="host-name" class="input-box">
+            <span class="label">E-mail voor uitslag</span>
+            <input type="email" id="host-email" class="input-box">
+            <span class="label">Aantal personen verwacht</span>
+            <input type="number" id="target-p" class="input-box" value="4">
+            <span class="label">Deadline (minuten)</span>
+            <input type="number" id="deadline-min" class="input-box" value="60">
+        </div>
         <button class="btn" onclick="createRoom()">Kamer Aanmaken</button>
     </div>
 
@@ -198,13 +227,15 @@
         <h1 style="color:var(--mint)">KLAAR!</h1>
         <div id="host-controls" class="hidden">
             <div id="participant-monitor">
-                <strong>Deelnemers (<span id="p-count">0</span>):</strong><br>
-                <span id="p-list" style="opacity:0.7">Laden...</span>
+                <div class="stat-row"><strong>Voortgang:</strong> <span id="p-progress">...</span></div>
+                <div class="stat-row"><strong>Tijd:</strong> <span id="time-left">...</span></div>
+                <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:10px 0;">
+                <div style="font-size:12px; opacity:0.6;" id="p-list">Laden...</div>
             </div>
-            <button class="btn" onclick="checkFinalResult()" style="margin-top:20px">BEPAAL WINNAAR & MAIL</button>
+            <button class="btn" onclick="checkFinalResult()">BEPAAL WINNAAR & MAIL</button>
             <h2 id="winner-display" style="color:var(--mint)"></h2>
         </div>
-        <p id="guest-msg">Bedankt voor het swipen! De host bepaalt de uitslag.</p>
+        <p id="guest-msg">Je stemmen zijn opgeslagen!<br><span style="opacity:0.6; font-size:14px;">De host mailt de uitslag zodra iedereen klaar is.</span></p>
     </div>
 
 </body>
