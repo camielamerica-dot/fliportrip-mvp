@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FlipOrTrip | v0.12</title>
+    <title>FlipOrTrip | v0.13</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         :root { --mint: #00FFC2; --obsidian: #0B0E14; --blue: #007AFF; }
         body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; text-align: center; }
         .hidden { display: none !important; }
-        .orb { width: 50px; height: 50px; background: linear-gradient(135deg, var(--mint), var(--blue)); border-radius: 50%; margin: 0 auto 20px; box-shadow: 0 0 20px var(--mint); }
+        .orb { width: 45px; height: 45px; background: linear-gradient(135deg, var(--mint), var(--blue)); border-radius: 50%; margin: 0 auto 15px; box-shadow: 0 0 20px var(--mint); }
         .input-box { background: #161B22; border: 1px solid var(--mint); padding: 12px; border-radius: 12px; color: white; text-align: center; margin-bottom: 10px; width: 280px; font-size: 16px; outline: none; border: 1px solid rgba(0,255,194,0.3); }
         .btn { background: var(--mint); color: var(--obsidian); padding: 15px 30px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; width: 280px; margin-bottom: 10px; }
         .label { font-size: 11px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 5px; display: block; text-align: left; margin-left: 10px; }
@@ -23,13 +23,19 @@
         .btn-vote { width: 70px; height: 70px; border-radius: 50%; border: none; font-size: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         #participant-monitor { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; margin: 15px auto; font-size: 14px; text-align: left; width: 260px; border: 1px solid rgba(255,255,255,0.1); }
         .stat-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        
+        /* Leaderboard Styles */
+        #leaderboard { margin-top: 20px; text-align: left; width: 280px; margin-left: auto; margin-right: auto; }
+        .leader-item { background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--mint); }
+        .leader-name { font-weight: 800; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+        .leader-perc { color: var(--mint); font-weight: 800; font-size: 16px; }
     </style>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, setDoc, updateDoc, arrayUnion, increment, getDoc, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- CONFIG (PLAK HIER JE EIGEN GEGEVENS) ---
+        // --- CONFIG (VUL JE EIGEN GEGEVENS IN) ---
         const firebaseConfig = {
             apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0",
             authDomain: "fliportrip-valkenburg.firebaseapp.com",
@@ -80,7 +86,6 @@
 
             sessionStorage.setItem('isHost', 'true');
             sessionStorage.setItem('roomCode', myRoomCode);
-            
             showShareScreen(myRoomCode, mins);
         };
 
@@ -88,18 +93,14 @@
             document.getElementById('setup-screen').classList.add('hidden');
             document.getElementById('share-screen').classList.remove('hidden');
             document.getElementById('final-code-display').innerText = code;
-
             const msg = encodeURIComponent(`Help mee kiezen voor Valkenburg! 🌴\nCode: ${code}\nDeadline: over ${mins} minuten\nLink: https://fliportrip-mvp.vercel.app`);
-            document.getElementById('whatsapp-btn').onclick = () => {
-                window.location.href = `whatsapp://send?text=${msg}`;
-            };
+            document.getElementById('whatsapp-btn').onclick = () => { window.location.href = `whatsapp://send?text=${msg}`; };
         }
 
         window.joinExisting = async () => {
             myRoomCode = document.getElementById('join-code').value;
             const name = prompt("Wat is je naam?"); 
             if(!myRoomCode || !name) return alert("Code en naam verplicht!");
-            
             await updateDoc(doc(db, "rooms", myRoomCode), { participants: arrayUnion(name) });
             sessionStorage.setItem('isHost', 'false');
             sessionStorage.setItem('roomCode', myRoomCode);
@@ -148,18 +149,10 @@
                 const data = docSnap.data();
                 document.getElementById('p-list').innerText = data.participants.join(', ');
                 document.getElementById('p-progress').innerText = `${data.participants.length} / ${data.targetParticipants}`;
-                
                 if(timerInt) clearInterval(timerInt);
                 timerInt = setInterval(() => {
                     const diff = data.deadline - Date.now();
-                    if(diff <= 0) {
-                        document.getElementById('time-left').innerText = "Deadline verstreken";
-                        clearInterval(timerInt);
-                    } else {
-                        const m = Math.floor(diff / 60000);
-                        const s = Math.floor((diff % 60000) / 1000);
-                        document.getElementById('time-left').innerText = `${m}m ${s}s over`;
-                    }
+                    document.getElementById('time-left').innerText = diff <= 0 ? "Tijd om!" : `${Math.floor(diff/60000)}m ${Math.floor((diff%60000)/1000)}s`;
                 }, 1000);
             });
         }
@@ -222,7 +215,7 @@
             <input type="text" id="host-name" class="input-box">
             <span class="label">E-mail voor uitslag</span>
             <input type="email" id="host-email" class="input-box">
-            <span class="label">Aantal personen verwacht</span>
+            <span class="label">Aantal personen</span>
             <input type="number" id="target-p" class="input-box" value="4">
             <span class="label">Deadline (minuten)</span>
             <input type="number" id="deadline-min" class="input-box" value="60">
@@ -253,10 +246,10 @@
                 <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:10px 0;">
                 <div style="font-size:12px; opacity:0.6;" id="p-list">Laden...</div>
             </div>
-            <button class="btn" onclick="checkFinalResult()">BEPAAL WINNAAR & MAIL</button>
-            <h2 id="winner-display" style="color:var(--mint)"></h2>
+            <button class="btn" onclick="checkFinalResult()">BEPAAL TOP 3 & MAIL</button>
+            <div id="leaderboard"></div>
         </div>
-        <p id="guest-msg">Je stemmen zijn opgeslagen!<br><span style="opacity:0.6; font-size:14px;">De host mailt de uitslag zodra iedereen klaar is.</span></p>
+        <p id="guest-msg">Je stemmen zijn opgeslagen!</p>
     </div>
 
 </body>
