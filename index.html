@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FlipOrTrip | v0.45 MVP</title>
+    <title>FlipOrTrip | v0.46 MVP</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
@@ -12,12 +12,12 @@
         body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
         .hidden { display: none !important; }
         
-        /* Logo Glow */
-        .logo-container { position: relative; margin-top: 50px; margin-bottom: 50px; }
+        /* Logo & Glow */
+        .logo-container { position: relative; margin-top: 20px; margin-bottom: 30px; }
         .logo-glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 150px; height: 150px; background: var(--mint); filter: blur(60px); opacity: 0.2; z-index: 0; }
-        .logo-img { width: 180px; position: relative; z-index: 1; }
+        .logo-img { width: 160px; position: relative; z-index: 1; }
 
-        /* UI Elements */
+        /* UI */
         .btn { background: var(--mint); color: var(--obsidian); padding: 18px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; width: 260px; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
         .btn-wa { background: #25D366; color: white; }
         .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; }
@@ -31,27 +31,29 @@
         .header-tag { font-size: 11px; background: rgba(0,255,194,0.1); border: 1px solid var(--mint); padding: 6px 14px; border-radius: 20px; font-weight: 800; cursor: pointer; }
         .header-timer { font-size: 14px; font-weight: 800; color: white; min-width: 50px; }
 
+        /* Dashboard Stats */
+        .stat-bar-container { background: rgba(255,255,255,0.05); border-radius: 10px; margin-bottom: 10px; padding: 12px; }
+        .stat-info { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px; }
+        .stat-bar-bg { background: rgba(255,255,255,0.1); height: 6px; border-radius: 3px; overflow: hidden; }
+        .stat-bar-fill { background: var(--mint); height: 100%; transition: width 0.5s ease; }
+
         /* Swipe UI */
-        #swipe-screen { position: relative; width: 100%; height: 70vh; display: flex; align-items: center; justify-content: center; margin-top: 100px; touch-action: none; }
-        .card { width: 320px; height: 460px; background: var(--card-bg); border-radius: 35px; border: 1px solid rgba(255,255,255,0.1); position: absolute; overflow: hidden; box-shadow: 0 15px 50px rgba(0,0,0,0.5); }
+        #swipe-screen { position: relative; width: 100%; height: 65vh; display: flex; align-items: center; justify-content: center; margin-top: 100px; touch-action: none; }
+        .card { width: 310px; height: 440px; background: var(--card-bg); border-radius: 35px; border: 1px solid rgba(255,255,255,0.1); position: absolute; overflow: hidden; }
         .card-img { height: 60%; background-size: cover; background-position: center; pointer-events: none; }
-        .card-info { padding: 25px; text-align: left; pointer-events: none; }
+        .card-info { padding: 20px; text-align: left; pointer-events: none; }
         
-        /* Modals */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.96); backdrop-filter: blur(15px); display: none; align-items: center; justify-content: center; z-index: 99999; padding: 20px; box-sizing: border-box; }
-        .modal-card { background: var(--card-bg); padding: 30px; border-radius: 30px; border: 2px solid var(--mint); width: 100%; max-width: 320px; text-align: center; }
-        
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.96); backdrop-filter: blur(15px); display: none; align-items: center; justify-content: center; z-index: 99999; padding: 20px; }
+        .modal-card { background: var(--card-bg); padding: 25px; border-radius: 30px; border: 2px solid var(--mint); width: 100%; max-width: 340px; text-align: center; }
         .swipe-indicator { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 80px; opacity: 0; z-index: 10; pointer-events: none; }
         .indicator-like { color: var(--mint); background: radial-gradient(circle, rgba(0,255,194,0.15) 0%, transparent 70%); }
         .indicator-dislike { color: var(--red); background: radial-gradient(circle, rgba(255,75,75,0.15) 0%, transparent 70%); }
-        .footer-link { font-size: 12px; opacity: 0.5; margin-top: 20px; text-decoration: underline; cursor: pointer; }
     </style>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, increment, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // CONFIG (Check Firebase Keys)
         const firebaseConfig = { apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0",
             authDomain: "fliportrip-valkenburg.firebaseapp.com",
             projectId: "fliportrip-valkenburg",
@@ -61,7 +63,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- EMAILJS CONFIG (VUL HIER JE ID'S IN) ---
+        // --- EMAILJS CONFIG ---
         emailjs.init("wcDPsz6TupAyvv3G0");
         const SERVICE_ID = "service_pceg3i8"; 
         const TEMPLATE_ID = "template_tr613kg"; 
@@ -75,13 +77,17 @@
             const name = document.getElementById('host-name').value;
             const email = document.getElementById('host-email').value.toLowerCase();
             const target = document.getElementById('target-p').value;
+            const minutes = document.getElementById('deadline-input').value || 60;
+            
             if(!name || !email) return alert("Naam en e-mail verplicht!");
             const code = Math.floor(1000 + Math.random() * 9000).toString();
-            const deadline = Date.now() + (60 * 60000); 
+            const deadline = Date.now() + (parseInt(minutes) * 60000); 
+
             await setDoc(doc(db, "rooms", code), { 
                 hostName: name, hostEmail: email, targetParticipants: parseInt(target), 
                 deadline, participants: [name], votes: {}, finishedCount: 0, mailSent: false 
             });
+
             window.currentRoom = code;
             document.getElementById('setup-screen').classList.add('hidden');
             document.getElementById('share-screen').classList.remove('hidden');
@@ -92,8 +98,6 @@
             const msg = `Help mee beslissen voor onze trip! 🌴\nCode: *${window.currentRoom}*\nDoe mee op: ${window.location.origin}`;
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
         };
-
-        window.openHostLogin = () => document.getElementById('host-login-modal').style.display = 'flex';
 
         window.verifyHost = async () => {
             const code = document.getElementById('login-code').value.trim();
@@ -106,40 +110,31 @@
             } else { alert("Gegevens komen niet overeen."); }
         };
 
-        // --- EMAIL FUNCTION ---
-        async function checkAndSendMail(roomData, activities) {
-            if(roomData.mailSent) return;
-            let scores = activities.map(a => ({ title: a.title, count: roomData.votes[a.id] || 0 }))
-                .sort((a,b) => b.count - a.count);
-            const templateParams = {
-                to_email: roomData.hostEmail,
-                host_name: roomData.hostName,
-                room_code: window.currentRoom,
-                winner_1: scores[0] ? scores[0].title : "Geen",
-                winner_2: scores[1] ? scores[1].title : "Geen",
-                winner_3: scores[2] ? scores[2].title : "Geen"
-            };
-            try {
-                await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams);
-                await updateDoc(doc(db, "rooms", window.currentRoom), { mailSent: true });
-                console.log("Resultaten gemaild!");
-            } catch (error) { console.error("Mail fout:", error); }
-        }
-
-        // --- JOIN LOGIC ---
-        window.confirmJoin = async () => {
-            const code = document.getElementById('join-code').value.trim();
-            const name = document.getElementById('join-name').value.trim();
-            if(!code || !name) return alert("Code en naam verplicht!");
-            const ds = await getDoc(doc(db, "rooms", code));
-            if(!ds.exists()) return alert("Kamer niet gevonden!");
-            window.currentRoom = code;
-            await updateDoc(doc(db, "rooms", code), { participants: arrayUnion(name) });
-            document.getElementById('join-modal').style.display = 'none';
-            window.startSwiping();
+        window.showLiveStats = () => {
+            document.getElementById('stats-modal').style.display = 'flex';
+            onSnapshot(doc(db, "rooms", window.currentRoom), async (ds) => {
+                const d = ds.data();
+                const totalFinished = d.finishedCount || 1; // Voorkom delen door nul
+                document.getElementById('live-progress').innerText = `${d.finishedCount} / ${d.targetParticipants} personen klaar`;
+                
+                const qs = await getDocs(collection(db, "activities"));
+                const acts = qs.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                
+                let html = "";
+                acts.forEach(a => {
+                    const votes = d.votes[a.id] || 0;
+                    const perc = Math.round((votes / totalFinished) * 100);
+                    html += `
+                        <div class="stat-bar-container">
+                            <div class="stat-info"><span>${a.title}</span><span>${perc}%</span></div>
+                            <div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${perc}%"></div></div>
+                        </div>`;
+                });
+                document.getElementById('live-leaderboard').innerHTML = html;
+            });
         };
 
-        // --- CORE GAME ---
+        // --- GAME LOGIC ---
         window.startSwiping = async () => {
             document.querySelectorAll('.screen-content').forEach(s => s.classList.add('hidden'));
             document.getElementById('room-header').classList.remove('hidden');
@@ -149,7 +144,6 @@
             const ds = await getDoc(doc(db, "rooms", window.currentRoom));
             const deadline = ds.data().deadline;
             
-            if(timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(() => {
                 const diff = deadline - Date.now();
                 if(diff <= 0) {
@@ -172,7 +166,7 @@
             const container = document.getElementById('swipe-screen');
             container.innerHTML = "";
             if(window.actIdx >= window.acts.length) {
-                container.innerHTML = "<div><h1 style='color:var(--mint)'>GEFLIPT!</h1><p>Wacht op de uitslag.</p><button class='btn btn-outline' onclick='goHome()'>MENU</button></div>";
+                container.innerHTML = "<div><h1 style='color:var(--mint)'>GEFLIPT!</h1><p>Bekijk dashboard voor uitslag.</p><button class='btn btn-outline' onclick='goHome()'>MENU</button></div>";
                 updateDoc(doc(db, "rooms", window.currentRoom), { finishedCount: increment(1) });
                 return;
             }
@@ -196,17 +190,6 @@
                 } else { card.style.transform = ''; card.querySelectorAll('.swipe-indicator').forEach(i => i.style.opacity = 0); }
             });
         }
-
-        window.showLiveStats = () => {
-            document.getElementById('stats-modal').style.display = 'flex';
-            onSnapshot(doc(db, "rooms", window.currentRoom), async (ds) => {
-                const d = ds.data();
-                document.getElementById('live-progress').innerText = `${d.finishedCount} / ${d.targetParticipants} personen klaar`;
-                const qs = await getDocs(collection(db, "activities"));
-                const acts = qs.docs.map(doc => ({id: doc.id, ...doc.data()}));
-                if(d.finishedCount >= d.targetParticipants) checkAndSendMail(d, acts);
-            });
-        };
     </script>
 </head>
 <body>
@@ -217,28 +200,30 @@
             <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" class="logo-img">
         </div>
         <button class="btn" onclick="document.getElementById('start-screen').classList.add('hidden'); document.getElementById('setup-screen').classList.remove('hidden');">Trip Maken</button>
-        <div style="margin: 15px; opacity: 0.3;">of</div>
+        <div style="margin: 10px; opacity: 0.3;">of</div>
         <button class="btn" style="background:white; color:black;" onclick="document.getElementById('join-modal').style.display='flex'">Deelnemen met Code</button>
-        <div class="footer-link" onclick="openHostLogin()">Host Log-in (Voortgang)</div>
+        <p class="footer-link" onclick="document.getElementById('host-login-modal').style.display='flex'">Host Log-in (Voortgang)</p>
     </div>
 
     <div id="setup-screen" class="hidden screen-content" style="width:100%; text-align: center;">
-        <h2 style="color:var(--mint)">Instellingen</h2>
+        <h2 style="color:var(--mint)">Nieuwe Trip</h2>
         <div style="width:280px; margin: 0 auto;">
             <span class="label">Jouw Naam</span>
             <input type="text" id="host-name" class="input-box">
-            <span class="label">Email voor uitslag</span>
+            <span class="label">E-mail voor uitslag</span>
             <input type="email" id="host-email" class="input-box">
-            <span class="label">Groepsgrootte</span>
+            <span class="label">Aantal personen</span>
             <input type="number" id="target-p" class="input-box" value="4">
+            <span class="label">Deadline (minuten vanaf nu)</span>
+            <input type="number" id="deadline-input" class="input-box" value="60">
             <button class="btn" onclick="createRoom()">Trip Maken</button>
-            <p onclick="goHome()" style="font-size:12px; opacity:0.5; text-decoration:underline;">Terug</p>
+            <p onclick="goHome()" style="font-size:12px; opacity:0.5; cursor:pointer;">Terug</p>
         </div>
     </div>
 
-    <div id="share-screen" class="hidden screen-content" style="width:100%; text-align: center; padding: 20px; box-sizing: border-box;">
-        <h2 style="margin-top:40px;">De Trip staat live!</h2>
-        <div style="font-size: 48px; font-weight: 800; color: var(--mint); letter-spacing: 5px; margin: 20px 0;" id="display-code">----</div>
+    <div id="share-screen" class="hidden screen-content" style="width:100%; text-align: center;">
+        <h2 style="margin-top:40px;">Live! Deel de code:</h2>
+        <div style="font-size: 48px; font-weight: 800; color: var(--mint); margin: 20px 0;" id="display-code">----</div>
         <button class="btn btn-wa" onclick="shareWA()">Deel via WhatsApp</button>
         <button class="btn btn-outline" onclick="window.startSwiping()">Start nu zelf</button>
     </div>
@@ -253,31 +238,32 @@
 
     <div id="swipe-screen" class="hidden"></div>
 
-    <div id="join-modal" class="modal-overlay">
-        <div class="modal-card">
-            <h3 style="color:var(--mint); margin-top:0;">Join de Trip</h3>
-            <input type="number" id="join-code" class="input-box" placeholder="Kamer Code">
-            <input type="text" id="join-name" class="input-box" placeholder="Jouw Naam">
-            <button class="btn" onclick="confirmJoin()">Start Flippen</button>
-            <p onclick="document.getElementById('join-modal').style.display='none'" style="font-size:12px; opacity:0.5;">Terug</p>
-        </div>
-    </div>
-
     <div id="host-login-modal" class="modal-overlay">
         <div class="modal-card">
-            <h3 style="color:var(--mint); margin-top:0;">Host Dashboard</h3>
-            <input type="number" id="login-code" class="input-box" placeholder="Kamer Code">
+            <h3 style="color:var(--mint)">Host Dashboard</h3>
+            <input type="number" id="login-code" class="input-box" placeholder="Code">
             <input type="email" id="login-email" class="input-box" placeholder="E-mail">
-            <button class="btn" onclick="verifyHost()">Check Status</button>
-            <p onclick="document.getElementById('host-login-modal').style.display='none'" style="font-size:12px; opacity:0.5;">Terug</p>
+            <button class="btn" onclick="verifyHost()">Bekijk Status</button>
+            <p onclick="document.getElementById('host-login-modal').style.display='none'" style="cursor:pointer; opacity:0.5;">Terug</p>
         </div>
     </div>
 
     <div id="stats-modal" class="modal-overlay">
+        <div class="modal-card" style="max-width: 380px;">
+            <h3 style="color:var(--mint); margin-bottom:5px;">Voortgang</h3>
+            <p id="live-progress" style="font-size:12px; opacity:0.6; margin-bottom:20px;"></p>
+            <div id="live-leaderboard" style="text-align: left;"></div>
+            <button class="btn btn-outline" style="margin-top:20px;" onclick="document.getElementById('stats-modal').style.display='none'">Sluiten</button>
+        </div>
+    </div>
+
+    <div id="join-modal" class="modal-overlay">
         <div class="modal-card">
-            <h3 style="color:var(--mint); margin:0;">Voortgang</h3>
-            <p id="live-progress" style="font-size:14px; margin: 20px 0;">Laden...</p>
-            <button class="btn btn-outline" onclick="document.getElementById('stats-modal').style.display='none'">Sluiten</button>
+            <h3 style="color:var(--mint)">Join de Trip</h3>
+            <input type="number" id="join-code" class="input-box" placeholder="Code">
+            <input type="text" id="join-name" class="input-box" placeholder="Jouw Naam">
+            <button class="btn" onclick="window.confirmJoin()">Start Flippen</button>
+            <p onclick="document.getElementById('join-modal').style.display='none'" style="cursor:pointer; opacity:0.5;">Terug</p>
         </div>
     </div>
 
