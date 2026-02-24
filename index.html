@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FlipOrTrip | v0.17</title>
+    <title>FlipOrTrip | v0.18</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
@@ -11,27 +11,40 @@
         :root { --mint: #00FFC2; --obsidian: #0B0E14; --blue: #007AFF; }
         body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; text-align: center; touch-action: none; }
         .hidden { display: none !important; }
-        .orb { width: 45px; height: 45px; background: linear-gradient(135deg, var(--mint), var(--blue)); border-radius: 50%; margin: 0 auto 15px; box-shadow: 0 0 20px var(--mint); }
-        .btn { background: var(--mint); color: var(--obsidian); padding: 15px 30px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; width: 280px; margin-bottom: 10px; font-size: 16px; }
+        
+        /* Nieuwe Logo Stijl */
+        .logo-img { width: 160px; margin-bottom: 10px; filter: drop-shadow(0 0 10px rgba(0,255,194,0.3)); }
+        .slogan { opacity: 0.6; font-size: 14px; margin-bottom: 30px; font-weight: 300; }
+
+        .btn { background: var(--mint); color: var(--obsidian); padding: 15px 30px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; width: 280px; margin-bottom: 10px; font-size: 16px; transition: 0.2s; }
+        .btn:active { transform: scale(0.98); }
         .input-box { background: #161B22; border: 1px solid var(--mint); padding: 12px; border-radius: 12px; color: white; text-align: center; margin-bottom: 10px; width: 280px; font-size: 16px; outline: none; border: 1px solid rgba(0,255,194,0.3); }
         .label { font-size: 11px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 5px; display: block; text-align: left; margin-left: 10px; }
         
-        /* Card Styles */
+        /* Card Styles & Visuals */
         #swipe-screen { position: relative; width: 100%; height: 80vh; display: flex; align-items: center; justify-content: center; }
-        .card { width: 320px; height: 450px; background: #161B22; border-radius: 30px; position: absolute; border: 1px solid rgba(255,255,255,0.1); transition: transform 0.1s ease-out; touch-action: none; box-shadow: 0 10px 40px rgba(0,0,0,0.6); overflow: hidden; }
+        .card { width: 320px; height: 450px; background: #161B22; border-radius: 30px; position: absolute; border: 1px solid rgba(255,255,255,0.1); touch-action: none; box-shadow: 0 15px 40px rgba(0,0,0,0.6); overflow: hidden; }
         .card-img { height: 60%; background-size: cover; background-position: center; pointer-events: none; }
         .card-info { padding: 20px; text-align: left; pointer-events: none; }
         .card-info h2 { margin: 0; font-size: 22px; }
         .card-info p { margin: 5px 0 0; opacity: 0.6; font-size: 14px; }
         
-        #room-header { position: fixed; top: 15px; left: 15px; font-size: 12px; color: var(--mint); background: rgba(0,0,0,0.5); padding: 5px 12px; border-radius: 20px; z-index: 100; border: 1px solid rgba(0,255,194,0.3); }
+        /* Swipe Overlays (Hartje/Kruisje op de kaart) */
+        .card-overlay { position: absolute; top: 50%; transform: translateY(-50%); font-size: 100px; font-weight: 800; opacity: 0; transition: opacity 0.1s; pointer-events: none; z-index: 10; }
+        .overlay-like { right: 30px; color: var(--mint); text-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .overlay-dislike { left: 30px; color: red; text-shadow: 0 0 20px rgba(0,0,0,0.5); }
+
+        #room-header { position: fixed; top: 15px; left: 15px; font-size: 12px; color: var(--mint); background: rgba(0,0,0,0.6); padding: 6px 12px; border-radius: 20px; z-index: 100; border: 1px solid rgba(0,255,194,0.2); backdrop-filter: blur(5px); }
+        
+        /* Host Dashboard op eindscherm */
+        #participant-monitor { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 20px; margin: 20px auto; font-size: 14px; text-align: left; width: 260px; border: 1px solid rgba(255,255,255,0.1); }
     </style>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, setDoc, updateDoc, arrayUnion, increment, getDoc, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- CONFIG (VUL JE EIGEN GEGEVENS IN) ---
+        // --- FIREBASE CONFIG (VUL JOUW GEGEVENS IN) ---
         const firebaseConfig = {
             apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0",
             authDomain: "fliportrip-valkenburg.firebaseapp.com",
@@ -48,8 +61,9 @@
         let myRoomCode = "";
         let dbActivities = [];
         let currentIndex = 0;
+        let timerInt = null;
 
-        // Navigatie Functies
+        // Navigatie
         window.showSetup = () => {
             document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('setup-screen').classList.remove('hidden');
@@ -70,6 +84,7 @@
                 deadline: deadlineTS, participants: [name], votes: {}, finishedCount: 0, mailSent: false
             });
 
+            sessionStorage.setItem('isHost', 'true');
             sessionStorage.setItem('roomCode', myRoomCode);
             document.getElementById('setup-screen').classList.add('hidden');
             document.getElementById('share-screen').classList.remove('hidden');
@@ -84,6 +99,7 @@
             const name = prompt("Wat is je naam?"); 
             if(!myRoomCode || !name) return alert("Code en naam verplicht!");
             await updateDoc(doc(db, "rooms", myRoomCode), { participants: arrayUnion(name) });
+            sessionStorage.setItem('isHost', 'false');
             sessionStorage.setItem('roomCode', myRoomCode);
             enterSwipeUI();
         };
@@ -111,24 +127,38 @@
             const act = dbActivities[currentIndex];
             const card = document.createElement('div');
             card.className = 'card';
-            card.innerHTML = `<div class="card-img" style="background-image: url('${act.image}')"></div>
-                              <div class="card-info"><h2>${act.title}</h2><p>${act.desc}</p></div>`;
+            // Voeg overlays toe aan de HTML van de kaart
+            card.innerHTML = `
+                <div class="card-img" style="background-image: url('${act.image}')"></div>
+                <div class="card-overlay overlay-like">♥</div>
+                <div class="card-overlay overlay-dislike">✕</div>
+                <div class="card-info"><h2>${act.title}</h2><p>${act.desc}</p></div>`;
             container.appendChild(card);
 
             const h = new Hammer(card);
             h.on('pan', (e) => {
                 card.style.transform = `translateX(${e.deltaX}px) rotate(${e.deltaX/15}deg)`;
+                // Visuele feedback: toon overlays basis van richting
+                const like = card.querySelector('.overlay-like');
+                const dislike = card.querySelector('.overlay-dislike');
+                const opacity = Math.min(Math.abs(e.deltaX) / 150, 1);
+                if (e.deltaX > 0) { like.style.opacity = opacity; dislike.style.opacity = 0; }
+                else { dislike.style.opacity = opacity; like.style.opacity = 0; }
             });
 
             h.on('panend', (e) => {
                 if (e.deltaX > 100) vote('yes', card);
                 else if (e.deltaX < -100) vote('no', card);
-                else card.style.transform = 'translateX(0) rotate(0)';
+                else {
+                    card.style.transform = 'translateX(0) rotate(0)';
+                    card.querySelector('.overlay-like').style.opacity = 0;
+                    card.querySelector('.overlay-dislike').style.opacity = 0;
+                }
             });
         }
 
         async function vote(type, cardEl) {
-            cardEl.style.transition = 'transform 0.4s ease-in, opacity 0.4s';
+            cardEl.style.transition = 'transform 0.3s ease-in, opacity 0.3s';
             cardEl.style.transform = `translateX(${type === 'yes' ? 1000 : -1000}px) rotate(${type === 'yes' ? 45 : -45}deg)`;
             cardEl.style.opacity = '0';
             
@@ -148,7 +178,25 @@
             document.getElementById('swipe-screen').classList.add('hidden');
             document.getElementById('thanks-screen').classList.remove('hidden');
             await updateDoc(doc(db, "rooms", myRoomCode), { finishedCount: increment(1) });
+            
+            // Als je Host bent, toon het dashboard
+            if (sessionStorage.getItem('isHost') === 'true') {
+                document.getElementById('host-controls').classList.remove('hidden');
+                monitorRoom();
+            }
             checkAutoMail();
+        }
+
+        function monitorRoom() {
+            onSnapshot(doc(db, "rooms", myRoomCode), (docSnap) => {
+                const data = docSnap.data();
+                document.getElementById('p-progress').innerText = `${data.finishedCount} / ${data.targetParticipants} klaar`;
+                if(timerInt) clearInterval(timerInt);
+                timerInt = setInterval(() => {
+                    const diff = data.deadline - Date.now();
+                    document.getElementById('time-left').innerText = diff <= 0 ? "Tijd om!" : `${Math.floor(diff/60000)}m ${Math.floor((diff%60000)/1000)}s`;
+                }, 1000);
+            });
         }
 
         async function checkAutoMail() {
@@ -182,8 +230,9 @@
     <div id="room-header" class="hidden">Kamer: <span id="active-code-display" style="font-weight:800"></span></div>
 
     <div id="start-screen">
-        <div class="orb"></div>
-        <h1>FLIP<span>OR</span>TRIP</h1>
+        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/unnamed__2_-removebg-preview.png" alt="FlipOrTrip Logo" class="logo-img">
+        <p class="slogan">Stop deciding. Start doing.</p>
+        
         <button class="btn" onclick="showSetup()">Nieuwe Trip Plannen</button>
         <p style="opacity:0.5; margin:10px 0;">of</p>
         <input type="text" id="join-code" class="input-box" placeholder="Code van WhatsApp">
@@ -215,7 +264,16 @@
 
     <div id="thanks-screen" class="hidden">
         <h1 style="color:var(--mint)">GEFLIPT!</h1>
-        <p style="padding: 0 30px; line-height: 1.6;">De definitieve uitslag ontvang je zodra iedereen alle activiteiten geflipt heeft, of zodra de deadline verstreken is, in je mailbox.</p>
+        
+        <div id="host-controls" class="hidden">
+            <div id="participant-monitor">
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px;"><strong>Status:</strong> <span id="p-progress" style="color:var(--mint)">...</span></div>
+                <div style="display:flex; justify-content:space-between;"><strong>Deadline:</strong> <span id="time-left">...</span></div>
+                <p style="font-size:11px; opacity:0.7; margin-top:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">De uitslag wordt automatisch gemaild zodra iedereen klaar is.</p>
+            </div>
+        </div>
+
+        <p style="padding: 0 30px; line-height: 1.6; margin-top: 20px;">Je stemmen zijn opgeslagen.</p>
         <p style="opacity:0.4; font-size:12px; margin-top:30px;">Team FlipOrTrip</p>
     </div>
 
