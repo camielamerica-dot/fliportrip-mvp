@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FlipOrTrip | Asynchroon</title>
+    <title>FlipOrTrip | WhatsApp Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
@@ -12,22 +12,28 @@
         .hidden { display: none !important; }
         .orb { width: 50px; height: 50px; background: linear-gradient(135deg, var(--mint), var(--blue)); border-radius: 50%; margin: 0 auto 20px; box-shadow: 0 0 20px var(--mint); }
         .input-box { background: #161B22; border: 1px solid var(--mint); padding: 15px; border-radius: 12px; color: white; text-align: center; margin-bottom: 15px; width: 280px; font-size: 16px; outline: none; border: 1px solid rgba(0,255,194,0.3); }
-        .btn { background: var(--mint); color: var(--obsidian); padding: 15px 30px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; width: 280px; margin-bottom: 10px; }
+        .btn { background: var(--mint); color: var(--obsidian); padding: 15px 30px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; width: 280px; margin-bottom: 10px; transition: 0.3s; }
+        .btn:active { transform: scale(0.95); }
         .label { font-size: 11px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 5px; display: block; text-align: left; margin-left: 10px; }
-        .card { width: 320px; height: 480px; background: #161B22; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* Swipe Cards */
+        .card { width: 320px; height: 480px; background: #161B22; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; overflow: hidden; position: relative; }
         .card-img { height: 65%; background-size: cover; background-position: center; background-color: #21262d; }
         .card-info { padding: 20px; text-align: left; }
         .card-info h2 { margin: 0; font-size: 24px; color: white; }
         .card-info p { margin: 5px 0 0; opacity: 0.6; font-size: 14px; line-height: 1.4; }
+        
         .controls { display: flex; gap: 40px; margin-top: 30px; }
         .btn-vote { width: 80px; height: 80px; border-radius: 50%; border: none; font-size: 35px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        
+        #final-code-display { font-size: 48px; font-weight: 800; color: var(--mint); letter-spacing: 5px; margin: 20px 0; }
     </style>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, setDoc, updateDoc, arrayUnion, increment, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, updateDoc, arrayUnion, increment, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- FIREBASE CONFIG (ZELF INVULLEN) ---
+        // --- CONFIGURATIE (INVULLEN!) ---
         const firebaseConfig = {
             apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0",
             authDomain: "fliportrip-valkenburg.firebaseapp.com",
@@ -39,69 +45,78 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-
-        // --- EMAILJS INIT (ZELF INVULLEN) ---
-        emailjs.init("JOUW_PUBLIC_KEY");
+        emailjs.init("wcDPsz6TupAyvv3G0");
 
         let myRoomCode = "";
         let isHost = false;
         let dbActivities = [];
         let currentIndex = 0;
 
+        // Activiteiten ophalen
         async function fetchActivities() {
             const querySnapshot = await getDocs(collection(db, "activities"));
             dbActivities = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         }
 
+        // Navigatie
         window.showSetup = () => {
             document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('setup-screen').classList.remove('hidden');
         };
 
+        // Kamer aanmaken (Host)
         window.createRoom = async () => {
             const name = document.getElementById('host-name').value;
             const email = document.getElementById('host-email').value;
-            const mins = parseInt(document.getElementById('deadline-min').value) || 60;
-            
             if(!name || !email) return alert("Naam en Email verplicht!");
 
             myRoomCode = Math.floor(1000 + Math.random() * 9000).toString();
-            const deadline = Date.now() + (mins * 60000);
-
+            
             await setDoc(doc(db, "rooms", myRoomCode), {
                 status: 'flipping',
                 hostName: name,
                 hostEmail: email,
                 participants: [name],
-                deadline: deadline,
-                votes: {},
-                finishedParticipants: []
+                votes: {}
             });
 
             isHost = true;
             sessionStorage.setItem('isHost', 'true');
-            enterSwipeUI();
+            sessionStorage.setItem('roomCode', myRoomCode);
+
+            // Toon deelscherm
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('share-screen').classList.remove('hidden');
+            document.getElementById('final-code-display').innerText = myRoomCode;
+
+            // WhatsApp link
+            const message = encodeURIComponent(`Help mee kiezen voor onze trip! 🌴 Gebruik code: ${myRoomCode} op https://fliportrip-mvp.vercel.app`);
+            document.getElementById('whatsapp-btn').onclick = () => {
+                window.open(`https://wa.me/?text=${message}`, '_blank');
+            };
         };
 
+        // Deelnemen (Vrienden)
         window.joinExisting = async () => {
             myRoomCode = document.getElementById('join-code').value;
             const name = prompt("Wat is je naam?"); 
             if(!myRoomCode || !name) return alert("Code en naam verplicht!");
             
-            await updateDoc(doc(db, "rooms", myRoomCode), { 
-                participants: arrayUnion(name) 
-            });
+            await updateDoc(doc(db, "rooms", myRoomCode), { participants: arrayUnion(name) });
             isHost = false;
             sessionStorage.setItem('isHost', 'false');
+            sessionStorage.setItem('roomCode', myRoomCode);
             enterSwipeUI();
         };
 
-        async function enterSwipeUI() {
+        // Swipe interface starten
+        window.enterSwipeUI = async () => {
+            myRoomCode = sessionStorage.getItem('roomCode');
             document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
             document.getElementById('swipe-screen').classList.remove('hidden');
             await fetchActivities();
             renderCard();
-        }
+        };
 
         function renderCard() {
             const container = document.getElementById('card-container');
@@ -130,25 +145,21 @@
             renderCard();
         };
 
-        async function finishUser() {
+        function finishUser() {
             document.getElementById('swipe-screen').classList.add('hidden');
             document.getElementById('thanks-screen').classList.remove('hidden');
-            
-            const docRef = doc(db, "rooms", myRoomCode);
-            await updateDoc(docRef, {
-                finishedParticipants: arrayUnion(Date.now())
-            });
-
-            // Als Host, luister of we klaar zijn voor resultaat
-            if (isHost) {
-                checkFinalResult();
+            if (sessionStorage.getItem('isHost') === 'true') {
+                document.getElementById('host-controls').classList.remove('hidden');
             }
         }
 
-        async function checkFinalResult() {
+        window.checkFinalResult = async () => {
+            myRoomCode = sessionStorage.getItem('roomCode');
             const docSnap = await getDoc(doc(db, "rooms", myRoomCode));
             const data = docSnap.data();
             
+            if (dbActivities.length === 0) await fetchActivities();
+
             let winnerTitle = "Geen match";
             let maxV = -1;
             dbActivities.forEach(a => {
@@ -156,15 +167,14 @@
                 if(v > maxV) { maxV = v; winnerTitle = a.title; }
             });
 
-            document.getElementById('winner-display').innerText = winnerTitle;
+            document.getElementById('winner-display').innerText = "De winnaar is: " + winnerTitle;
             
-            // Mail versturen via EmailJS
-            emailjs.send("JOUW_SERVICE_ID", "JOUW_TEMPLATE_ID", {
+            emailjs.send("service_pceg3i8", "template_tr613kg", {
                 to_email: data.hostEmail,
                 room_code: myRoomCode,
                 winner: winnerTitle
-            });
-        }
+            }).then(() => alert("Uitslag is gemaild!"));
+        };
     </script>
 </head>
 <body>
@@ -172,9 +182,9 @@
     <div id="start-screen">
         <div class="orb"></div>
         <h1>FLIP<span>OR</span>TRIP</h1>
-        <button class="btn" onclick="showSetup()">Nieuwe Trip Starten</button>
+        <button class="btn" onclick="showSetup()">Nieuwe Trip Plannen</button>
         <p style="opacity:0.5; margin:10px 0;">of</p>
-        <input type="text" id="join-code" class="input-box" placeholder="Code van groepsapp">
+        <input type="text" id="join-code" class="input-box" placeholder="Code van WhatsApp">
         <button class="btn" style="background:white" onclick="joinExisting()">Mee-swipen</button>
     </div>
 
@@ -183,12 +193,21 @@
         <div style="text-align:left; width:280px; margin:0 auto;">
             <span class="label">Jouw Naam</span>
             <input type="text" id="host-name" class="input-box">
-            <span class="label">Jouw Email (voor resultaat)</span>
+            <span class="label">E-mail voor uitslag</span>
             <input type="email" id="host-email" class="input-box">
-            <span class="label">Deadline (minuten vanaf nu)</span>
+            <span class="label">Tijd (minuten)</span>
             <input type="number" id="deadline-min" class="input-box" value="60">
         </div>
-        <button class="btn" onclick="createRoom()">Genereer Code</button>
+        <button class="btn" onclick="createRoom()">Kamer Aanmaken</button>
+    </div>
+
+    <div id="share-screen" class="hidden">
+        <h2 style="color:var(--mint)">Kamer is Live!</h2>
+        <p>Deel de code met je groep:</p>
+        <div id="final-code-display"></div>
+        <button class="btn" id="whatsapp-btn" style="background:#25D366; color:white; border:none;">DEEL VIA WHATSAPP</button>
+        <br>
+        <button class="btn" onclick="enterSwipeUI()" style="background:transparent; border:1px solid white; color:white;">START ZELF MET SWIPEN</button>
     </div>
 
     <div id="swipe-screen" class="hidden">
@@ -200,13 +219,15 @@
     </div>
 
     <div id="thanks-screen" class="hidden">
-        <h1 style="color:var(--mint)">BEDANKT!</h1>
-        <p>Jouw stemmen zijn opgeslagen.</p>
-        <p style="opacity:0.6">Zodra de deadline is verstreken wordt de winnaar bepaald.</p>
-        <div id="host-only-result">
-            <hr style="border:0; border-top:1px solid #333; margin:20px 0;">
-            <p>Tussenstand winnaar:</p>
-            <h2 id="winner-display" style="color:var(--mint)">...</h2>
+        <h1 style="color:var(--mint)">KLAAR!</h1>
+        <p>Bedankt voor het swipen.</p>
+        <p style="opacity:0.6; padding: 0 20px;">Zodra iedereen klaar is, kan de host de uitslag genereren.</p>
+        
+        <div id="host-controls" class="hidden">
+            <hr style="border:0; border-top:1px solid #333; margin:30px 0; width:80%;">
+            <p><strong>Host Dashboard:</strong></p>
+            <button class="btn" onclick="checkFinalResult()">BEPAAL WINNAAR & MAIL</button>
+            <h2 id="winner-display" style="color:var(--mint); margin-top:15px;"></h2>
         </div>
     </div>
 
