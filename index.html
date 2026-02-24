@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FlipOrTrip | Valkenburg Alpha</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, onSnapshot, setDoc, updateDoc, arrayUnion, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // 1. PLAK HIER JE FIREBASE CONFIG (Vervang dit blok!)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0",
+            authDomain: "fliportrip-valkenburg.firebaseapp.com",
+            projectId: "fliportrip-valkenburg",
+            storageBucket: "fliportrip-valkenburg.firebasestorage.app",
+            messagingSenderId: "1050989330669",
+            appId: "1:1050989330669:web:6649f61cbec8ee3b3f8ce4"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // --- APP LOGICA ---
+        const activities = [
+            { id: 'bike', title: "Grotbiken", icon: "🚲", cat: "Actief" },
+            { id: 'pie', title: "Vlaaien Bakken", icon: "🥧", cat: "Workshop" },
+            { id: 'scoot', title: "Scootertocht", icon: "🛵", cat: "Avontuur" },
+            { id: 'beer', title: "Bierproeverij", icon: "🍺", cat: "Horeca" },
+            { id: 'escape', title: "Escape Room", icon: "🔒", cat: "Spanning" },
+            { id: 'steak', title: "Steakhouse", icon: "🥩", cat: "Eten" }
+        ];
+
+        let currentRoom = "valkenburg_test_1"; // Voor de MVP gebruiken we één vaste kamer
+        let myName = "";
+        let currentIndex = 0;
+
+        window.joinRoom = async () => {
+            myName = document.getElementById('username').value;
+            if(!myName) return alert("Vul je naam in!");
+            
+            // Voeg jezelf toe aan de kamer
+            await setDoc(doc(db, "rooms", currentRoom), {
+                status: 'lobby',
+                participants: arrayUnion(myName)
+            }, { merge: true });
+
+            document.getElementById('lobby').classList.add('hidden');
+            document.getElementById('waiting').classList.remove('hidden');
+            listenToRoom();
+        };
+
+        function listenToRoom() {
+            onSnapshot(doc(db, "rooms", currentRoom), (doc) => {
+                const data = doc.data();
+                const list = document.getElementById('participant-list');
+                list.innerHTML = data.participants.map(p => `<li>${p}</li>`).join('');
+
+                if(data.status === 'flipping') {
+                    startFlipping();
+                }
+                if(data.status === 'finished') {
+                    showMatch(data.winner);
+                }
+            });
+        }
+
+        window.startApp = async () => {
+            await updateDoc(doc(db, "rooms", currentRoom), { status: 'flipping' });
+        };
+
+        function startFlipping() {
+            document.getElementById('waiting').classList.add('hidden');
+            document.getElementById('swipe-screen').classList.remove('hidden');
+            renderCard();
+        }
+
+        function renderCard() {
+            if(currentIndex >= activities.length) {
+                checkFinalResult();
+                return;
+            }
+            const act = activities[currentIndex];
+            document.getElementById('card-content').innerHTML = `
+                <div class="card">
+                    <div class="card-img">${act.icon}</div>
+                    <div class="card-info">
+                        <span>${act.cat}</span>
+                        <h2>${act.title}</h2>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.vote = async (val) => {
+            const actId = activities[currentIndex].id;
+            if(val === 'yes') {
+                const update = {};
+                update[`votes.${actId}`] = increment(1);
+                await updateDoc(doc(db, "rooms", currentRoom), update);
+            }
+            currentIndex++;
+            renderCard();
+        };
+
+        async function checkFinalResult() {
+            document.getElementById('swipe-screen').innerHTML = "<h2>Wachten op de rest...</h2>";
+            // In een echte app checken we hier of iedereen klaar is. 
+            // Voor nu: na 5 seconden forceren we een winnaar voor de demo.
+            setTimeout(async () => {
+                await updateDoc(doc(db, "rooms", currentRoom), { 
+                    status: 'finished',
+                    winner: "Grotbiken" 
+                });
+            }, 5000);
+        }
+
+        function showMatch(winner) {
+            document.getElementById('swipe-screen').classList.add('hidden');
+            document.getElementById('match-screen').classList.remove('hidden');
+            document.getElementById('winner-name').innerText = winner;
+        }
+    </script>
+
+    <style>
+        :root { --mint: #00FFC2; --obsidian: #0B0E14; }
+        body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .hidden { display: none !important; }
+        .orb { width: 60px; height: 60px; background: linear-gradient(135deg, var(--mint), #007AFF); border-radius: 50%; margin-bottom: 20px; box-shadow: 0 0 30px rgba(0,255,194,0.3); }
+        h1 span { color: var(--mint); }
+        .input-box { background: rgba(255,255,255,0.05); border: 1px solid var(--mint); padding: 15px; border-radius: 15px; color: white; text-align: center; margin-bottom: 20px; }
+        .btn { background: var(--mint); color: var(--obsidian); padding: 15px 30px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; }
+        .card { width: 300px; height: 400px; background: #161B22; border-radius: 25px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden; display: flex; flex-direction: column; }
+        .card-img { height: 60%; display: flex; align-items: center; justify-content: center; font-size: 80px; background: #2D333B; }
+        .card-info { padding: 20px; }
+        .controls { display: flex; gap: 20px; margin-top: 20px; }
+        .btn-vote { width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 24px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div id="lobby" class="section">
+        <div class="orb"></div>
+        <h1>FLIP<span>OR</span>TRIP</h1>
+        <input type="text" id="username" class="input-box" placeholder="Je naam...">
+        <br>
+        <button class="btn" onclick="joinRoom()">Join Valkenburg Trip</button>
+    </div>
+
+    <div id="waiting" class="section hidden" style="text-align: center;">
+        <h2>Lobby</h2>
+        <ul id="participant-list" style="list-style: none; padding: 0; font-size: 20px; color: var(--mint);"></ul>
+        <p>Wachten op de rest...</p>
+        <button class="btn" onclick="startApp()">Iedereen is er, START!</button>
+    </div>
+
+    <div id="swipe-screen" class="section hidden">
+        <div id="card-content"></div>
+        <div class="controls">
+            <button class="btn-vote" style="background: rgba(255,0,0,0.1); color: red;" onclick="vote('no')">✕</button>
+            <button class="btn-vote" style="background: rgba(0,255,0,0.1); color: var(--mint);" onclick="vote('yes')">♥</button>
+        </div>
+    </div>
+
+    <div id="match-screen" class="section hidden" style="text-align: center;">
+        <h1 style="color: var(--mint);">IT'S A MATCH!</h1>
+        <h2 id="winner-name" style="font-size: 50px;"></h2>
+        <button class="btn" onclick="location.reload()">Opnieuw beginnen</button>
+    </div>
+
+</body>
+</html>
