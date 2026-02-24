@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FlipOrTrip | v0.21</title>
+    <title>FlipOrTrip | v0.22</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
@@ -13,37 +13,41 @@
         .hidden { display: none !important; }
         
         /* Branding */
-        .logo-img { width: 140px; margin-bottom: 5px; }
-        .slogan { opacity: 0.5; font-size: 12px; margin-bottom: 25px; letter-spacing: 1px; }
+        .logo-img { width: 180px; margin-bottom: 5px; filter: drop-shadow(0 0 15px rgba(0,255,194,0.2)); }
+        .slogan { opacity: 0.6; font-size: 13px; margin-bottom: 30px; letter-spacing: 1px; font-weight: 300; }
 
         /* UI Elements */
-        .btn { background: var(--mint); color: var(--obsidian); padding: 15px 30px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; width: 280px; margin-bottom: 10px; font-size: 16px; transition: transform 0.2s; }
-        .btn:active { transform: scale(0.95); }
-        .input-box { background: var(--card-bg); border: 1px solid rgba(0,255,194,0.3); padding: 12px; border-radius: 12px; color: white; text-align: center; margin-bottom: 10px; width: 280px; font-size: 16px; outline: none; }
+        .btn { background: var(--mint); color: var(--obsidian); padding: 16px 30px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; width: 280px; margin-bottom: 12px; font-size: 16px; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 15px rgba(0,255,194,0.2); }
+        .btn:active { transform: scale(0.96); }
+        .input-box { background: var(--card-bg); border: 1px solid rgba(0,255,194,0.3); padding: 14px; border-radius: 14px; color: white; text-align: center; margin-bottom: 12px; width: 280px; font-size: 16px; outline: none; }
         .label { font-size: 11px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 5px; display: block; text-align: left; margin-left: 10px; }
         
         /* Card & Swipe UI */
         #swipe-screen { position: relative; width: 100%; height: 75vh; display: flex; align-items: center; justify-content: center; }
-        .card { width: 310px; height: 440px; background: var(--card-bg); border-radius: 30px; position: absolute; border: 1px solid rgba(255,255,255,0.1); touch-action: none; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .card { width: 320px; height: 460px; background: var(--card-bg); border-radius: 35px; position: absolute; border: 1px solid rgba(255,255,255,0.1); touch-action: none; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.6); }
         .card-img { height: 60%; background-size: cover; background-position: center; pointer-events: none; }
-        .card-info { padding: 20px; text-align: left; }
+        .card-info { padding: 22px; text-align: left; }
+        .card-info h2 { margin: 0; font-size: 24px; }
+        .card-info p { margin: 6px 0 0; opacity: 0.6; font-size: 15px; }
         
         /* Centrale Swipe Indicators */
-        .swipe-indicator { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 120px; opacity: 0; pointer-events: none; z-index: 20; }
-        .indicator-like { color: var(--mint); background: rgba(0, 255, 194, 0.15); }
-        .indicator-dislike { color: var(--red); background: rgba(255, 75, 75, 0.15); }
+        .swipe-indicator { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 140px; opacity: 0; pointer-events: none; z-index: 20; }
+        .indicator-like { color: var(--mint); background: rgba(0, 255, 194, 0.2); }
+        .indicator-dislike { color: var(--red); background: rgba(255, 75, 75, 0.2); }
 
-        /* Header & Dashboard */
-        #room-header { position: fixed; top: 15px; left: 15px; font-size: 11px; color: var(--mint); background: rgba(0,0,0,0.5); padding: 5px 12px; border-radius: 20px; z-index: 100; border: 1px solid rgba(0,255,194,0.2); }
-        .dashboard { width: 280px; background: rgba(255,255,255,0.05); border-radius: 20px; padding: 20px; margin: 15px auto; border: 1px solid rgba(255,255,255,0.1); text-align: left; }
-        .leader-item { background: rgba(0,255,194,0.1); padding: 10px 15px; border-radius: 12px; margin-top: 8px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; font-weight: 800; }
+        /* Header & Dash */
+        #room-header { position: fixed; top: 15px; left: 15px; font-size: 11px; color: var(--mint); background: rgba(0,0,0,0.6); padding: 6px 14px; border-radius: 20px; z-index: 100; border: 1px solid rgba(0,255,194,0.2); backdrop-filter: blur(10px); }
+        .dashboard { width: 290px; background: rgba(255,255,255,0.04); border-radius: 24px; padding: 20px; margin: 20px auto; border: 1px solid rgba(255,255,255,0.08); text-align: left; }
+        .leader-item { background: rgba(0,255,194,0.08); padding: 12px 16px; border-radius: 14px; margin-top: 10px; font-size: 14px; display: flex; justify-content: space-between; align-items: center; font-weight: 800; border: 1px solid rgba(0,255,194,0.1); }
+
+        /* Share Screen specific additions */
+        .code-display { font-size: 56px; font-weight: 800; color: var(--mint); letter-spacing: 4px; margin: 20px 0; text-shadow: 0 0 20px rgba(0,255,194,0.4); }
     </style>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, setDoc, updateDoc, arrayUnion, increment, getDoc, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- FIREBASE CONFIG (ZELF INVULLEN) ---
         const firebaseConfig = {
             apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0",
             authDomain: "fliportrip-valkenburg.firebaseapp.com",
@@ -60,8 +64,8 @@
         let myRoomCode = "";
         let dbActivities = [];
         let currentIndex = 0;
+        const logoUrl = "https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/unnamed__2_-removebg-preview.png";
 
-        // Navigatie
         window.showSetup = () => {
             document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('setup-screen').classList.remove('hidden');
@@ -71,11 +75,10 @@
             const name = document.getElementById('host-name').value;
             const email = document.getElementById('host-email').value;
             const target = document.getElementById('target-p').value;
-            const mins = document.getElementById('deadline-min').value;
-            if(!name || !email || !target) return alert("Vul alle velden in!");
+            if(!name || !email || !target) return alert("Vul alles in!");
 
             myRoomCode = Math.floor(1000 + Math.random() * 9000).toString();
-            const deadlineTS = Date.now() + (mins * 60000);
+            const deadlineTS = Date.now() + (document.getElementById('deadline-min').value * 60000);
 
             await setDoc(doc(db, "rooms", myRoomCode), {
                 hostName: name, hostEmail: email, targetParticipants: parseInt(target),
@@ -89,15 +92,21 @@
             document.getElementById('share-screen').classList.remove('hidden');
             document.getElementById('final-code-display').innerText = myRoomCode;
             
-            const msg = encodeURIComponent(`Flip mee voor Valkenburg! 🌴\nCode: ${myRoomCode}`);
-            document.getElementById('whatsapp-btn').onclick = () => { window.location.href = `whatsapp://send?text=${msg}`; };
+            const shareText = `Flip mee voor Valkenburg! 🌴\nGebruik code: *${myRoomCode}*\nGa naar: https://fliportrip-mvp.vercel.app`;
+            document.getElementById('whatsapp-btn').onclick = () => { 
+                window.location.href = `whatsapp://send?text=${encodeURIComponent(shareText)}`; 
+            };
         };
 
         window.joinExisting = async () => {
             myRoomCode = document.getElementById('join-code').value;
             const name = prompt("Wat is je naam?"); 
             if(!myRoomCode || !name) return alert("Code en naam verplicht!");
-            await updateDoc(doc(db, "rooms", myRoomCode), { participants: arrayUnion(name) });
+            const docRef = doc(db, "rooms", myRoomCode);
+            const docSnap = await getDoc(docRef);
+            if (!docSnap.exists()) return alert("Kamer niet gevonden!");
+            
+            await updateDoc(docRef, { participants: arrayUnion(name) });
             sessionStorage.setItem('isHost', 'false');
             sessionStorage.setItem('roomCode', myRoomCode);
             enterSwipeUI();
@@ -139,7 +148,7 @@
 
             h.on('pan', (e) => {
                 card.style.transform = `translateX(${e.deltaX}px) rotate(${e.deltaX/20}deg)`;
-                const opacity = Math.min(Math.abs(e.deltaX) / 150, 0.8);
+                const opacity = Math.min(Math.abs(e.deltaX) / 150, 0.9);
                 if(e.deltaX > 0) { like.style.opacity = opacity; dislike.style.opacity = 0; }
                 else { dislike.style.opacity = opacity; like.style.opacity = 0; }
             });
@@ -166,7 +175,6 @@
             document.getElementById('swipe-screen').classList.add('hidden');
             document.getElementById('thanks-screen').classList.remove('hidden');
             await updateDoc(doc(db, "rooms", myRoomCode), { finishedCount: increment(1) });
-            
             if (sessionStorage.getItem('isHost') === 'true') {
                 document.getElementById('host-dashboard').classList.remove('hidden');
                 startDashboardMonitor();
@@ -178,12 +186,10 @@
             onSnapshot(doc(db, "rooms", myRoomCode), (docSnap) => {
                 const data = docSnap.data();
                 document.getElementById('dash-progress').innerText = `${data.finishedCount} / ${data.targetParticipants}`;
-                
                 let results = dbActivities.map(act => ({
                     title: act.title,
                     perc: data.participants.length > 0 ? Math.round(((data.votes[act.id] || 0) / data.participants.length) * 100) : 0
                 })).sort((a,b) => b.perc - a.perc).slice(0,3);
-
                 const list = document.getElementById('dash-leaderboard');
                 list.innerHTML = "";
                 results.forEach(r => {
@@ -195,24 +201,15 @@
         async function checkAutoMail() {
             const docSnap = await getDoc(doc(db, "rooms", myRoomCode));
             const data = docSnap.data();
-            const everyoneFinished = data.finishedCount >= data.targetParticipants;
-            const timeUp = Date.now() > data.deadline;
-
-            if ((everyoneFinished || timeUp) && !data.mailSent) {
+            if ((data.finishedCount >= data.targetParticipants) && !data.mailSent) {
                 await updateDoc(doc(db, "rooms", myRoomCode), { mailSent: true });
-                
                 let results = dbActivities.map(act => ({
                     title: act.title,
                     perc: Math.round(((data.votes[act.id] || 0) / data.participants.length) * 100)
                 })).sort((a,b) => b.perc - a.perc).slice(0,3);
-
                 const top3Text = results.map((r,i) => `${i+1}. ${r.title} (${r.perc}%)`).join('\n');
-
                 emailjs.send("service_pceg3i8", "template_tr613kg", {
-                    host_name: data.hostName,
-                    to_email: data.hostEmail,
-                    room_code: myRoomCode,
-                    winner: top3Text
+                    host_name: data.hostName, to_email: data.hostEmail, room_code: myRoomCode, winner: top3Text
                 });
             }
         }
@@ -226,13 +223,13 @@
         <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/unnamed__2_-removebg-preview.png" class="logo-img" alt="Logo">
         <p class="slogan">Stop deciding. Start doing.</p>
         <button class="btn" onclick="showSetup()">Nieuwe Trip Plannen</button>
-        <div style="margin: 10px; opacity: 0.3;">of</div>
+        <div style="margin: 5px; opacity: 0.3;">of</div>
         <input type="text" id="join-code" class="input-box" placeholder="Kamer Code">
         <button class="btn" style="background:white" onclick="joinExisting()">Mee-flippen</button>
     </div>
 
     <div id="setup-screen" class="hidden">
-        <h2>Trip Setup</h2>
+        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/unnamed__2_-removebg-preview.png" style="width:100px; margin-bottom:20px;">
         <div style="text-align:left; width:280px; margin:0 auto;">
             <span class="label">Jouw Naam</span>
             <input type="text" id="host-name" class="input-box">
@@ -247,9 +244,11 @@
     </div>
 
     <div id="share-screen" class="hidden">
-        <h2 style="color:var(--mint)">Code: <span id="final-code-display"></span></h2>
+        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/unnamed__2_-removebg-preview.png" class="logo-img" alt="Logo">
+        <p class="slogan">Kamer is klaar voor vertrek!</p>
+        <div class="code-display" id="final-code-display">----</div>
         <button class="btn" id="whatsapp-btn" style="background:#25D366; color:white;">DEEL VIA WHATSAPP</button>
-        <button class="btn" onclick="enterSwipeUI()" style="background:transparent; border:1px solid white; color:white;">START ZELF</button>
+        <button class="btn" onclick="enterSwipeUI()" style="background:transparent; border:2px solid white; color:white;">START ZELF</button>
     </div>
 
     <div id="swipe-screen" class="hidden"></div>
@@ -265,7 +264,7 @@
                 <div id="dash-leaderboard"></div>
             </div>
         </div>
-        <p style="padding: 0 40px; font-size: 14px; line-height: 1.6;">De definitieve uitslag ontvang je zodra iedereen alle activiteiten geflipt heeft of de deadline verstreken is in je mailbox.</p>
+        <p style="padding: 0 40px; font-size: 14px; line-height: 1.6;">De definitieve uitslag ontvang je zodra iedereen klaar is in je mailbox.</p>
         <p style="opacity:0.4; font-size:12px; margin-top:30px;">Team FlipOrTrip</p>
     </div>
 
