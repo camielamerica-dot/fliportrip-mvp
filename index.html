@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FlipOrTrip | Alpha v0.5</title>
+    <title>FlipOrTrip | Alpha v0.6</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     
     <style>
@@ -11,21 +11,20 @@
         body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; text-align: center; }
         .hidden { display: none !important; }
         .orb { width: 50px; height: 50px; background: linear-gradient(135deg, var(--mint), var(--blue)); border-radius: 50%; margin: 0 auto 20px; box-shadow: 0 0 20px var(--mint); }
-        h1 span { color: var(--mint); }
         .input-box { background: #161B22; border: 1px solid var(--mint); padding: 15px; border-radius: 12px; color: white; text-align: center; margin-bottom: 15px; width: 250px; font-size: 16px; outline: none; }
         .btn { background: var(--mint); color: var(--obsidian); padding: 15px 30px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; width: 280px; margin-bottom: 10px; }
+        .btn:disabled { opacity: 0.3; cursor: not-allowed; }
         .label { font-size: 11px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 5px; display: block; text-align: left; margin-left: 25px; }
         
-        /* De Nieuwe Card Styling */
-        .card { width: 320px; height: 480px; background: #161B22; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
-        .card-img { height: 65%; background-size: cover; background-position: center; display: flex; align-items: flex-end; }
-        .card-category { background: var(--mint); color: var(--obsidian); font-size: 10px; font-weight: 800; padding: 5px 12px; border-radius: 20px; margin: 15px; text-transform: uppercase; }
+        .card { width: 320px; height: 480px; background: #161B22; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        .card-img { height: 65%; background-size: cover; background-position: center; }
         .card-info { padding: 20px; text-align: left; }
         .card-info h2 { margin: 0; font-size: 24px; color: white; }
         .card-info p { margin: 5px 0 0; opacity: 0.6; font-size: 14px; line-height: 1.4; }
 
         .controls { display: flex; gap: 40px; margin-top: 30px; }
         .btn-vote { width: 80px; height: 80px; border-radius: 50%; border: none; font-size: 35px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        #timer-display { font-family: monospace; color: #FF4B4B; font-size: 18px; margin-top: 10px; font-weight: 800; }
     </style>
 
     <script type="module">
@@ -51,15 +50,6 @@
         let currentIndex = 0;
         let dbActivities = [];
 
-        // HAAL ACTIVITEITEN UIT DE DATABASE
-        async function loadActivities() {
-            const querySnapshot = await getDocs(collection(db, "activities"));
-            dbActivities = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            if(dbActivities.length === 0) {
-                alert("Geen activiteiten gevonden in de database!");
-            }
-        }
-
         window.showSetup = () => {
             document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('setup-screen').classList.remove('hidden');
@@ -67,15 +57,21 @@
 
         window.createRoom = async () => {
             myName = document.getElementById('host-name').value;
-            const maxP = document.getElementById('max-p').value;
+            const maxP = parseInt(document.getElementById('max-p').value);
+            const mins = parseInt(document.getElementById('deadline-min').value);
             if(!myName) return alert("Naam verplicht!");
+
             myRoomCode = Math.floor(1000 + Math.random() * 9000).toString();
+            const deadline = Date.now() + (mins * 60000);
+
             await setDoc(doc(db, "rooms", myRoomCode), {
                 status: 'lobby',
                 participants: [myName],
-                maxParticipants: parseInt(maxP),
+                maxParticipants: maxP,
+                deadline: deadline,
                 votes: {}
             });
+
             isHost = true;
             enterLobbyUI();
         };
@@ -99,28 +95,57 @@
             onSnapshot(doc(db, "rooms", myRoomCode), (docSnap) => {
                 const data = docSnap.data();
                 if(!data) return;
+
                 document.getElementById('participant-list').innerHTML = data.participants.map(p => `<li>${p}</li>`).join('');
                 document.getElementById('participant-count').innerText = `${data.participants.length} / ${data.maxParticipants} spelers`;
-                if(isHost || data.participants.length >= data.maxParticipants) document.getElementById('start-btn').classList.remove('hidden');
+
+                // Timer
+                const timeLeft = Math.round((data.deadline - Date.now()) / 1000);
+                if(timeLeft > 0) {
+                    document.getElementById('timer-display').innerText = `Tijd: ${Math.floor(timeLeft/60)}m ${timeLeft%60}s`;
+                } else {
+                    document.getElementById('timer-display').innerText = "TIJD OM!";
+                }
+
+                // Start button logica
+                const startBtn = document.getElementById('start-btn');
+                if(data.participants.length >= data.maxParticipants) {
+                    startBtn.disabled = false;
+                    startBtn.classList.remove('hidden');
+                } else {
+                    startBtn.disabled = true;
+                    startBtn.innerText = `Wachten op spelers...`;
+                }
+
                 if(data.status === 'flipping' && document.getElementById('swipe-screen').classList.contains('hidden')) startFlipping();
                 if(data.status === 'finished') showMatch(data.winner);
             });
         }
 
         window.startApp = async () => {
-            await loadActivities(); // DATA LADEN VOORDAT WE STARTEN
+            const querySnapshot = await getDocs(collection(db, "activities"));
+            dbActivities = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            if(dbActivities.length === 0) return alert("Database is leeg! Voeg eerst iets toe in /admin.html");
+            
             await updateDoc(doc(db, "rooms", myRoomCode), { status: 'flipping' });
         };
 
         function startFlipping() {
+            if(dbActivities.length === 0) loadAndStart(); // Fallback als db nog niet geladen is
             document.getElementById('waiting-screen').classList.add('hidden');
             document.getElementById('swipe-screen').classList.remove('hidden');
             renderCard();
         }
 
+        async function loadAndStart() {
+            const querySnapshot = await getDocs(collection(db, "activities"));
+            dbActivities = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderCard();
+        }
+
         function renderCard() {
             if(currentIndex >= dbActivities.length) {
-                document.getElementById('card-container').innerHTML = "<h2>Klaar! Wachten op de rest...</h2>";
+                document.getElementById('card-container').innerHTML = "<h2>Wachten op de rest...</h2>";
                 document.getElementById('vote-controls').classList.add('hidden');
                 if(isHost) checkWinnerTrigger();
                 return;
@@ -128,15 +153,12 @@
             const act = dbActivities[currentIndex];
             document.getElementById('card-container').innerHTML = `
                 <div class="card">
-                    <div class="card-img" style="background-image: url('${act.image || ''}')">
-                        <span class="card-category">Valkenburg Tip</span>
-                    </div>
+                    <div class="card-img" style="background-image: url('${act.image}')"></div>
                     <div class="card-info">
                         <h2>${act.title}</h2>
                         <p>${act.desc}</p>
                     </div>
-                </div>
-            `;
+                </div>`;
         }
 
         window.vote = async (type) => {
@@ -154,14 +176,14 @@
                 const docSnap = await getDoc(doc(db, "rooms", myRoomCode));
                 const data = docSnap.data();
                 const votes = data.votes || {};
-                let winnerTitle = dbActivities[0].title;
+                let winnerTitle = "Geen match";
                 let maxV = -1;
                 dbActivities.forEach(a => {
                     let v = votes[a.id] || 0;
                     if(v > maxV) { maxV = v; winnerTitle = a.title; }
                 });
                 await updateDoc(doc(db, "rooms", myRoomCode), { status: 'finished', winner: winnerTitle });
-            }, 4000);
+            }, 3000);
         }
 
         function showMatch(winner) {
@@ -178,7 +200,7 @@
         <h1>FLIP<span>OR</span>TRIP</h1>
         <button class="btn" onclick="showSetup()">Nieuwe Trip Starten</button>
         <p style="opacity:0.5; margin:10px 0;">of</p>
-        <input type="text" id="join-code" class="input-box" placeholder="4-cijferige code">
+        <input type="text" id="join-code" class="input-box" placeholder="Code">
         <button class="btn" style="background:white" onclick="joinExisting()">Deelnemen</button>
     </div>
 
@@ -186,6 +208,8 @@
         <h2>Setup</h2>
         <span class="label">Aantal deelnemers</span>
         <input type="number" id="max-p" class="input-box" value="2">
+        <span class="label">Tijd (minuten)</span>
+        <input type="number" id="deadline-min" class="input-box" value="5">
         <span class="label">Naam</span>
         <input type="text" id="host-name" class="input-box">
         <button class="btn" onclick="createRoom()">Start Lobby</button>
@@ -193,6 +217,7 @@
 
     <div id="waiting-screen" class="hidden">
         <h2>Code: <span id="display-room-code" style="color:var(--mint)"></span></h2>
+        <div id="timer-display"></div>
         <ul id="participant-list" style="list-style:none; padding:0; font-size:24px; color:var(--mint); margin:20px 0;"></ul>
         <p id="participant-count"></p>
         <button id="start-btn" class="btn hidden" onclick="startApp()">IEDEREEN IS ER!</button>
