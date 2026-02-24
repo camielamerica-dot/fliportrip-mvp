@@ -195,7 +195,7 @@
 
             // Email versturen met Top 3
             const emailBody = top3.map((r, i) => `${i+1}. ${r.title} (${r.percentage}%)`).join('\n');
-            emailjs.send("JOUW_SERVICE_ID", "JOUW_TEMPLATE_ID", {
+            emailjs.send("service_pceg3i8", "template_tr613kg", {
                 host_name: data.hostName,
                 to_email: data.hostEmail,
                 room_code: myRoomCode,
