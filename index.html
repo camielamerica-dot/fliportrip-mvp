@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FlipOrTrip | v0.14</title>
+    <title>FlipOrTrip | v0.15 Final</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
@@ -21,31 +21,20 @@
         .card-info p { margin: 5px 0 0; opacity: 0.6; font-size: 13px; }
         .controls { display: flex; gap: 40px; margin-top: 20px; }
         .btn-vote { width: 70px; height: 70px; border-radius: 50%; border: none; font-size: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        
+        /* Room Header & Leaderboard */
+        #room-header { position: fixed; top: 15px; left: 15px; font-size: 12px; color: var(--mint); z-index: 100; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 20px; border: 1px solid rgba(0,255,194,0.3); }
+        #leaderboard { margin-top: 20px; text-align: left; width: 280px; margin: 20px auto; }
+        .leader-item { background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; border-left: 4px solid var(--mint); }
+        .leader-perc { color: var(--mint); font-weight: 800; }
         #participant-monitor { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; margin: 15px auto; font-size: 14px; text-align: left; width: 260px; border: 1px solid rgba(255,255,255,0.1); }
-        .stat-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
-        #leaderboard { margin-top: 20px; text-align: left; width: 280px; margin-left: auto; margin-right: auto; }
-        .leader-item { background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--mint); }
-        .leader-name { font-weight: 800; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
-        .leader-perc { color: var(--mint); font-weight: 800; font-size: 16px; }
     </style>
 
     <script type="module">
-        
-        window.onload = () => {
-    const savedCode = sessionStorage.getItem('roomCode');
-    if (savedCode) {
-        const goBack = confirm(`Je zat nog in kamer ${savedCode}. Wil je daar verder gaan?`);
-        if (goBack) {
-            myRoomCode = savedCode;
-            enterSwipeUI();
-        } else {
-            sessionStorage.clear();
-        }
-    }
-};
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, setDoc, updateDoc, arrayUnion, increment, getDoc, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // --- FIREBASE CONFIG (ZELF INVULLEN) ---
         const firebaseConfig = {
             apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0",
             authDomain: "fliportrip-valkenburg.firebaseapp.com",
@@ -64,10 +53,28 @@
         let currentIndex = 0;
         let timerInt = null;
 
+        // Auto-recovery
+        window.addEventListener('load', () => {
+            const savedCode = sessionStorage.getItem('roomCode');
+            if (savedCode) {
+                if(confirm(`Wil je terug naar kamer ${savedCode}?`)) {
+                    myRoomCode = savedCode;
+                    enterSwipeUI();
+                } else {
+                    sessionStorage.clear();
+                }
+            }
+        });
+
         async function fetchActivities() {
             const querySnapshot = await getDocs(collection(db, "activities"));
             dbActivities = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         }
+
+        window.copyCode = () => {
+            navigator.clipboard.writeText(myRoomCode);
+            alert("Code gekopieerd naar klembord!");
+        };
 
         window.showSetup = () => {
             document.getElementById('start-screen').classList.add('hidden');
@@ -113,17 +120,14 @@
         };
 
         window.enterSwipeUI = async () => {
-    myRoomCode = sessionStorage.getItem('roomCode');
-    
-    // Toon de code in de hoek
-    document.getElementById('room-header').classList.remove('hidden');
-    document.getElementById('active-code-display').innerText = myRoomCode;
-
-    document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
-    document.getElementById('swipe-screen').classList.remove('hidden');
-    await fetchActivities();
-    renderCard();
-};
+            myRoomCode = sessionStorage.getItem('roomCode');
+            document.getElementById('room-header').classList.remove('hidden');
+            document.getElementById('active-code-display').innerText = myRoomCode;
+            document.querySelectorAll('body > div:not(#room-header)').forEach(div => div.classList.add('hidden'));
+            document.getElementById('swipe-screen').classList.remove('hidden');
+            await fetchActivities();
+            renderCard();
+        };
 
         function renderCard() {
             if(currentIndex >= dbActivities.length) { finishUser(); return; }
@@ -171,20 +175,17 @@
             const docSnap = await getDoc(doc(db, "rooms", myRoomCode));
             const data = docSnap.data();
             const totalParticipants = data.participants.length;
-            if (dbActivities.length === 0) await fetchActivities();
-
             let results = dbActivities.map(act => {
                 const jaStemmen = (data.votes && data.votes[act.id]) || 0;
                 const percentage = totalParticipants > 0 ? Math.round((jaStemmen / totalParticipants) * 100) : 0;
                 return { title: act.title, percentage: percentage };
             });
-
             results.sort((a, b) => b.percentage - a.percentage);
             const top3 = results.slice(0, 3);
-            const leaderboard = document.getElementById('leaderboard');
-            leaderboard.innerHTML = '<h3>Tussenstand Top 3:</h3>';
-            top3.forEach((res, index) => {
-                leaderboard.innerHTML += `<div class="leader-item"><span class="leader-name">${index + 1}. ${res.title}</span><span class="leader-perc">${res.percentage}%</span></div>`;
+            const lb = document.getElementById('leaderboard');
+            lb.innerHTML = '<h3>Tussenstand:</h3>';
+            top3.forEach((res, i) => {
+                lb.innerHTML += `<div class="leader-item"><span>${i+1}. ${res.title}</span><span class="leader-perc">${res.percentage}%</span></div>`;
             });
             document.getElementById('mail-button-final').classList.remove('hidden');
         };
@@ -192,23 +193,20 @@
         window.sendFinalEmail = async () => {
             const docSnap = await getDoc(doc(db, "rooms", myRoomCode));
             const data = docSnap.data();
-            const leaderboardItems = document.querySelectorAll('.leader-item');
             let emailText = "";
-            leaderboardItems.forEach(item => { emailText += item.innerText + "\n"; });
-
+            document.querySelectorAll('.leader-item').forEach(item => { emailText += item.innerText + "\n"; });
             emailjs.send("service_pceg3i8", "template_tr613kg", {
-                host_name: data.hostName,
-                to_email: data.hostEmail, // Zorg dat dit {{to_email}} is in EmailJS
-                room_code: myRoomCode,
-                winner: emailText
-            }).then(() => alert("Top 3 gemaild naar " + data.hostEmail));
+                host_name: data.hostName, to_email: data.hostEmail, room_code: myRoomCode, winner: emailText
+            }).then(() => alert("Gemaild naar " + data.hostEmail));
         };
     </script>
-    <div id="room-header" class="hidden" style="position: fixed; top: 10px; left: 10px; font-size: 12px; color: var(--mint); opacity: 0.7; z-index: 100;">
-    Kamer: <span id="active-code-display"></span>
-</div>
 </head>
 <body>
+
+    <div id="room-header" class="hidden">
+        Code: <span id="active-code-display" style="font-weight: 800;"></span> 
+        <span onclick="copyCode()" style="cursor:pointer; margin-left:8px;">📋</span>
+    </div>
 
     <div id="start-screen">
         <div class="orb"></div>
@@ -252,14 +250,13 @@
         <h1 style="color:var(--mint)">KLAAR!</h1>
         <div id="host-controls" class="hidden">
             <div id="participant-monitor">
-                <div class="stat-row"><strong>Voortgang:</strong> <span id="p-progress">...</span></div>
-                <div class="stat-row"><strong>Tijd:</strong> <span id="time-left">...</span></div>
-                <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:10px 0;">
-                <div style="font-size:12px; opacity:0.6;" id="p-list">Laden...</div>
+                <div style="display:flex; justify-content:space-between;"><strong>Mensen:</strong> <span id="p-progress">...</span></div>
+                <div style="display:flex; justify-content:space-between;"><strong>Tijd:</strong> <span id="time-left">...</span></div>
+                <div id="p-list" style="font-size:11px; opacity:0.6; margin-top:8px;"></div>
             </div>
-            <button class="btn" onclick="checkFinalResult()">BEKIJK TUSSENSTAND</button>
+            <button class="btn" onclick="checkFinalResult()">CHECK TUSSENSTAND</button>
             <div id="leaderboard"></div>
-            <button id="mail-button-final" class="btn hidden" style="background:white; margin-top:10px;" onclick="sendFinalEmail()">MAIL DEFINITIEVE UITSLAG</button>
+            <button id="mail-button-final" class="btn hidden" style="background:white;" onclick="sendFinalEmail()">MAIL DEFINITIEVE UITSLAG</button>
         </div>
         <p id="guest-msg">Je stemmen zijn opgeslagen!</p>
     </div>
