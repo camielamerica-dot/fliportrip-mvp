@@ -2,318 +2,224 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlipOrTrip | Business Suite v4.0</title>
-    
+    <title>FlipOrTrip | Business Suite v4.1</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBGms1-wiv_5tq1ehzhhJOjM905WnFMexo&libraries=places"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
-    
     <style>
-        :root { --mint: #00FFC2; --obsidian: #0B0E14; --card-bg: #161B22; --text-muted: #8899A6; --red: #FF4B4B; --orange: #FFA500; }
+        :root { --mint: #00FFC2; --obsidian: #0B0E14; --card: #161B22; --text: #8899A6; --red: #FF4B4B; }
         * { box-sizing: border-box; }
         body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Sidebar */
-        .sidebar { width: 260px; background: var(--card-bg); padding: 30px; border-right: 1px solid rgba(0,255,194,0.1); display: flex; flex-direction: column; flex-shrink: 0; }
-        .nav-btn { background: transparent; border: none; color: var(--text-muted); padding: 15px; text-align: left; font-size: 14px; font-weight: 800; cursor: pointer; width: 100%; border-radius: 12px; margin-bottom: 5px; transition: 0.3s; }
-        .nav-btn.active { background: rgba(0,255,194,0.1); color: var(--mint); }
-        .logout-btn { margin-top: auto; color: var(--red); border: 1px solid rgba(255,75,75,0.2); }
+        /* Layout */
+        .sidebar { width: 250px; background: var(--card); padding: 30px; border-right: 1px solid rgba(0,255,194,0.1); display: flex; flex-direction: column; }
+        .main { flex: 1; padding: 40px; overflow-y: auto; }
+        .tab { display: none; }
+        .tab.active { display: block; animation: fadeIn 0.4s ease; }
 
-        /* Main Content */
-        .main-content { flex: 1; padding: 40px; overflow-y: auto; background: radial-gradient(circle at top right, #1a202c, #0b0e14); }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.4s ease; }
-
-        /* Modal / Deep Dive */
-        #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(12px); z-index: 10000; display: none; align-items: center; justify-content: center; padding: 40px; }
-        .modal { background: var(--card-bg); width: 100%; max-width: 1000px; border-radius: 32px; padding: 40px; border: 1px solid var(--mint); position: relative; max-height: 90vh; overflow-y: auto; }
-
-        /* Cards & Forms */
-        .card { background: var(--card-bg); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; }
-        .label { font-size: 10px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 8px; display: block; letter-spacing: 1px; }
-        input { background: #0B0E14; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 14px; border-radius: 12px; width: 100%; margin-bottom: 12px; outline: none; font-family: inherit; }
-        input:focus { border-color: var(--mint); }
-        .btn-save { background: var(--mint); color: var(--obsidian); border: none; padding: 16px; border-radius: 50px; font-weight: 800; cursor: pointer; width: 100%; text-transform: uppercase; transition: 0.3s; }
-        .btn-save:hover { box-shadow: 0 0 20px rgba(0,255,194,0.4); }
-
-        /* Tables & Lists */
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; color: var(--mint); font-size: 10px; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
-        tr:hover td { background: rgba(255,255,255,0.02); }
-
-        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #0B0E14; border-radius: 12px; margin-bottom: 10px; border: 1px solid transparent; }
-        .item-active { border-left: 4px solid var(--mint); }
-        .item-inactive { border-left: 4px solid var(--red); opacity: 0.6; }
-
-        .action-link { background: none; border: none; cursor: pointer; font-weight: 800; font-size: 11px; margin-left: 10px; }
-
-        #login-gate { position: fixed; inset: 0; background: var(--obsidian); z-index: 99999; display: flex; align-items: center; justify-content: center; }
-        .pac-container { z-index: 100000 !important; background: #1c222d; border: 1px solid var(--mint); border-radius: 8px; color: white; }
-        .pac-item { color: white; border-top: 1px solid #333; padding: 8px; }
-        .pac-item-query { color: var(--mint); }
+        /* UI */
+        .card { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; }
+        .label { font-size: 10px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 8px; display: block; }
+        input, select { background: #0B0E14; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 12px; border-radius: 10px; width: 100%; margin-bottom: 10px; outline: none; font-family: inherit; }
+        .btn-mint { background: var(--mint); color: #000; border: none; padding: 15px; border-radius: 50px; font-weight: 800; cursor: pointer; width: 100%; text-transform: uppercase; }
         
+        /* Filtering Tags */
+        .filter-group { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tag { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text); padding: 6px 15px; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: 800; }
+        .tag.active { background: var(--mint); color: #000; border-color: var(--mint); }
+
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; color: var(--mint); font-size: 10px; padding: 10px; border-bottom: 1px solid #333; }
+        td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; font-size: 14px; }
+
+        /* Modal */
+        #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .modal { background: var(--card); width: 100%; max-width: 900px; padding: 40px; border-radius: 30px; border: 1px solid var(--mint); max-height: 90vh; overflow-y: auto; }
+
+        #login { position: fixed; inset: 0; background: var(--obsidian); z-index: 99999; display: flex; align-items: center; justify-content: center; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <div id="login-gate">
-        <div class="card" style="width: 320px; text-align: center;">
-            <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="120" style="margin-bottom:20px;">
-            <input type="password" id="admin-pw" placeholder="Admin Code" onkeypress="if(event.key === 'Enter') tryLogin()">
-            <button class="btn-save" onclick="tryLogin()">Open Suite</button>
+<div id="login">
+    <div class="card" style="width: 300px; text-align: center;">
+        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="100" style="margin-bottom:20px;">
+        <input type="password" id="pw" placeholder="Wachtwoord">
+        <button class="btn-mint" onclick="doAuth()">Login</button>
+    </div>
+</div>
+
+<div id="modal-overlay" onclick="this.style.display='none'">
+    <div class="modal" onclick="event.stopPropagation()">
+        <h2 id="m-title">Analyse</h2>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:20px;">
+            <div class="card"><span class="label">Leeftijd</span><canvas id="cA"></canvas></div>
+            <div class="card"><span class="label">Geslacht</span><canvas id="cG"></canvas></div>
+            <div class="card"><span class="label">Gezelschap</span><canvas id="cT"></canvas></div>
+        </div>
+    </div>
+</div>
+
+<div class="sidebar">
+    <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="120" style="margin-bottom:40px;">
+    <div class="tag active" style="width:100%; text-align:center; margin-bottom:10px;" onclick="setTab('dash', this)">📊 Dashboard</div>
+    <div class="tag" style="width:100%; text-align:center; margin-bottom:10px;" onclick="setTab('cat', this)">🎡 Catalogus</div>
+    <div class="tag" style="width:100%; text-align:center; margin-top:auto; color:var(--red);" onclick="location.reload()">🔒 Uitloggen</div>
+</div>
+
+<div class="main">
+    <div id="tab-dash" class="tab active">
+        <h2>Performance</h2>
+        <div class="card" style="height:300px;"><canvas id="mainChart"></canvas></div>
+        <div class="card">
+            <input type="text" placeholder="Zoek activiteit in resultaten..." oninput="drawStats(this.value)">
+            <table>
+                <thead><tr><th>Naam</th><th>Likes</th><th>Dislikes</th><th>Populariteit</th></tr></thead>
+                <tbody id="stat-list"></tbody>
+            </table>
         </div>
     </div>
 
-    <div id="modal-overlay" onclick="this.style.display='none'">
-        <div class="modal" onclick="event.stopPropagation()">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
-                <h2 id="modal-title" style="margin:0;">Activiteit Analyse</h2>
-                <button onclick="document.getElementById('modal-overlay').style.display='none'" style="background:none; border:none; color:white; font-size:30px; cursor:pointer;">&times;</button>
-            </div>
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:20px;">
-                <div class="card"><span class="label">Leeftijdsgroepen</span><canvas id="chartAge"></canvas></div>
-                <div class="card"><span class="label">Man/Vrouw Ratio</span><canvas id="chartGender"></canvas></div>
-                <div class="card"><span class="label">Type Gezelschap</span><canvas id="chartType"></canvas></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="sidebar">
-        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="130" style="margin-bottom:40px;">
-        <button class="nav-btn active" id="btn-dash" onclick="switchTab('tab-stats', this)">📊 Dashboard</button>
-        <button class="nav-btn" id="btn-cat" onclick="switchTab('tab-activities', this)">🎡 Catalogus</button>
-        <button class="nav-btn logout-btn" onclick="logout()">🔒 Uitloggen</button>
-    </div>
-
-    <div class="main-content">
-        <div id="tab-stats" class="tab-content active">
-            <h2>Live Performance Dashboard</h2>
-            <div class="card" style="height:350px;"><canvas id="mainChart"></canvas></div>
+    <div id="tab-cat" class="tab">
+        <div style="display:grid; grid-template-columns: 320px 1fr; gap:30px;">
             <div class="card">
-                <span class="label">Klik op een rij voor diepgaande analyse</span>
-                <table>
-                    <thead><tr><th>Activiteit</th><th>Likes</th><th>Dislikes</th><th>Populariteit</th></tr></thead>
-                    <tbody id="stats-tbody"></tbody>
-                </table>
+                <span class="label">Beheer Item</span>
+                <input type="text" id="i-title" placeholder="Naam">
+                <input type="text" id="i-loc" placeholder="Locatie">
+                <select id="i-cat">
+                    <option value="actief">Actief</option>
+                    <option value="food">Food</option>
+                    <option value="cultuur">Cultuur</option>
+                    <option value="ontspanning">Ontspanning</option>
+                </select>
+                <input type="text" id="i-price" placeholder="Prijs">
+                <input type="text" id="i-url" placeholder="URL">
+                <input type="text" id="i-img" placeholder="Afbeelding URL">
+                <button class="btn-mint" onclick="saveItem()">Item Opslaan</button>
             </div>
-        </div>
-
-        <div id="tab-activities" class="tab-content">
-            <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap:30px;">
-                <div class="card">
-                    <span class="label" id="form-mode">Nieuw Item Toevoegen</span>
-                    <form id="act-form" onsubmit="event.preventDefault(); saveItem();">
-                        <input type="text" id="act-title" placeholder="Naam Activiteit" required>
-                        <input type="text" id="act-loc" placeholder="Zoek Locatie (Google Maps...)" autocomplete="off">
-                        <input type="text" id="act-price" placeholder="Prijs info (bijv. € 12,50)">
-                        <input type="text" id="act-url" placeholder="Booking/Website URL">
-                        <input type="text" id="act-img" placeholder="Afbeelding URL">
-                        <button type="submit" class="btn-save" id="btn-text">Item Opslaan</button>
-                        <button type="button" onclick="resetForm()" id="btn-cancel" style="display:none; width:100%; background:none; border:none; color:white; margin-top:10px; cursor:pointer;">Annuleren</button>
-                    </form>
+            <div>
+                <div class="filter-group" id="cat-filters">
+                    <div class="tag active" onclick="filterCat('all', this)">Alles</div>
+                    <div class="tag" onclick="filterCat('actief', this)">Actief</div>
+                    <div class="tag" onclick="filterCat('food', this)">Food</div>
+                    <div class="tag" onclick="filterCat('cultuur', this)">Cultuur</div>
+                    <div class="tag" onclick="filterCat('ontspanning', this)">Ontspanning</div>
                 </div>
-                <div>
-                    <input type="text" id="search" placeholder="Filter catalogus..." oninput="renderList()">
-                    <div id="list-container"></div>
-                </div>
+                <div id="item-list"></div>
             </div>
         </div>
     </div>
+</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0",
-            authDomain: "fliportrip-valkenburg.firebaseapp.com",
-            projectId: "fliportrip-valkenburg",
-            storageBucket: "fliportrip-valkenburg.firebasestorage.app"
-        };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+    const config = {
+        apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0",
+        authDomain: "fliportrip-valkenburg.firebaseapp.com",
+        projectId: "fliportrip-valkenburg",
+        storageBucket: "fliportrip-valkenburg.firebasestorage.app"
+    };
+    const app = initializeApp(config);
+    const db = getFirestore(app);
 
-        let activities = [];
-        let analytics = [];
-        let mainChart = null;
-        let editingId = null;
+    let items = [], logs = [], currentCat = 'all', mChart, cA, cG, cT;
 
-        // AUTH
-        window.tryLogin = () => {
-            if(document.getElementById('admin-pw').value === 'Flip2026') {
-                document.getElementById('login-gate').style.display = 'none';
-                sessionStorage.setItem('isLogged', 'true');
-                initGoogle();
-                startSync();
-            } else alert("Toegang geweigerd.");
-        };
-
-        window.logout = () => {
-            sessionStorage.removeItem('isLogged');
-            window.location.reload();
-        };
-
-        // GOOGLE MAPS
-        function initGoogle() {
-            const input = document.getElementById('act-loc');
-            const autocomplete = new google.maps.places.Autocomplete(input, { componentRestrictions: {country: "nl"} });
-            autocomplete.addListener('place_changed', () => {
-                const place = autocomplete.getPlace();
-                if(place.formatted_address) input.value = place.formatted_address;
-            });
+    window.doAuth = () => {
+        if(document.getElementById('pw').value === 'Flip2026') {
+            document.getElementById('login').style.display='none';
+            init();
         }
+    };
 
-        // FIREBASE SYNC
-        function startSync() {
-            onSnapshot(collection(db, "activities"), (snap) => {
-                activities = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                renderList();
-                updateDashboard();
-            });
-            onSnapshot(collection(db, "global_analytics"), (snap) => {
-                analytics = snap.docs.map(d => d.data());
-                updateDashboard();
-            });
-        }
+    function init() {
+        // Google Autocomplete
+        const ac = new google.maps.places.Autocomplete(document.getElementById('i-loc'), {componentRestrictions:{country:'nl'}});
+        ac.addListener('place_changed', () => { document.getElementById('i-loc').value = ac.getPlace().formatted_address; });
 
-        // TAB NAVIGATION
-        window.switchTab = (id, btn) => {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            btn.classList.add('active');
-        };
+        onSnapshot(collection(db, "activities"), s => { items = s.docs.map(d => ({id:d.id, ...d.data()})); drawCat(); drawStats(); });
+        onSnapshot(collection(db, "global_analytics"), s => { logs = s.docs.map(d => d.data()); drawStats(); });
+    }
 
-        // RENDER LIST
-        window.renderList = () => {
-            const term = document.getElementById('search').value.toLowerCase();
-            document.getElementById('list-container').innerHTML = activities
-                .filter(a => a.title.toLowerCase().includes(term))
-                .map(a => `
-                <div class="list-item ${a.active !== false ? 'item-active' : 'item-inactive'}">
-                    <div>
-                        <strong>${a.title}</strong>
-                        <div style="font-size:10px; color:var(--text-muted);">${a.location || 'Geen locatie'}</div>
-                    </div>
-                    <div>
-                        <button class="action-link" style="color:var(--mint)" onclick="editItem('${a.id}')">EDIT</button>
-                        <button class="action-link" style="color:var(--orange)" onclick="toggleStatus('${a.id}', ${a.active !== false})">STATUS</button>
-                        <button class="action-link" style="color:var(--red)" onclick="deleteItem('${a.id}')">WIS</button>
-                    </div>
-                </div>`).join('');
-        };
+    window.setTab = (t, el) => {
+        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        document.querySelectorAll('.sidebar .tag').forEach(x => x.classList.remove('active'));
+        document.getElementById('tab-'+t).classList.add('active');
+        el.classList.add('active');
+    };
 
-        // ACTIONS
-        window.saveItem = async () => {
-            const data = {
-                title: document.getElementById('act-title').value,
-                location: document.getElementById('act-loc').value,
-                price: document.getElementById('act-price').value,
-                bookingUrl: document.getElementById('act-url').value,
-                image: document.getElementById('act-img').value,
-                active: true
-            };
-            if(editingId) await updateDoc(doc(db, "activities", editingId), data);
-            else await addDoc(collection(db, "activities"), data);
-            resetForm();
-        };
+    window.filterCat = (cat, el) => {
+        currentCat = cat;
+        document.querySelectorAll('#cat-filters .tag').forEach(x => x.classList.remove('active'));
+        el.classList.add('active');
+        drawCat();
+    };
 
-        window.editItem = (id) => {
-            const a = activities.find(i => i.id === id);
-            editingId = id;
-            document.getElementById('act-title').value = a.title;
-            document.getElementById('act-loc').value = a.location || "";
-            document.getElementById('act-price').value = a.price || "";
-            document.getElementById('act-url').value = a.bookingUrl || "";
-            document.getElementById('act-img').value = a.image || "";
-            document.getElementById('form-mode').innerText = "Item Bewerken";
-            document.getElementById('btn-cancel').style.display = "block";
-            switchTab('tab-activities', document.getElementById('btn-cat'));
-        };
+    window.drawCat = () => {
+        const out = document.getElementById('item-list');
+        out.innerHTML = items.filter(i => currentCat === 'all' || (i.categories && i.categories.includes(currentCat)) || i.category === currentCat)
+            .map(i => `<div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:15px;">
+                <div><strong>${i.title}</strong><br><small>${i.location || ''}</small></div>
+                <button onclick="delItem('${i.id}')" style="color:var(--red); background:none; border:none; cursor:pointer;">WIS</button>
+            </div>`).join('');
+    };
 
-        window.toggleStatus = async (id, cur) => {
-            await updateDoc(doc(db, "activities", id), { active: !cur });
-        };
+    window.saveItem = async () => {
+        await addDoc(collection(db, "activities"), {
+            title: document.getElementById('i-title').value,
+            location: document.getElementById('i-loc').value,
+            category: document.getElementById('i-cat').value,
+            categories: [document.getElementById('i-cat').value],
+            price: document.getElementById('i-price').value,
+            bookingUrl: document.getElementById('i-url').value,
+            image: document.getElementById('i-img').value,
+            active: true
+        });
+        document.querySelectorAll('input').forEach(i => i.value='');
+    };
 
-        window.deleteItem = async (id) => {
-            if(confirm("Weet je het zeker?")) await deleteDoc(doc(db, "activities", id));
-        };
+    window.delItem = async (id) => { if(confirm('Wissen?')) await deleteDoc(doc(db, "activities", id)); };
 
-        window.resetForm = () => {
-            editingId = null;
-            document.getElementById('act-form').reset();
-            document.getElementById('form-mode').innerText = "Nieuw Item Toevoegen";
-            document.getElementById('btn-cancel').style.display = "none";
-        };
+    window.drawStats = (search = "") => {
+        const list = document.getElementById('stat-list');
+        const filteredItems = items.filter(i => i.title.toLowerCase().includes(search.toLowerCase()));
+        
+        const labels = [], counts = [];
+        list.innerHTML = filteredItems.map(i => {
+            const iLogs = logs.filter(l => l.activityId === i.id || l.activityTitle === i.title);
+            const likes = iLogs.filter(l => l.action === 'like').length;
+            const dislikes = iLogs.filter(l => l.action === 'dislike').length;
+            const score = (likes+dislikes) > 0 ? Math.round((likes/(likes+dislikes))*100) : 0;
+            labels.push(i.title); counts.push(likes);
+            return `<tr onclick="openDeep('${i.id}', '${i.title}')"><td>${i.title}</td><td>${likes}</td><td>${dislikes}</td><td>${score}%</td></tr>`;
+        }).join('');
 
-        // DASHBOARD & DEEP DIVE
-        function updateDashboard() {
-            const tbody = document.getElementById('stats-tbody');
-            const dataMap = {};
-            activities.forEach(act => {
-                const actAn = analytics.filter(an => an.activityId === act.id || an.activityTitle === act.title);
-                const likes = actAn.filter(an => an.action === 'like').length;
-                const dislikes = actAn.filter(an => an.action === 'dislike').length;
-                dataMap[act.title] = { id: act.id, likes, dislikes };
-            });
+        if(mChart) mChart.destroy();
+        mChart = new Chart(document.getElementById('mainChart'), {
+            type:'bar', data: {labels, datasets:[{label:'Likes', data:counts, backgroundColor:'#00FFC2'}]},
+            options: {responsive:true, maintainAspectRatio:false}
+        });
+    };
 
-            const labels = Object.keys(dataMap).sort((a,b) => dataMap[b].likes - dataMap[a].likes);
-            tbody.innerHTML = labels.map(l => {
-                const total = dataMap[l].likes + dataMap[l].dislikes;
-                const ratio = total > 0 ? Math.round((dataMap[l].likes/total)*100) : 0;
-                return `<tr onclick="openDeepDive('${dataMap[l].id}', '${l}')">
-                    <td>${l}</td><td>${dataMap[l].likes}</td><td>${dataMap[l].dislikes}</td><td style="color:var(--mint)">${ratio}%</td>
-                </tr>`;
-            }).join('');
+    window.openDeep = (id, title) => {
+        document.getElementById('m-title').innerText = title;
+        document.getElementById('modal-overlay').style.display = 'flex';
+        const s = logs.filter(l => l.activityId === id || l.activityTitle === title);
 
-            if(mainChart) mainChart.destroy();
-            const ctx = document.getElementById('mainChart');
-            if(ctx) mainChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels,
-                    datasets: [
-                        { label: 'Likes', data: labels.map(l => dataMap[l].likes), backgroundColor: '#00FFC2' },
-                        { label: 'Dislikes', data: labels.map(l => dataMap[l].dislikes), backgroundColor: '#FF4B4B' }
-                    ]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-        }
+        // Age: probeer 'age', 'userAge'
+        const ages = {'18-25': s.filter(x => (x.age||x.userAge) < 26).length, '26-40': s.filter(x => (x.age||x.userAge) >= 26 && (x.age||x.userAge) < 41).length, '41+': s.filter(x => (x.age||x.userAge) >= 41).length};
+        // Gender: probeer 'gender', 'userGender'
+        const gens = {'Man': s.filter(x => ['man','male','m'].includes((x.gender||x.userGender||'').toLowerCase())).length, 'Vrouw': s.filter(x => ['vrouw','female','f'].includes((x.gender||x.userGender||'').toLowerCase())).length};
+        // Type: probeer 'groupType', 'type'
+        const typs = {'Solo': s.filter(x => (x.groupType||x.type) === 'Solo').length, 'Koppel': s.filter(x => (x.groupType||x.type) === 'Koppel').length, 'Groep': s.filter(x => (x.groupType||x.type) === 'Groep').length};
 
-        let ageChart, genChart, typeChart;
-        window.openDeepDive = (id, title) => {
-            document.getElementById('modal-title').innerText = title;
-            document.getElementById('modal-overlay').style.display = 'flex';
-            
-            const stats = analytics.filter(an => an.activityId === id || an.activityTitle === title);
-            
-            // Age Logic
-            const ages = { '18-25': 0, '26-40': 0, '41-60': 0, '60+': 0 };
-            stats.forEach(s => { if(s.userAge) { if(s.userAge < 26) ages['18-25']++; else if(s.userAge < 41) ages['26-40']++; else if(s.userAge < 61) ages['41-60']++; else ages['60+']++; } });
-            
-            renderDeepChart('chartAge', 'pie', Object.keys(ages), Object.values(ages), ['#00FFC2', '#00D1FF', '#FFD700', '#FF4B4B']);
-            
-            // Gender Logic
-            const genders = { 'Man': stats.filter(s => s.userGender === 'man').length, 'Vrouw': stats.filter(s => s.userGender === 'vrouw').length };
-            renderDeepChart('chartGender', 'doughnut', Object.keys(genders), Object.values(genders), ['#00D1FF', '#FF00FF']);
-
-            // Type Logic
-            const types = { 'Solo': stats.filter(s => s.groupType === 'Solo').length, 'Koppel': stats.filter(s => s.groupType === 'Koppel').length, 'Groep': stats.filter(s => s.groupType === 'Groep').length };
-            renderDeepChart('chartType', 'bar', Object.keys(types), Object.values(types), ['#00FFC2', '#00FFC2', '#00FFC2']);
-        };
-
-        function renderDeepChart(canvasId, type, labels, data, colors) {
-            const ctx = document.getElementById(canvasId);
-            new Chart(ctx, {
-                type,
-                data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 0 }] },
-                options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#fff' } } } }
-            });
-        }
-    </script>
+        if(cA) cA.destroy(); cA = new Chart(document.getElementById('cA'), {type:'pie', data:{labels:Object.keys(ages), datasets:[{data:Object.values(ages), backgroundColor:['#00FFC2','#00D1FF','#FF4B4B']}]}});
+        if(cG) cG.destroy(); cG = new Chart(document.getElementById('cG'), {type:'doughnut', data:{labels:Object.keys(gens), datasets:[{data:Object.values(gens), backgroundColor:['#00D1FF','#FF00FF']}]}});
+        if(cT) cT.destroy(); cT = new Chart(document.getElementById('cT'), {type:'bar', data:{labels:Object.keys(typs), datasets:[{label:'Aantal', data:Object.values(typs), backgroundColor:'#00FFC2'}]}});
+    };
+</script>
 </body>
 </html>
