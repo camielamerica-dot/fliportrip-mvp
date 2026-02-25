@@ -2,81 +2,78 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>FlipOrTrip Suite v3.2 | Stabiel</title>
+    <title>FlipOrTrip | Business Suite v3.3</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBGms1-wiv_5tq1ehzhhJOjM905WnFMexo&libraries=places"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     <style>
-        :root { --mint: #00FFC2; --dark: #0B0E14; --card: #161B22; --text: #8899A6; }
+        :root { --mint: #00FFC2; --dark: #0B0E14; --card: #161B22; --text: #8899A6; --red: #FF4B4B; }
         * { box-sizing: border-box; }
-        body { background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        body { background: var(--dark); color: white; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        .sidebar { width: 240px; background: var(--card); border-right: 1px solid #333; padding: 30px; display: flex; flex-direction: column; }
-        .main { flex: 1; padding: 40px; overflow-y: auto; background: radial-gradient(circle at top right, #1a202c, #0b0e14); }
-        
-        .nav-btn { padding: 15px; color: var(--text); cursor: pointer; font-weight: 800; border-radius: 12px; margin-bottom: 10px; transition: 0.3s; }
+        /* Layout */
+        .sidebar { width: 250px; background: var(--card); border-right: 1px solid rgba(255,255,255,0.05); padding: 30px; display: flex; flex-direction: column; }
+        .main { flex: 1; padding: 40px; overflow-y: auto; }
+        .nav-btn { padding: 15px; color: var(--text); cursor: pointer; font-weight: 800; border-radius: 12px; margin-bottom: 8px; transition: 0.2s; }
         .nav-btn.active { background: rgba(0,255,194,0.1); color: var(--mint); }
-        
-        .tab { display: none; }
-        .tab.active { display: block; animation: fadeIn 0.4s ease; }
 
+        /* UI Elements */
         .card { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; }
-        input { width: 100%; background: #000; border: 1px solid #333; color: white; padding: 14px; border-radius: 12px; margin-bottom: 12px; outline: none; }
-        input:focus { border-color: var(--mint); }
+        .tab { display: none; }
+        .tab.active { display: block; }
         
-        .btn { background: var(--mint); color: #000; border: none; padding: 16px; width: 100%; border-radius: 50px; font-weight: 900; cursor: pointer; text-transform: uppercase; }
-        .btn-del { background: none; color: #ff4b4b; border: 1px solid #ff4b4b; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 10px; }
+        input { width: 100%; background: #000; border: 1px solid #333; color: white; padding: 14px; border-radius: 12px; margin-bottom: 12px; outline: none; font-family: inherit; }
+        input:focus { border-color: var(--mint); }
+        .btn-main { background: var(--mint); color: #000; border: none; padding: 16px; width: 100%; border-radius: 50px; font-weight: 800; cursor: pointer; text-transform: uppercase; }
+        
+        /* List & Buttons */
+        .item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 12px; margin-bottom: 10px; border-left: 4px solid transparent; }
+        .item.active-item { border-left-color: var(--mint); }
+        .item.inactive-item { border-left-color: var(--red); opacity: 0.6; }
+        
+        .action-btn { background: none; border: 1px solid #444; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 800; margin-left: 5px; }
+        .btn-red { color: var(--red); border-color: var(--red); }
+        .btn-toggle { color: #FFA500; border-color: #FFA500; }
 
-        table { width: 100%; border-collapse: collapse; }
-        td { padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-
-        #login-gate { position: fixed; inset: 0; background: var(--dark); z-index: 10000; display: flex; align-items: center; justify-content: center; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        #login { position: fixed; inset: 0; background: var(--dark); z-index: 10000; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
-<div id="login-gate">
+<div id="login">
     <div class="card" style="width: 320px; text-align: center;">
         <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="120" style="margin-bottom:20px;">
-        <input type="password" id="pw" placeholder="Beheerder Code">
-        <button class="btn" onclick="checkAccess()">Suite Openen</button>
+        <input type="password" id="pw" placeholder="Admin Code">
+        <button class="btn-main" onclick="auth()">Suite Openen</button>
     </div>
 </div>
 
 <div class="sidebar">
     <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="120" style="margin-bottom:40px;">
-    <div class="nav-btn active" onclick="switchTab('tab-dash', this)">📊 Dashboard</div>
+    <div class="nav-btn active" onclick="switchTab('tab-dash', this)">📊 Statistieken</div>
     <div class="nav-btn" onclick="switchTab('tab-cat', this)">🎡 Catalogus</div>
 </div>
 
 <div class="main">
     <div id="tab-dash" class="tab active">
-        <h2>Live Business Insights</h2>
-        <div class="card" style="height: 350px;">
-            <canvas id="chart"></canvas>
-        </div>
-        <div class="card">
-            <table id="stats-table">
-                <thead><tr><th align="left">Activiteit</th><th align="right">Likes</th></tr></thead>
-                <tbody id="stats-body"></tbody>
-            </table>
-        </div>
+        <h2>Live Resultaten</h2>
+        <div class="card" style="height: 350px;"><canvas id="chart"></canvas></div>
+        <div class="card"><table style="width:100%; text-align:left;"><tbody id="stats-body"></tbody></table></div>
     </div>
 
     <div id="tab-cat" class="tab">
         <div style="display: grid; grid-template-columns: 350px 1fr; gap: 30px;">
             <div class="card">
-                <h3 style="margin-top:0">Nieuw Item</h3>
-                <input type="text" id="f-title" placeholder="Naam van activiteit">
-                <input type="text" id="f-loc" placeholder="Locatie (Stad of Adres)">
-                <input type="text" id="f-price" placeholder="Prijs (bijv. Gratis of €10)">
-                <input type="text" id="f-img" placeholder="URL naar afbeelding">
-                <button class="btn" onclick="handleSave()">Opslaan in Firebase</button>
-                <p id="debug-msg" style="font-size: 10px; color: var(--mint); margin-top: 10px;"></p>
+                <h3 style="margin-top:0">Item Toevoegen</h3>
+                <input type="text" id="f-title" placeholder="Naam activiteit">
+                <input type="text" id="f-loc" placeholder="Locatie (Stad/Adres)">
+                <input type="text" id="f-price" placeholder="Prijs (bijv. € 15,00)">
+                <input type="text" id="f-img" placeholder="Afbeelding URL">
+                <button class="btn-main" onclick="save()">Opslaan</button>
+                <div id="status-msg" style="margin-top:10px; font-size:12px; color:var(--mint);"></div>
             </div>
-            <div class="card">
-                <h3 style="margin-top:0">Huidige Catalogus</h3>
-                <div id="list-output"></div>
+            <div>
+                <h3>Beheer Catalogus</h3>
+                <div id="list-output">Laden...</div>
             </div>
         </div>
     </div>
@@ -84,7 +81,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, deleteDoc, updateDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0",
@@ -96,46 +93,24 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     let activities = [];
-    let likesData = [];
-    let myChart = null;
+    let likes = [];
+    let chart = null;
 
-    // Login Check
-    window.checkAccess = () => {
+    window.auth = () => {
         if(document.getElementById('pw').value === 'Flip2026') {
-            document.getElementById('login-gate').style.display = 'none';
-            loadFirebaseData();
-            initSafeGoogle(); // Start google pas NA login en op een veilige manier
-        } else { alert("Toegang geweigerd"); }
+            document.getElementById('login').style.display = 'none';
+            sync();
+        } else alert("Onjuist");
     };
 
-    // Veilige Google-functie: Als hij faalt, crasht de rest niet.
-    function initSafeGoogle() {
-        const input = document.getElementById('f-loc');
-        try {
-            if (typeof google !== 'undefined' && google.maps && google.maps.places) {
-                const autocomplete = new google.maps.places.Autocomplete(input, { 
-                    componentRestrictions: {country: "nl"},
-                    fields: ["formatted_address"]
-                });
-                autocomplete.addListener('place_changed', () => {
-                    const place = autocomplete.getPlace();
-                    if(place.formatted_address) input.value = place.formatted_address;
-                });
-            }
-        } catch(e) { console.error("Google Maps kon niet volledig laden, handmatige invoer actief."); }
-    }
-
-    function loadFirebaseData() {
-        // Luister naar activiteiten
-        onSnapshot(query(collection(db, "activities"), orderBy("title")), (snap) => {
-            activities = snap.docs.map(d => ({id: d.id, ...d.data()}));
-            renderUI();
+    function sync() {
+        onSnapshot(collection(db, "activities"), (s) => {
+            activities = s.docs.map(d => ({id: d.id, ...d.data()}));
+            render();
         });
-
-        // Luister naar likes
-        onSnapshot(collection(db, "global_analytics"), (snap) => {
-            likesData = snap.docs.map(d => d.data());
-            renderUI();
+        onSnapshot(collection(db, "global_analytics"), (s) => {
+            likes = s.docs.map(d => d.data());
+            render();
         });
     }
 
@@ -146,70 +121,70 @@
         el.classList.add('active');
     };
 
-    window.handleSave = async () => {
+    window.save = async () => {
         const title = document.getElementById('f-title').value;
         const loc = document.getElementById('f-loc').value;
-        const price = document.getElementById('f-price').value;
-        const img = document.getElementById('f-img').value;
-
-        if(!title) return alert("Naam is verplicht!");
-
-        try {
-            await addDoc(collection(db, "activities"), {
-                title, location: loc, price, image: img, active: true
-            });
-            document.getElementById('f-title').value = '';
-            document.getElementById('f-loc').value = '';
-            document.getElementById('f-price').value = '';
-            document.getElementById('f-img').value = '';
-            document.getElementById('debug-msg').innerText = "Succesvol opgeslagen!";
-            setTimeout(() => { document.getElementById('debug-msg').innerText = ""; }, 3000);
-        } catch(e) { alert("Fout: " + e.message); }
+        if(!title) return;
+        
+        await addDoc(collection(db, "activities"), {
+            title, location: loc, 
+            price: document.getElementById('f-price').value,
+            image: document.getElementById('f-img').value,
+            active: true
+        });
+        
+        document.getElementById('f-title').value = '';
+        document.getElementById('f-loc').value = '';
+        document.getElementById('status-msg').innerText = "Item toegevoegd!";
+        setTimeout(() => document.getElementById('status-msg').innerText = "", 2000);
     };
 
-    window.removeAct = async (id) => {
-        if(confirm("Verwijderen uit catalogus?")) {
-            await deleteDoc(doc(db, "activities", id));
-        }
+    window.toggleStatus = async (id, current) => {
+        await updateDoc(doc(db, "activities", id), { active: !current });
     };
 
-    function renderUI() {
-        // 1. Catalogus Lijst
-        const listDiv = document.getElementById('list-output');
-        listDiv.innerHTML = activities.map(a => `
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #333;">
-                <div><strong>${a.title}</strong><br><small style="color:var(--text)">${a.location || 'Geen locatie'}</small></div>
-                <button class="btn-del" onclick="removeAct('${a.id}')">WIS</button>
+    window.del = async (id) => {
+        if(confirm("Permanent verwijderen?")) await deleteDoc(doc(db, "activities", id));
+    };
+
+    function render() {
+        // Catalogus
+        const out = document.getElementById('list-output');
+        out.innerHTML = activities.map(a => `
+            <div class="item ${a.active !== false ? 'active-item' : 'inactive-item'}">
+                <div>
+                    <strong>${a.title}</strong><br>
+                    <small style="color:var(--text)">${a.location || 'Geen locatie'}</small>
+                </div>
+                <div>
+                    <button class="action-btn btn-toggle" onclick="toggleStatus('${a.id}', ${a.active !== false})">
+                        ${a.active !== false ? 'ZET UIT' : 'ACTIVEER'}
+                    </button>
+                    <button class="action-btn btn-red" onclick="del('${a.id}')">WIS</button>
+                </div>
             </div>
         `).join('');
 
-        // 2. Statistieken Tabel & Grafiek
-        const statsBody = document.getElementById('stats-body');
+        // Stats & Chart
         const labels = [];
-        const counts = [];
-        let tableHtml = '';
-
+        const data = [];
+        let html = '';
         activities.forEach(a => {
-            const likes = likesData.filter(l => (l.activityId === a.id || l.activityTitle === a.title) && l.action === 'like').length;
+            const count = likes.filter(l => (l.activityId === a.id || l.activityTitle === a.title) && l.action === 'like').length;
             labels.push(a.title);
-            counts.push(likes);
-            tableHtml += `<tr><td>${a.title}</td><td align="right"><strong>${likes}</strong></td></tr>`;
+            data.push(count);
+            html += `<tr><td>${a.title}</td><td align="right"><strong>${count} Likes</strong></td></tr>`;
         });
-        statsBody.innerHTML = tableHtml;
+        document.getElementById('stats-body').innerHTML = html;
 
-        // Grafiek tekenen
-        if(myChart) myChart.destroy();
+        if(chart) chart.destroy();
         const ctx = document.getElementById('chart').getContext('2d');
-        myChart = new Chart(ctx, {
+        chart = new Chart(ctx, {
             type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{ label: 'Aantal Likes', data: counts, backgroundColor: '#00FFC2', borderRadius: 5 }]
-            },
-            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#333' } } } }
+            data: { labels, datasets: [{ label: 'Likes', data, backgroundColor: '#00FFC2' }] },
+            options: { responsive: true, maintainAspectRatio: false }
         });
     }
 </script>
-
 </body>
 </html>
