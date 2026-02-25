@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FlipOrTrip | v0.48 MVP</title>
+    <title>FlipOrTrip | v0.48 MVP Fixed</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
@@ -56,14 +56,16 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, increment, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, increment, collection, getDocs, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0",
+        const firebaseConfig = { 
+            apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0",
             authDomain: "fliportrip-valkenburg.firebaseapp.com",
             projectId: "fliportrip-valkenburg",
             storageBucket: "fliportrip-valkenburg.firebasestorage.app",
             messagingSenderId: "1050989330669",
-            appId: "1:1050989330669:web:6649f61cbec8ee3b3f8ce4" };
+            appId: "1:1050989330669:web:6649f61cbec8ee3b3f8ce4" 
+        };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
@@ -151,6 +153,7 @@
             if(window.actIdx >= window.acts.length) {
                 container.innerHTML = "<div style='text-align:center'><h2 style='color:var(--mint)'>GEFLIPT!</h2><p>Uitslag volgt via de host.</p><button class='btn btn-outline' onclick='goHome()'>MENU</button></div>";
                 updateDoc(doc(db, "rooms", window.currentRoom), { finishedCount: increment(1) });
+                checkAndSendFinalMail(); // Check of mail gestuurd moet worden
                 return;
             }
             const a = window.acts[window.actIdx];
@@ -176,10 +179,21 @@
 
             h.on('panend', async e => {
                 if(Math.abs(e.deltaX) > 100) {
-                    if(e.deltaX > 0) {
+                    const action = e.deltaX > 0 ? 'like' : 'dislike';
+                    
+                    // 1. Dashboard Sync (Stil)
+                    addDoc(collection(db, "global_analytics"), {
+                        activityTitle: window.acts[window.actIdx].title,
+                        action: action,
+                        timestamp: new Date()
+                    });
+
+                    // 2. Room Vote Sync
+                    if(action === 'like') {
                         const up = {}; up[`votes.${window.acts[window.actIdx].id}`] = increment(1);
                         await updateDoc(doc(db, "rooms", window.currentRoom), up);
                     }
+                    
                     window.actIdx++; renderCard();
                 } else { 
                     card.style.transform = ''; 
@@ -189,23 +203,63 @@
             });
         }
 
-        window.showLiveStats = () => {
-            document.getElementById('stats-modal').style.display = 'flex';
-            onSnapshot(doc(db, "rooms", window.currentRoom), async (ds) => {
+        window.showLiveStats = async () => {
+            const statsModal = document.getElementById('stats-modal');
+            statsModal.style.display = 'flex';
+            
+            // Haal activiteiten één keer op voor de namen
+            const aqs = await getDocs(collection(db, "activities"));
+            const actNames = {};
+            aqs.forEach(doc => actNames[doc.id] = doc.data().title);
+
+            onSnapshot(doc(db, "rooms", window.currentRoom), (ds) => {
                 const d = ds.data();
-                const total = d.finishedCount || 1;
-                document.getElementById('live-progress').innerText = `${d.finishedCount} / ${d.targetParticipants} klaar`;
-                const qs = await getDocs(collection(db, "activities"));
-                const acts = qs.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                if(!d) return;
+                const totalFinished = d.finishedCount || 0;
+                document.getElementById('live-progress').innerText = `${totalFinished} / ${d.targetParticipants} personen klaar`;
+                
                 let html = "";
-                acts.forEach(a => {
-                    const v = d.votes[a.id] || 0;
-                    const p = Math.round((v / total) * 100);
-                    html += `<div class="stat-bar-container"><div class="stat-info"><span>${a.title}</span><span>${p}%</span></div><div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${p}%"></div></div></div>`;
+                const sortedVotes = Object.entries(d.votes || {}).sort((a,b) => b[1] - a[1]);
+                
+                sortedVotes.forEach(([id, count]) => {
+                    const p = totalFinished > 0 ? Math.round((count / totalFinished) * 100) : 0;
+                    html += `<div class="stat-bar-container">
+                                <div class="stat-info"><span>${actNames[id] || 'Laden...'}</span><span>${count} votes (${p}%)</span></div>
+                                <div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${p}%"></div></div>
+                             </div>`;
                 });
-                document.getElementById('live-leaderboard').innerHTML = html;
+                document.getElementById('live-leaderboard').innerHTML = html || "<p style='font-size:12px; opacity:0.5;'>Nog geen stemmen...</p>";
             });
         };
+
+        async function checkAndSendFinalMail() {
+            const rRef = doc(db, "rooms", window.currentRoom);
+            const snap = await getDoc(rRef);
+            const d = snap.data();
+
+            if (d.finishedCount >= d.targetParticipants && !d.mailSent) {
+                // Sorteer top 3
+                const aqs = await getDocs(collection(db, "activities"));
+                const actNames = {};
+                aqs.forEach(doc => actNames[doc.id] = doc.data().title);
+
+                const top3 = Object.entries(d.votes)
+                    .sort((a,b) => b[1] - a[1])
+                    .slice(0, 3)
+                    .map(([id, count]) => `${actNames[id]} (${count} stemmen)`)
+                    .join(", ");
+
+                emailjs.send(SERVICE_ID, TEMPLATE_ID, {
+                    to_name: d.hostName,
+                    to_email: d.hostEmail,
+                    room_code: window.currentRoom,
+                    top_matches: top3
+                }).then(() => {
+                    updateDoc(rRef, { mailSent: true });
+                    console.log("Resultaten gemaild naar host.");
+                });
+            }
+        }
     </script>
 </head>
 <body>
@@ -248,7 +302,7 @@
         </div>
     </div>
 
-    <div id="swipe-screen" class="hidden"></div>
+    <div id="swipe-screen" class="hidden screen-content"></div>
 
     <div id="join-modal" class="modal-overlay">
         <div class="modal-card">
@@ -274,7 +328,7 @@
         <div class="modal-card">
             <h3 style="color:var(--mint); margin:0;">Voortgang</h3>
             <p id="live-progress" style="font-size:12px; opacity:0.6; margin-bottom:15px;"></p>
-            <div id="live-leaderboard" style="text-align:left;"></div>
+            <div id="live-leaderboard" style="text-align:left; max-height: 50vh; overflow-y: auto;"></div>
             <button class="btn btn-outline" style="margin-top:15px;" onclick="document.getElementById('stats-modal').style.display='none'">Sluiten</button>
         </div>
     </div>
