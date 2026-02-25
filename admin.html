@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlipOrTrip | Business Suite v2.5</title>
+    <title>FlipOrTrip | Business Suite v2.6</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBGms1-wiv_5tq1ehzhhJOjM905WnFMexo&libraries=places"></script>
@@ -33,7 +33,7 @@
 
         /* Deep Dive Modal */
         #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .modal { background: var(--card-bg); width: 80%; max-width: 900px; max-height: 90vh; border-radius: 30px; padding: 40px; position: relative; overflow-y: auto; border: 1px solid var(--mint); }
+        .modal { background: var(--card-bg); width: 85%; max-width: 1000px; max-height: 90vh; border-radius: 30px; padding: 40px; position: relative; overflow-y: auto; border: 1px solid var(--mint); }
         
         /* Table */
         table { width: 100%; border-collapse: collapse; }
@@ -42,7 +42,6 @@
         .clickable-row { cursor: pointer; transition: 0.2s; }
         .clickable-row:hover { background: rgba(0,255,194,0.05); }
 
-        .list-item { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 15px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
         .nav-btn { background: transparent; border: none; color: var(--text-muted); padding: 15px; text-align: left; font-size: 14px; font-weight: 800; cursor: pointer; width: 100%; border-radius: 12px; margin-bottom: 5px; }
         .nav-btn.active { background: rgba(0,255,194,0.1); color: var(--mint); }
         #login-gate { position: fixed; inset: 0; background: var(--obsidian); z-index: 999999; display: flex; align-items: center; justify-content: center; }
@@ -58,16 +57,16 @@
         </div>
     </div>
 
-    <div id="modal-overlay" onclick="closeModal(event)">
+    <div id="modal-overlay" onclick="document.getElementById('modal-overlay').style.display = 'none'">
         <div class="modal" onclick="event.stopPropagation()">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
                 <h2 id="modal-title" style="margin:0; color:var(--mint);">Activiteit Detail</h2>
                 <button onclick="document.getElementById('modal-overlay').style.display='none'" style="background:none; border:none; color:white; font-size:24px; cursor:pointer;">&times;</button>
             </div>
             <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:20px;">
-                <div class="card"><span class="label">Leeftijd</span><canvas id="chartAge"></canvas></div>
-                <div class="card"><span class="label">Geslacht</span><canvas id="chartGender"></canvas></div>
-                <div class="card"><span class="label">Gezelschap</span><canvas id="chartType"></canvas></div>
+                <div class="card"><span class="label">Leeftijdsgroepen</span><canvas id="chartAge"></canvas></div>
+                <div class="card"><span class="label">Geslachtsverdeling</span><canvas id="chartGender"></canvas></div>
+                <div class="card"><span class="label">Type Gezelschap</span><canvas id="chartType"></canvas></div>
             </div>
         </div>
     </div>
@@ -79,16 +78,15 @@
     </div>
 
     <div class="main-content">
-        
         <div id="tab-stats" class="tab-content active">
             <h2 style="margin-top:0;">Management Insights</h2>
             <div class="card" style="height:350px;"><canvas id="mainChart"></canvas></div>
             
             <div class="card">
-                <span class="label">Klik op een rij voor doelgroep-analyse</span>
+                <span class="label">Interactie per activiteit (klik voor deep-dive)</span>
                 <table>
                     <thead>
-                        <tr><th>Activiteit</th><th>Likes</th><th>Dislikes</th><th>Ratio</th></tr>
+                        <tr><th>Activiteit</th><th>Likes</th><th>Dislikes</th><th>Populariteit</th></tr>
                     </thead>
                     <tbody id="stats-table-body"></tbody>
                 </table>
@@ -112,7 +110,7 @@
                         </div>
 
                         <div style="display:flex; gap:10px;">
-                            <input type="text" id="act-price" placeholder="Prijs">
+                            <input type="text" id="act-price" placeholder="Prijs (bijv. € 12,50)">
                             <input type="text" id="act-url" placeholder="Affiliate URL">
                         </div>
                         
@@ -145,7 +143,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, addDoc, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, addDoc, updateDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0",
@@ -158,15 +156,15 @@
 
         let activities = [];
         let analytics = [];
+        let rooms = {}; // Om groupType te koppelen
         let mainChart = null;
-        let detailCharts = [];
         let editingId = null;
 
         window.tryLogin = () => {
             if(document.getElementById('pw').value === 'Flip2026') {
                 document.getElementById('login-gate').style.display = 'none';
                 initGoogle();
-                refreshData();
+                startListeners();
             } else alert("Toegang geweigerd.");
         };
 
@@ -174,29 +172,37 @@
             new google.maps.places.Autocomplete(document.getElementById('act-loc'), { componentRestrictions: {country: "nl"} });
         }
 
-        async function refreshData() {
-            const [snapActs, snapStats] = await Promise.all([
-                getDocs(collection(db, "activities")),
-                getDocs(collection(db, "global_analytics"))
-            ]);
-            activities = snapActs.docs.map(d => ({id: d.id, ...d.data()}));
-            analytics = snapStats.docs.map(d => d.data());
-            renderDashboard();
-            renderList();
+        // Real-time listeners ipv eenmalige refresh
+        function startListeners() {
+            onSnapshot(collection(db, "activities"), (snap) => {
+                activities = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                renderList();
+                renderDashboard();
+            });
+
+            onSnapshot(collection(db, "rooms"), (snap) => {
+                snap.docs.forEach(d => rooms[d.id] = d.data().groupType);
+                renderDashboard();
+            });
+
+            onSnapshot(collection(db, "global_analytics"), (snap) => {
+                analytics = snap.docs.map(d => d.data());
+                renderDashboard();
+            });
         }
 
         function renderDashboard() {
             const dataMap = {};
             activities.forEach(act => {
-                const stats = analytics.filter(a => a.activityTitle === act.title);
-                const likes = stats.filter(a => a.action === 'like' || !a.action).length;
+                const stats = analytics.filter(a => a.activityId === act.id || a.activityTitle === act.title);
+                const likes = stats.filter(a => a.action === 'like').length;
                 const dislikes = stats.filter(a => a.action === 'dislike').length;
-                dataMap[act.title] = { likes, dislikes, ratio: (likes + dislikes > 0) ? Math.round((likes/(likes+dislikes))*100) : 0 };
+                dataMap[act.title] = { id: act.id, likes, dislikes, ratio: (likes + dislikes > 0) ? Math.round((likes/(likes+dislikes))*100) : 0 };
             });
 
-            const labels = Object.keys(dataMap);
+            const labels = Object.keys(dataMap).sort((a,b) => dataMap[b].likes - dataMap[a].likes);
             document.getElementById('stats-table-body').innerHTML = labels.map(l => `
-                <tr class="clickable-row" onclick="openDeepDive('${l}')">
+                <tr class="clickable-row" onclick="openDeepDive('${dataMap[l].id}', '${l}')">
                     <td>${l}</td>
                     <td>${dataMap[l].likes}</td>
                     <td>${dataMap[l].dislikes}</td>
@@ -214,56 +220,62 @@
                         { label: 'Dislikes', data: labels.map(l => dataMap[l].dislikes), backgroundColor: '#FF4B4B' }
                     ]
                 },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { stacked: true }, x: { stacked: true } } }
+                options: { responsive: true, maintainAspectRatio: false, scales: { 
+                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8899A6' } },
+                    x: { grid: { display: false }, ticks: { color: '#8899A6', font: { size: 9 } } }
+                }, plugins: { legend: { labels: { color: '#fff' } } } }
             });
         }
 
-        window.openDeepDive = (title) => {
+        window.openDeepDive = (id, title) => {
             document.getElementById('modal-title').innerText = title;
             document.getElementById('modal-overlay').style.display = 'flex';
             
-            // Filter analytics voor deze activiteit
-            const data = analytics.filter(a => a.activityTitle === title && (a.action === 'like' || !a.action));
+            const data = analytics.filter(a => (a.activityId === id || a.activityTitle === title) && a.action === 'like');
             
-            // Demo data generatie (bij gebrek aan echte userProfile koppeling in deze analytics mock)
-            const ageData = { '18-24': 0, '25-34': 0, '35-50': 0, '50+': 0 };
-            const genderData = { 'Man': 0, 'Vrouw': 0, 'Anders': 0 };
-            const typeData = { 'Vrienden': 0, 'Familie': 0, 'Partner': 0 };
+            const ageData = { '<18': 0, '18-25': 0, '26-35': 0, '36-50': 0, '50+': 0 };
+            const genderData = { 'man': 0, 'vrouw': 0, 'anders': 0 };
+            const typeData = { 'vrienden': 0, 'familie': 0, 'collegas': 0, 'vrijgezellenfeest': 0, 'anders': 0 };
 
             data.forEach(d => {
-                // In een echte scenario komen deze velden uit de userProfile die mee-gesaved is
-                const age = d.userAge || '25-34'; 
-                const gen = d.userGender || 'Vrouw';
-                const typ = d.tripType || 'Partner';
-                if(ageData[age] !== undefined) ageData[age]++;
-                if(genderData[gen] !== undefined) genderData[gen]++;
-                if(typeData[typ] !== undefined) typeData[typ]++;
+                if(d.ageGroup && ageData[d.ageGroup] !== undefined) ageData[d.ageGroup]++;
+                if(d.gender && genderData[d.gender] !== undefined) genderData[d.gender]++;
+                
+                // Koppel roomCode aan groupType
+                const gType = rooms[d.roomCode];
+                if(gType && typeData[gType] !== undefined) typeData[gType]++;
             });
 
-            renderDetailChart('chartAge', ageData, '#00FFC2');
-            renderDetailChart('chartGender', genderData, '#00CCFF');
-            renderDetailChart('chartType', typeData, '#FFCC00');
+            renderDetailChart('chartAge', ageData, ['#00FFC2', '#00ccff', '#ffcc00', '#ff4b4b', '#9944ff']);
+            renderDetailChart('chartGender', genderData, ['#38bdf8', '#f472b6', '#94a3b8']);
+            renderDetailChart('chartType', typeData, ['#fbbf24', '#34d399', '#818cf8', '#f87171', '#a78bfa']);
         };
 
-        function renderDetailChart(id, dataObj, color) {
+        function renderDetailChart(id, dataObj, colors) {
             const ctx = document.getElementById(id);
             if(window[id + 'Chart']) window[id + 'Chart'].destroy();
             window[id + 'Chart'] = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: Object.keys(dataObj),
-                    datasets: [{ data: Object.values(dataObj), backgroundColor: [color, '#333', '#555', '#777'] }]
+                    labels: Object.keys(dataObj).map(k => k.charAt(0).toUpperCase() + k.slice(1)),
+                    datasets: [{ data: Object.values(dataObj), backgroundColor: colors, borderWidth: 0 }]
                 },
-                options: { plugins: { legend: { position: 'bottom', labels: { color: '#fff', font: { size: 8 } } } } }
+                options: { 
+                    cutout: '70%',
+                    plugins: { 
+                        legend: { position: 'bottom', labels: { color: '#8899A6', usePointStyle: true, font: { size: 9 } } } 
+                    } 
+                }
             });
         }
 
+        // De rest van de catalogus functies blijven functioneel gelijk maar zijn gesynct met de nieuwe velden
         window.renderList = () => {
             const term = document.getElementById('search').value.toLowerCase();
             const cat = document.getElementById('cat-filter').value;
             document.getElementById('list-container').innerHTML = activities
                 .filter(a => (cat === 'all' || a.categories?.includes(cat)) && a.title.toLowerCase().includes(term))
-                .map(a => `<div class="list-item">
+                .map(a => `<div class="list-item" style="background:rgba(255,255,255,0.03); padding:15px; border-radius:15px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
                     <span>${a.title}</span>
                     <button onclick="editItem('${a.id}')" style="background:none; border:none; color:var(--mint); cursor:pointer; font-weight:800;">EDIT</button>
                 </div>`).join('');
@@ -297,7 +309,6 @@
             if(editingId) await updateDoc(doc(db, "activities", editingId), data);
             else await addDoc(collection(db, "activities"), data);
             resetForm();
-            refreshData();
         };
 
         window.resetForm = () => {
