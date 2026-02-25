@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FlipOrTrip | Swipe & Match v.049+</title>
+    <title>FlipOrTrip | Swipe & Match v0.48</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     <script src="https://hammerjs.github.io/dist/hammer.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
     <style>
-        :root { --mint: #00FFC2; --obsidian: #0B0E14; --card-bg: #161B22; --text-muted: #8899A6; --red: #FF4B4B; }
+        :root { --mint: #00FFC2; --obsidian: #0B0E14; --card-bg: #161B22; --text-muted: #8899A6; }
         body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; overflow: hidden; }
         
         .screen { display: none; height: 100vh; padding: 25px; box-sizing: border-box; flex-direction: column; }
@@ -22,13 +22,8 @@
         .btn-main { background: var(--mint); color: var(--obsidian); border: none; padding: 20px; border-radius: 50px; font-weight: 800; width: 100%; cursor: pointer; text-transform: uppercase; font-size: 14px; margin-top: 15px; }
         input { background: #0B0E14; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 18px; border-radius: 20px; width: 100%; box-sizing: border-box; margin-bottom: 12px; font-family: inherit; text-align: center; font-size: 16px; }
 
-        /* Onboarding Grids */
-        .grid-select { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 25px; }
-        .grid-btn { background: var(--card-bg); border: 2px solid transparent; padding: 18px; border-radius: 20px; color: white; cursor: pointer; text-align: center; font-size: 13px; font-weight: 800; transition: 0.2s; }
-        .grid-btn.selected { border-color: var(--mint); background: rgba(0,255,194,0.1); color: var(--mint); }
-
         /* Swipe Deck */
-        .deck { position: relative; flex: 1; margin: 20px 0; }
+        .deck { position: relative; flex: 1; margin: 20px 0; perspective: 1000px; }
         .swipe-card { position: absolute; width: 100%; height: 100%; border-radius: 35px; overflow: hidden; background: var(--card-bg); box-shadow: 0 15px 40px rgba(0,0,0,0.6); transform-origin: 50% 100%; touch-action: none; }
         .swipe-card img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
         .card-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 35px; background: linear-gradient(transparent, rgba(0,0,0,1)); }
@@ -37,85 +32,48 @@
         .match-overlay { position: fixed; inset: 0; background: rgba(0,255,194,0.95); z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; color: var(--obsidian); text-align: center; padding: 40px; }
 
         .controls { display: flex; justify-content: center; gap: 25px; padding-bottom: 30px; }
-        .round-btn { width: 70px; height: 70px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        .btn-no { background: #161B22; color: var(--red); border: 2px solid var(--red); }
+        .round-btn { width: 70px; height: 70px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; }
+        .btn-no { background: #161B22; color: #FF4B4B; border: 2px solid #FF4B4B; }
         .btn-yes { background: var(--mint); color: var(--obsidian); }
-
-        .progress-bar { height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-bottom: 20px; overflow: hidden; }
-        .progress-fill { height: 100%; background: var(--mint); width: 0%; transition: 0.3s; }
     </style>
 </head>
 <body>
 
     <div id="match-notif" class="match-overlay">
-        <h1 style="font-size: 50px; margin-bottom: 10px;">BOOM! 🔥</h1>
-        <p id="match-name" style="font-size: 20px; font-weight: 800; margin-bottom: 30px;"></p>
-        <button class="btn-main" onclick="closeMatch()">Lekker! Verder gaan</button>
+        <h1 style="font-size: 50px; margin: 0;">MATCH! 🔥</h1>
+        <p id="match-name" style="font-size: 20px; font-weight: 800; margin: 20px 0 40px;"></p>
+        <button class="btn-main" onclick="closeMatch()">Verder swipen</button>
     </div>
 
     <div id="screen-start" class="screen active">
         <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" class="logo">
         <div class="card-bg">
             <h2 style="text-align: center; margin-top: 0;">Samen op pad?</h2>
-            <button class="btn-main" onclick="setupRoom()">Nieuwe Groep Aanmaken</button>
+            <button class="btn-main" onclick="initCreateRoom()">Maak nieuwe room</button>
             <div style="margin: 25px 0; text-align: center; font-size: 11px; color: var(--text-muted); font-weight: 800; letter-spacing: 1px;">OF JOIN JE VRIENDEN</div>
-            <input type="text" id="join-room-code" placeholder="VUL CODE IN">
+            <input type="text" id="join-input" placeholder="CODE">
             <button class="btn-main" style="background:transparent; border:1px solid var(--mint); color:white;" onclick="joinRoom()">Join Room</button>
         </div>
     </div>
 
-    <div id="screen-profile" class="screen">
-        <div class="progress-bar"><div class="progress-fill" id="p-fill"></div></div>
-        <div id="step-1">
-            <h2>Wat is je leeftijd?</h2>
-            <div class="grid-select">
-                <div class="grid-btn" onclick="pSelect('age', '18-24', this)">18-24</div>
-                <div class="grid-btn" onclick="pSelect('age', '25-34', this)">25-34</div>
-                <div class="grid-btn" onclick="pSelect('age', '35-50', this)">35-50</div>
-                <div class="grid-btn" onclick="pSelect('age', '50+', this)">50+</div>
-            </div>
-            <button class="btn-main" onclick="nextStep(2)">Volgende</button>
-        </div>
-        <div id="step-2" style="display:none;">
-            <h2>Met wie ben je?</h2>
-            <div class="grid-select">
-                <div class="grid-btn" onclick="pSelect('tripType', 'Partner', this)">Partner</div>
-                <div class="grid-btn" onclick="pSelect('tripType', 'Vrienden', this)">Vrienden</div>
-                <div class="grid-btn" onclick="pSelect('tripType', 'Gezin', this)">Gezin</div>
-                <div class="grid-btn" onclick="pSelect('tripType', 'Solo', this)">Solo</div>
-            </div>
-            <button class="btn-main" onclick="nextStep(3)">Laatste Stap</button>
-        </div>
-        <div id="step-3" style="display:none;">
-            <h2>Wat wil je doen?</h2>
-            <div class="grid-select">
-                <div class="grid-btn" onclick="pSelect('pref', 'actief', this)">Actief</div>
-                <div class="grid-btn" onclick="pSelect('pref', 'ontspanning', this)">Ontspanning</div>
-                <div class="grid-btn" onclick="pSelect('pref', 'food', this)">Food</div>
-                <div class="grid-btn" onclick="pSelect('pref', 'cultuur', this)">Cultuur</div>
-            </div>
-            <button class="btn-main" onclick="startApp()">Start Flipping</button>
-        </div>
-    </div>
-
     <div id="screen-swipe" class="screen">
-        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; font-weight:800; color:var(--text-muted);">
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; font-weight: 800; color: var(--text-muted);">
             <span>ROOM: <span id="r-code" style="color:var(--mint);"></span></span>
             <span id="card-count"></span>
         </div>
         <div class="deck" id="main-deck"></div>
         <div class="controls">
-            <button class="round-btn btn-no" onclick="btnAction('left')">✕</button>
-            <button class="round-btn btn-yes" onclick="btnAction('right')">♥</button>
+            <button class="round-btn btn-no" onclick="manualBtn('left')">✕</button>
+            <button class="round-btn btn-yes" onclick="manualBtn('right')">♥</button>
         </div>
     </div>
 
     <div id="screen-results" class="screen">
-        <h2 style="text-align:center;">Jullie Matches 🔥</h2>
+        <h2 style="text-align:center;">Jullie Plan 🔥</h2>
         <div id="match-list" style="flex:1; overflow-y:auto; padding-bottom:20px;"></div>
         <div class="card-bg">
-            <input type="email" id="email-to" placeholder="E-mail mijn plan">
-            <button class="btn-main" onclick="mailPlan()">Verstuur Plan</button>
+            <input type="email" id="email-to" placeholder="Je e-mailadres">
+            <button class="btn-main" onclick="sendMail()">Stuur plan naar mail</button>
         </div>
     </div>
 
@@ -134,9 +92,8 @@
         const db = getFirestore(app);
         emailjs.init("VlUuJ7R9pE7W7XwVq");
 
-        let rId = '';
-        let stack = [];
-        let profile = { age: '', tripType: '', pref: '' };
+        let roomId = '';
+        let acts = [];
         let currentMatches = [];
 
         window.showS = (id) => {
@@ -144,86 +101,70 @@
             document.getElementById(id).classList.add('active');
         };
 
-        window.setupRoom = async () => {
-            rId = Math.random().toString(36).substring(2,6).toUpperCase();
-            await setDoc(doc(db, "rooms", rId), { likes: [], matches: [], created: new Date() });
-            showS('screen-profile');
+        window.initCreateRoom = async () => {
+            roomId = Math.random().toString(36).substring(2,6).toUpperCase();
+            await setDoc(doc(db, "rooms", roomId), { likes: [], matches: [], created: new Date() });
+            startSwiping();
         };
 
         window.joinRoom = async () => {
-            const code = document.getElementById('join-room-code').value.toUpperCase();
+            const code = document.getElementById('join-input').value.toUpperCase();
             const snap = await getDoc(doc(db, "rooms", code));
-            if(snap.exists()) { rId = code; showS('screen-profile'); }
+            if(snap.exists()) { roomId = code; startSwiping(); }
             else alert("Code niet gevonden!");
         };
 
-        window.pSelect = (k, v, el) => {
-            el.parentElement.querySelectorAll('.grid-btn').forEach(b => b.classList.remove('selected'));
-            el.classList.add('selected');
-            profile[k] = v;
-        };
-
-        window.nextStep = (n) => {
-            document.getElementById('step-1').style.display = n === 1 ? 'block' : 'none';
-            document.getElementById('step-2').style.display = n === 2 ? 'block' : 'none';
-            document.getElementById('step-3').style.display = n === 3 ? 'block' : 'none';
-            document.getElementById('p-fill').style.width = (n-1) * 33 + '%';
-        };
-
-        window.startApp = async () => {
-            document.getElementById('r-code').innerText = rId;
+        async function startSwiping() {
+            document.getElementById('r-code').innerText = roomId;
             const snap = await getDocs(collection(db, "activities"));
-            stack = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-                        .filter(a => !profile.pref || a.categories?.includes(profile.pref));
+            acts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             renderCards();
             listenMatches();
             showS('screen-swipe');
-        };
+        }
 
         function renderCards() {
             const container = document.getElementById('main-deck');
             container.innerHTML = '';
-            document.getElementById('card-count').innerText = stack.length + " ITEMS";
-            stack.forEach((a, i) => {
+            document.getElementById('card-count').innerText = acts.length + " ITEMS";
+            acts.forEach((a, i) => {
                 const card = document.createElement('div');
                 card.className = 'swipe-card';
-                card.style.zIndex = stack.length - i;
+                card.style.zIndex = acts.length - i;
                 card.innerHTML = `<img src="${a.image}"><div class="card-info">
                     <span style="color:var(--mint);font-size:10px;font-weight:800;text-transform:uppercase;">${a.price || '€€'}</span>
                     <h2 style="margin:5px 0 0;">${a.title}</h2>
                 </div>`;
                 container.appendChild(card);
-                if(i === 0) setupHammer(card, a);
+                if(i === 0) bindHammer(card, a);
             });
         }
 
-        function setupHammer(el, activity) {
+        function bindHammer(el, activity) {
             const mc = new Hammer(el);
-            mc.on('pan', e => el.style.transform = `translate(${e.deltaX}px, ${e.deltaY}px) rotate(${e.deltaX/15}deg)`);
+            mc.on('pan', e => el.style.transform = `translate(${e.deltaX}px, ${e.deltaY}px) rotate(${e.deltaX/20}deg)`);
             mc.on('panend', e => {
-                if(e.deltaX > 140) processSwipe(activity, 'right');
-                else if(e.deltaX < -140) processSwipe(activity, 'left');
+                if(e.deltaX > 140) handleAction(activity, 'right');
+                else if(e.deltaX < -140) handleAction(activity, 'left');
                 else { el.style.transition = '0.3s'; el.style.transform = ''; }
             });
         }
 
-        async function processSwipe(a, dir) {
+        async function handleAction(a, dir) {
             const card = document.querySelector('.swipe-card');
             card.style.transition = '0.5s';
-            card.style.transform = dir === 'right' ? 'translateX(200%) rotate(40deg)' : 'translateX(-200%) rotate(-40deg)';
+            card.style.transform = dir === 'right' ? 'translateX(200%) rotate(30deg)' : 'translateX(-200%) rotate(-30deg)';
             
-            // ANALYTICS VOOR DASHBOARD
+            // ANALYTICS VOOR DASHBOARD (Nieuw in v0.48+)
             addDoc(collection(db, "global_analytics"), {
                 activityTitle: a.title,
                 action: dir === 'right' ? 'like' : 'dislike',
-                userAge: profile.age,
-                tripType: profile.tripType,
                 timestamp: new Date()
             });
 
-            // ROOM MATCH LOGIC
+            // ROOM LOGIC
             if(dir === 'right') {
-                const roomRef = doc(db, "rooms", rId);
+                const roomRef = doc(db, "rooms", roomId);
                 const roomSnap = await getDoc(roomRef);
                 const likes = roomSnap.data().likes || [];
                 if(likes.includes(a.title)) updateDoc(roomRef, { matches: arrayUnion(a.title) });
@@ -232,14 +173,14 @@
 
             setTimeout(() => {
                 card.remove();
-                stack.shift();
-                if(stack.length > 0) renderCards();
+                acts.shift();
+                if(acts.length > 0) renderCards();
                 else showS('screen-results');
             }, 300);
         }
 
         function listenMatches() {
-            onSnapshot(doc(db, "rooms", rId), (s) => {
+            onSnapshot(doc(db, "rooms", roomId), (s) => {
                 const m = s.data().matches || [];
                 if(m.length > currentMatches.length) {
                     document.getElementById('match-name').innerText = m[m.length-1];
@@ -249,19 +190,19 @@
                 document.getElementById('match-list').innerHTML = m.map(title => `
                     <div class="card-bg" style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
                         <span style="font-weight:800;">${title}</span>
-                        <button class="btn-main" style="width:auto; margin:0; padding:10px 20px;" onclick="window.open('https://google.com/search?q=${title}+Valkenburg')">Gids</button>
+                        <button class="btn-main" style="width:auto; margin:0; padding:10px 20px;" onclick="window.open('https://google.com/search?q=${title}+Valkenburg')">Info</button>
                     </div>
                 `).join('');
             });
         }
 
         window.closeMatch = () => document.getElementById('match-notif').style.display = 'none';
-        window.btnAction = (dir) => processSwipe(stack[0], dir);
-        window.mailPlan = () => {
-            const mail = document.getElementById('email-to').value;
+        window.manualBtn = (dir) => handleAction(acts[0], dir);
+        window.sendMail = () => {
+            const email = document.getElementById('email-to').value;
             emailjs.send("service_xsnq464", "template_4276tqc", {
-                to_email: mail, room_code: rId, matches: currentMatches.join(", ")
-            }).then(() => alert("Plan verzonden naar " + mail));
+                to_email: email, room_code: roomId, matches: currentMatches.join(", ")
+            }).then(() => alert("Plan verzonden!"));
         };
     </script>
 </body>
