@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlipOrTrip | Business Suite v2.2</title>
+    <title>FlipOrTrip | Business Suite v2.3</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBGms1-wiv_5tq1ehzhhJOjM905WnFMexo&libraries=places"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     
     <style>
-        :root { --mint: #00FFC2; --obsidian: #0B0E14; --card-bg: #161B22; --text-muted: #8899A6; }
+        :root { --mint: #00FFC2; --obsidian: #0B0E14; --card-bg: #161B22; --text-muted: #8899A6; --red: #FF4B4B; }
         body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
         .sidebar { width: 260px; background: var(--card-bg); padding: 30px; border-right: 1px solid rgba(0,255,194,0.1); display: flex; flex-direction: column; }
@@ -18,38 +18,30 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* Cards & Stats */
         .card { background: var(--card-bg); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; }
-        .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
-        .stat-box { background: var(--card-bg); padding: 20px; border-radius: 15px; border-bottom: 3px solid var(--mint); }
         .label { font-size: 10px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 5px; display: block; }
-        .stat-val { font-size: 28px; font-weight: 800; }
-
-        /* Forms */
-        input, select, textarea { background: #0B0E14; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 12px; border-radius: 12px; width: 100%; box-sizing: border-box; margin-bottom: 15px; outline: none; }
-        input:focus { border-color: var(--mint); }
+        
+        input, select { background: #0B0E14; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 12px; border-radius: 12px; width: 100%; box-sizing: border-box; margin-bottom: 15px; outline: none; }
         .btn-save { background: var(--mint); color: var(--obsidian); border: none; padding: 16px; border-radius: 50px; font-weight: 800; cursor: pointer; width: 100%; text-transform: uppercase; }
 
-        /* Catalogus */
         .list-item { background: rgba(255,255,255,0.03); padding: 12px 20px; border-radius: 15px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-        
-        #toast { position: fixed; bottom: 30px; right: 30px; padding: 15px 30px; border-radius: 50px; background: var(--mint); color: var(--obsidian); font-weight: 800; transform: translateY(100px); transition: 0.5s; z-index: 99999; }
-        #toast.show { transform: translateY(0); }
-
-        #login-gate { position: fixed; inset: 0; background: var(--obsidian); z-index: 99999; display: flex; align-items: center; justify-content: center; }
         .nav-btn { background: transparent; border: none; color: var(--text-muted); padding: 15px; text-align: left; font-size: 14px; font-weight: 800; cursor: pointer; width: 100%; border-radius: 12px; }
         .nav-btn.active { background: rgba(0,255,194,0.1); color: var(--mint); }
+
+        #login-gate { position: fixed; inset: 0; background: var(--obsidian); z-index: 99999; display: flex; align-items: center; justify-content: center; }
+        
+        .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; background: #0b0e14; padding: 10px; border-radius: 10px; }
+        .cat-item { font-size: 11px; display: flex; align-items: center; gap: 5px; }
+        .cat-item input { width: auto; margin: 0; }
     </style>
 </head>
 <body>
-
-    <div id="toast">Opgeslagen!</div>
 
     <div id="login-gate">
         <div class="card" style="width: 300px; text-align: center;">
             <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="100" style="margin-bottom:20px;">
             <input type="password" id="pw" placeholder="Wachtwoord" onkeypress="if(event.key === 'Enter') tryLogin()">
-            <button class="btn-save" onclick="tryLogin()">Login</button>
+            <button class="btn-save" onclick="tryLogin()">Dashboard Betreden</button>
         </div>
     </div>
 
@@ -62,25 +54,33 @@
     <div class="main-content">
         
         <div id="tab-stats" class="tab-content active">
-            <div class="stat-grid">
-                <div class="stat-box"><span class="label">Totaal Swipes</span><span class="stat-val" id="total-swipes">0</span></div>
-                <div class="stat-box">
-                    <span class="label">Conversie (Clicks) ℹ️</span>
-                    <span class="stat-val" id="conv-rate">0%</span>
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:20px;">
+                <div>
+                    <h2 style="margin:0;">Management Insights</h2>
+                    <p style="color:var(--text-muted); font-size:12px;">Real-time Swipe Performance</p>
                 </div>
-                <div class="stat-box"><span class="label">Status</span><span class="stat-val" style="color:var(--mint)">LIVE</span></div>
+                <div style="display:flex; gap:10px;">
+                    <div style="width:150px;"><span class="label">Filter Categorie</span>
+                        <select id="dash-filter-cat" onchange="updateCharts()" style="margin:0;">
+                            <option value="all">Alle Types</option>
+                            <option value="actief">Actief</option>
+                            <option value="ontspanning">Relax</option>
+                            <option value="food">Food</option>
+                            <option value="cultuur">Cultuur</option>
+                        </select>
+                    </div>
+                    <div style="width:150px;"><span class="label">Sortering</span>
+                        <select id="dash-sort" onchange="updateCharts()" style="margin:0;">
+                            <option value="high">Meeste Likes</option>
+                            <option value="ratio">Beste Ratio %</option>
+                            <option value="alpha">A - Z</option>
+                        </select>
+                    </div>
+                </div>
             </div>
 
             <div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                    <span class="label">Populariteit Analyse</span>
-                    <select id="chart-filter" style="width:150px; margin:0;" onchange="updateCharts()">
-                        <option value="high">Meeste Likes</option>
-                        <option value="low">Minste Likes</option>
-                        <option value="alpha">A-Z</option>
-                    </select>
-                </div>
-                <div style="height:400px;"><canvas id="mainChart"></canvas></div>
+                <div style="height:450px;"><canvas id="mainChart"></canvas></div>
             </div>
         </div>
 
@@ -89,23 +89,33 @@
                 <div class="card">
                     <span class="label" id="form-mode">Nieuw Item</span>
                     <form id="act-form" onsubmit="event.preventDefault(); saveItem();">
-                        <input type="text" id="act-title" placeholder="Naam activiteit" required>
-                        <input type="text" id="act-loc" placeholder="Zoek locatie...">
-                        <div style="display:flex; gap:10px;">
-                            <input type="text" id="act-lat" placeholder="Lat" readonly style="font-size:11px; opacity:0.5;">
-                            <input type="text" id="act-lng" placeholder="Lng" readonly style="font-size:11px; opacity:0.5;">
+                        <input type="text" id="act-title" placeholder="Naam" required>
+                        <input type="text" id="act-loc" placeholder="Locatie Zoeken...">
+                        <div class="cat-grid">
+                            <label class="cat-item"><input type="checkbox" class="cat-checkbox" value="actief"> Actief</label>
+                            <label class="cat-item"><input type="checkbox" class="cat-checkbox" value="ontspanning"> Relax</label>
+                            <label class="cat-item"><input type="checkbox" class="cat-checkbox" value="food"> Food</label>
+                            <label class="cat-item"><input type="checkbox" class="cat-checkbox" value="cultuur"> Cultuur</label>
                         </div>
-                        <input type="text" id="act-price" placeholder="Prijs (bijv. €15,-)">
-                        <input type="text" id="act-url" placeholder="Affiliate URL">
-                        <input type="text" id="act-img" placeholder="Afbeelding URL" oninput="updatePreview()">
-                        <div id="prev" style="height:100px; background:#000; border-radius:10px; margin-bottom:15px; overflow:hidden; display:flex; align-items:center; justify-content:center; border:1px dashed #333;"><span>Preview</span></div>
-                        <button type="submit" class="btn-save" id="btn-text">Item Opslaan</button>
+                        <input type="text" id="act-price" placeholder="Prijs">
+                        <input type="text" id="act-url" placeholder="URL">
+                        <input type="text" id="act-img" placeholder="Afbeelding URL">
+                        <button type="submit" class="btn-save" id="btn-text">Opslaan</button>
                     </form>
                 </div>
 
                 <div>
-                    <input type="text" id="search" placeholder="Zoeken in catalogus..." oninput="renderList()">
-                    <div id="list-container" style="max-height:65vh; overflow-y:auto;"></div>
+                    <div style="display:flex; gap:10px; margin-bottom:15px;">
+                        <input type="text" id="search" placeholder="Zoeken..." style="margin:0;" oninput="renderList()">
+                        <select id="cat-filter" style="margin:0; width:150px;" onchange="renderList()">
+                            <option value="all">Alle Categorieën</option>
+                            <option value="actief">Actief</option>
+                            <option value="ontspanning">Relax</option>
+                            <option value="food">Food</option>
+                            <option value="cultuur">Cultuur</option>
+                        </select>
+                    </div>
+                    <div id="list-container"></div>
                 </div>
             </div>
         </div>
@@ -134,66 +144,87 @@
                 document.getElementById('login-gate').style.display = 'none';
                 initGoogle();
                 refreshData();
-            } else alert("Onjuist.");
+            } else alert("Wachtwoord onjuist.");
         };
 
         function initGoogle() {
-            const autocomplete = new google.maps.places.Autocomplete(document.getElementById('act-loc'), { componentRestrictions: {country: "nl"} });
-            autocomplete.addListener('place_changed', () => {
-                const p = autocomplete.getPlace();
-                if(p.geometry) {
-                    document.getElementById('act-lat').value = p.geometry.location.lat();
-                    document.getElementById('act-lng').value = p.geometry.location.lng();
-                }
-            });
+            new google.maps.places.Autocomplete(document.getElementById('act-loc'), { componentRestrictions: {country: "nl"} });
         }
 
         async function refreshData() {
-            const snapActs = await getDocs(collection(db, "activities"));
+            const [snapActs, snapStats] = await Promise.all([
+                getDocs(collection(db, "activities")),
+                getDocs(collection(db, "global_analytics"))
+            ]);
             activities = snapActs.docs.map(d => ({id: d.id, ...d.data()}));
-            
-            const snapStats = await getDocs(collection(db, "global_analytics"));
             analytics = snapStats.docs.map(d => d.data());
-            
             updateCharts();
             renderList();
         }
 
         window.updateCharts = () => {
-            const counts = {};
-            analytics.forEach(a => counts[a.activityTitle] = (counts[a.activityTitle] || 0) + 1);
+            const selectedCat = document.getElementById('dash-filter-cat').value;
+            const sortMode = document.getElementById('dash-sort').value;
             
-            let labels = Object.keys(counts);
-            const filter = document.getElementById('chart-filter').value;
-            
-            if(filter === 'high') labels.sort((a,b) => counts[b] - counts[a]);
-            else if(filter === 'low') labels.sort((a,b) => counts[a] - counts[b]);
-            else labels.sort();
+            // Bereken data per activiteit
+            const dataMap = {};
+            activities.forEach(act => {
+                // Filter op categorie indien geselecteerd
+                if(selectedCat !== 'all' && !act.categories?.includes(selectedCat)) return;
+                
+                const stats = analytics.filter(an => an.activityTitle === act.title);
+                const likes = stats.filter(an => an.action === 'like').length;
+                const dislikes = stats.filter(an => an.action === 'dislike').length;
+                const total = likes + dislikes;
+                const ratio = total > 0 ? Math.round((likes / total) * 100) : 0;
 
-            const data = labels.map(l => counts[l]);
-            
-            document.getElementById('total-swipes').innerText = analytics.length;
-            // Conversie simulatie (op basis van clicks vs swipes)
-            const clicks = analytics.filter(a => a.action === 'click').length || 0;
-            const rate = analytics.length > 0 ? ((clicks / analytics.length) * 100).toFixed(1) : 0;
-            document.getElementById('conv-rate').innerText = rate + "%";
+                dataMap[act.title] = { likes, dislikes, ratio, total };
+            });
+
+            let labels = Object.keys(dataMap);
+            if(sortMode === 'high') labels.sort((a,b) => dataMap[b].likes - dataMap[a].likes);
+            else if(sortMode === 'ratio') labels.sort((a,b) => dataMap[b].ratio - dataMap[a].ratio);
+            else labels.sort();
 
             if(myChart) myChart.destroy();
             myChart = new Chart(document.getElementById('mainChart'), {
                 type: 'bar',
-                data: { labels, datasets: [{ label: 'Likes', data, backgroundColor: '#00FFC2' }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Likes', data: labels.map(l => dataMap[l].likes), backgroundColor: '#00FFC2' },
+                        { label: 'Dislikes', data: labels.map(l => dataMap[l].dislikes), backgroundColor: '#FF4B4B' }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { stacked: true, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { stacked: true } },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                footer: (items) => {
+                                    const title = items[0].label;
+                                    return `Sentiment: ${dataMap[title].ratio}% Positief\nTotaal: ${dataMap[title].total} swipes`;
+                                }
+                            }
+                        }
+                    }
+                }
             });
         };
 
         window.renderList = () => {
             const term = document.getElementById('search').value.toLowerCase();
-            const html = activities.filter(a => a.title.toLowerCase().includes(term)).map(a => `
-                <div class="list-item">
-                    <span>${a.title}</span>
-                    <button onclick="window.editItem('${a.id}')" style="background:none; border:none; color:var(--mint); cursor:pointer; font-weight:800;">EDIT</button>
-                </div>
-            `).join('');
+            const cat = document.getElementById('cat-filter').value;
+            
+            const html = activities
+                .filter(a => (cat === 'all' || a.categories?.includes(cat)) && a.title.toLowerCase().includes(term))
+                .map(a => `
+                    <div class="list-item">
+                        <span>${a.title} <small style="color:var(--text-muted)">(${(a.categories || []).join(', ')})</small></span>
+                        <button onclick="window.editItem('${a.id}')" style="background:none; border:none; color:var(--mint); cursor:pointer; font-weight:800;">EDIT</button>
+                    </div>
+                `).join('');
             document.getElementById('list-container').innerHTML = html;
         };
 
@@ -202,22 +233,23 @@
             editingId = id;
             document.getElementById('act-title').value = item.title;
             document.getElementById('act-loc').value = item.location || "";
-            document.getElementById('act-lat').value = item.lat || "";
-            document.getElementById('act-lng').value = item.lng || "";
             document.getElementById('act-price').value = item.price || "";
             document.getElementById('act-url').value = item.bookingUrl || "";
             document.getElementById('act-img').value = item.image || "";
+            
+            const cats = item.categories || [];
+            document.querySelectorAll('.cat-checkbox').forEach(cb => cb.checked = cats.includes(cb.value));
+            
             document.getElementById('form-mode').innerText = "Item Bewerken";
             document.getElementById('btn-text').innerText = "Wijziging Opslaan";
-            updatePreview();
         };
 
         window.saveItem = async () => {
+            const cats = Array.from(document.querySelectorAll('.cat-checkbox:checked')).map(cb => cb.value);
             const data = {
                 title: document.getElementById('act-title').value,
                 location: document.getElementById('act-loc').value,
-                lat: document.getElementById('act-lat').value,
-                lng: document.getElementById('act-lng').value,
+                categories: cats,
                 price: document.getElementById('act-price').value,
                 bookingUrl: document.getElementById('act-url').value,
                 image: document.getElementById('act-img').value
@@ -226,28 +258,9 @@
             if(editingId) await updateDoc(doc(db, "activities", editingId), data);
             else await addDoc(collection(db, "activities"), data);
 
-            showToast("✓ Catalogus bijgewerkt");
-            resetForm();
-            refreshData(); // Vernieuwt lijst zonder refresh
-        };
-
-        window.resetForm = () => {
             editingId = null;
             document.getElementById('act-form').reset();
-            document.getElementById('form-mode').innerText = "Nieuw Item";
-            document.getElementById('btn-text').innerText = "Item Opslaan";
-            updatePreview();
-        };
-
-        window.updatePreview = () => {
-            const u = document.getElementById('act-img').value;
-            document.getElementById('prev').innerHTML = u ? `<img src="${u}" style="width:100%; height:100%; object-fit:cover;">` : "<span>Preview</span>";
-        };
-
-        window.showToast = (m) => {
-            const t = document.getElementById('toast');
-            t.innerText = m; t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 3000);
+            refreshData();
         };
 
         window.switchTab = (id, btn) => {
