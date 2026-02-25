@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlipOrTrip Business Suite v3.0</title>
+    <title>FlipOrTrip Business v3.0.2</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBGms1-wiv_5tq1ehzhhJOjM905WnFMexo&libraries=places"></script>
@@ -14,43 +14,30 @@
         * { box-sizing: border-box; }
         body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Layout */
         .sidebar { width: 250px; background: var(--card); padding: 30px; border-right: 1px solid rgba(0,255,194,0.1); display: flex; flex-direction: column; }
         .content { flex: 1; padding: 40px; overflow-y: auto; }
-        .tab { display: none; animation: fadeIn 0.3s ease; }
+        .tab { display: none; }
         .tab.active { display: block; }
 
-        /* UI */
         .card { background: var(--card); border-radius: 20px; padding: 25px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; }
         .label { color: var(--mint); font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 10px; display: block; }
         
-        input, select { background: #0b0e14; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 12px; border-radius: 10px; width: 100%; margin-bottom: 10px; font-family: inherit; }
-        .btn { background: var(--mint); color: var(--obsidian); border: none; padding: 14px; border-radius: 50px; font-weight: 800; cursor: pointer; width: 100%; text-transform: uppercase; transition: 0.2s; }
-        .btn:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(0,255,194,0.2); }
+        input { background: #0b0e14; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 12px; border-radius: 10px; width: 100%; margin-bottom: 10px; font-family: inherit; }
+        .btn { background: var(--mint); color: var(--obsidian); border: none; padding: 14px; border-radius: 50px; font-weight: 800; cursor: pointer; width: 100%; text-transform: uppercase; }
         
-        /* Sidebar Nav */
-        .nav-link { color: var(--text); padding: 15px; cursor: pointer; border-radius: 12px; font-weight: 800; margin-bottom: 5px; transition: 0.2s; }
-        .nav-link:hover { background: rgba(255,255,255,0.05); }
+        .nav-link { color: var(--text); padding: 15px; cursor: pointer; border-radius: 12px; font-weight: 800; margin-bottom: 5px; }
         .nav-link.active { background: rgba(0,255,194,0.1); color: var(--mint); }
 
-        /* Table & Lists */
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; color: var(--mint); font-size: 11px; padding-bottom: 15px; border-bottom: 1px solid #333; }
-        td { padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-
-        .list-item { background: rgba(255,255,255,0.02); padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid transparent; }
-        .list-item:hover { border-color: var(--mint); }
-        .status { font-size: 9px; padding: 3px 7px; border-radius: 4px; font-weight: 800; margin-left: 10px; }
-        .status.on { background: rgba(0,255,194,0.1); color: var(--mint); }
-        .status.off { background: rgba(255,75,75,0.1); color: var(--red); }
-
-        /* Overlays */
-        #login { position: fixed; inset: 0; background: var(--obsidian); z-index: 9999; display: flex; align-items: center; justify-content: center; }
-        .pac-container { z-index: 10000 !important; background: #1c222d; border: 1px solid var(--mint); color: white; border-radius: 8px; }
+        /* Google Suggestie lijst moet bovenop alles */
+        .pac-container { z-index: 99999 !important; background: #1c222d; border: 1px solid var(--mint); color: white; border-radius: 8px; }
         .pac-item { color: #fff; border-top: 1px solid #333; }
-        .pac-item-query { color: var(--mint); }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Debug melding */
+        #api-debug { font-size: 10px; color: var(--red); margin-top: -5px; margin-bottom: 10px; display: none; }
+        
+        #login { position: fixed; inset: 0; background: var(--obsidian); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        table { width: 100%; border-collapse: collapse; }
+        td { padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
     </style>
 </head>
 <body>
@@ -59,62 +46,42 @@
     <div class="card" style="width: 300px; text-align: center;">
         <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="100" style="margin-bottom:20px;">
         <input type="password" id="pw" placeholder="Admin Code">
-        <button class="btn" onclick="checkLogin()">Dashboard Openen</button>
+        <button class="btn" onclick="checkLogin()">Inloggen</button>
     </div>
 </div>
 
 <div class="sidebar">
     <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="120" style="margin-bottom:40px;">
-    <div class="nav-link active" id="btn-tab1" onclick="showTab('tab1', this)">📊 Dashboard</div>
-    <div class="nav-link" id="btn-tab2" onclick="showTab('tab2', this)">🎡 Catalogus</div>
-    <div style="margin-top: auto; font-size: 10px; color: var(--text);">v3.0.1 Stable Business</div>
+    <div class="nav-link active" onclick="showTab('tab1', this)">📊 Dashboard</div>
+    <div class="nav-link" onclick="showTab('tab2', this)">🎡 Catalogus</div>
 </div>
 
 <div class="content">
     <div id="tab1" class="tab active">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h2>Management Insights</h2>
-            <button onclick="window.location.reload()" style="background:none; border:none; color:var(--mint); cursor:pointer; font-size:12px; font-weight:800;">🔄 REFRESH DATA</button>
-        </div>
-        <div class="card" style="height: 350px;"><canvas id="mainChart"></canvas></div>
+        <h2>Live Dashboard</h2>
+        <div class="card" style="height: 300px;"><canvas id="mainChart"></canvas></div>
         <div class="card">
-            <span class="label">Top Performer Lijst</span>
-            <table>
-                <thead><tr><th>Activiteit</th><th>Likes</th><th>Dislikes</th><th>Score</th></tr></thead>
-                <tbody id="table-data"></tbody>
-            </table>
+            <table><tbody id="table-data"></tbody></table>
         </div>
     </div>
 
     <div id="tab2" class="tab">
         <div style="display:grid; grid-template-columns: 350px 1fr; gap:30px;">
             <div class="card">
-                <span class="label" id="form-title">Nieuw Item Toevoegen</span>
-                <form id="main-form" onsubmit="event.preventDefault(); handleSave();">
+                <span class="label">Nieuw Item</span>
+                <form onsubmit="event.preventDefault(); handleSave();">
                     <input type="text" id="f-title" placeholder="Naam activiteit" required>
-                    <input type="text" id="f-loc" placeholder="Locatie (Type voor Google...)" autocomplete="off">
                     
-                    <span class="label">Tags</span>
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px; margin-bottom:15px;">
-                        <label style="font-size:11px;"><input type="checkbox" class="cat-box" value="actief"> Actief</label>
-                        <label style="font-size:11px;"><input type="checkbox" class="cat-box" value="food"> Food</label>
-                        <label style="font-size:11px;"><input type="checkbox" class="cat-box" value="cultuur"> Cultuur</label>
-                        <label style="font-size:11px;"><input type="checkbox" class="cat-box" value="ontspanning"> Relax</label>
-                    </div>
-
+                    <div id="api-debug">Google Maps Error: Billing required of Key restricted.</div>
+                    <input type="text" id="f-loc" placeholder="Locatie (Start met typen...)" autocomplete="off">
+                    
                     <input type="text" id="f-price" placeholder="Prijs info">
                     <input type="text" id="f-url" placeholder="Website URL">
                     <input type="text" id="f-img" placeholder="Afbeelding URL">
-                    
-                    <button type="submit" class="btn" id="f-btn">Item Opslaan</button>
-                    <button type="button" onclick="cancelEdit()" id="f-cancel" style="display:none; background:none; border:none; color:white; width:100%; margin-top:10px; cursor:pointer;">Annuleren</button>
+                    <button type="submit" class="btn">Item Opslaan</button>
                 </form>
             </div>
-            
-            <div>
-                <input type="text" placeholder="Filteren op naam..." oninput="drawList(this.value)">
-                <div id="item-list"></div>
-            </div>
+            <div id="item-list"></div>
         </div>
     </div>
 </div>
@@ -135,26 +102,42 @@
 
     let dataItems = [];
     let statsData = [];
-    let activeEditId = null;
     let chartInstance = null;
 
-    // Login logic
     window.checkLogin = () => {
         if(document.getElementById('pw').value === 'Flip2026') {
             document.getElementById('login').style.display = 'none';
             initApp();
-        } else { alert("Toegang geweigerd."); }
+        } else { alert("Fout"); }
     };
 
     function initApp() {
-        // Init Google Autocomplete
-        const ac = new google.maps.places.Autocomplete(document.getElementById('f-loc'), { componentRestrictions: {country: 'nl'} });
-        ac.addListener('place_changed', () => {
-            const p = ac.getPlace();
-            if(p.formatted_address) document.getElementById('f-loc').value = p.formatted_address;
-        });
+        // --- Google Maps Debug Logic ---
+        const locInput = document.getElementById('f-loc');
+        try {
+            const autocomplete = new google.maps.places.Autocomplete(locInput, { 
+                componentRestrictions: {country: 'nl'},
+                fields: ["formatted_address"]
+            });
+            
+            // Luister naar fouten van Google
+            google.maps.event.addDomListener(window, 'load', () => {
+                if(!window.google.maps.places) {
+                    document.getElementById('api-debug').style.display = 'block';
+                    document.getElementById('api-debug').innerText = "Places API niet geladen.";
+                }
+            });
 
-        // Realtime Data
+            autocomplete.addListener('place_changed', () => {
+                const p = autocomplete.getPlace();
+                if(p && p.formatted_address) locInput.value = p.formatted_address;
+            });
+        } catch(e) {
+            console.error(e);
+            document.getElementById('api-debug').style.display = 'block';
+        }
+
+        // --- Firebase Data ---
         onSnapshot(collection(db, "activities"), (s) => {
             dataItems = s.docs.map(d => ({id: d.id, ...d.data()}));
             drawList();
@@ -167,7 +150,6 @@
         });
     }
 
-    // Tab switcher
     window.showTab = (id, el) => {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
@@ -175,101 +157,45 @@
         el.classList.add('active');
     };
 
-    // Lijst tekenen
-    window.drawList = (filter = "") => {
-        const container = document.getElementById('item-list');
-        container.innerHTML = dataItems
-            .filter(i => i.title.toLowerCase().includes(filter.toLowerCase()))
-            .map(i => `
-                <div class="list-item">
-                    <div>
-                        <strong style="font-size:15px;">${i.title}</strong>
-                        <span class="status ${i.active !== false ? 'on' : 'off'}">${i.active !== false ? 'LIVE' : 'UIT'}</span>
-                        <div style="font-size:11px; color:var(--text); margin-top:4px;">${i.location || 'Geen locatie opgegeven'}</div>
-                    </div>
-                    <div style="display:flex; gap:10px;">
-                        <button onclick="editItem('${i.id}')" style="background:none; border:none; color:var(--mint); font-weight:800; cursor:pointer;">EDIT</button>
-                        <button onclick="toggleAct('${i.id}', ${i.active !== false})" style="background:none; border:none; color:orange; font-weight:800; cursor:pointer;">STATUS</button>
-                        <button onclick="deleteItem('${i.id}')" style="background:none; border:none; color:var(--red); font-weight:800; cursor:pointer;">WIS</button>
-                    </div>
-                </div>
-            `).join('');
+    window.drawList = () => {
+        document.getElementById('item-list').innerHTML = dataItems.map(i => `
+            <div class="card" style="padding:15px; display:flex; justify-content:space-between; align-items:center;">
+                <div><strong>${i.title}</strong><br><small>${i.location || ''}</small></div>
+                <button onclick="deleteItem('${i.id}')" style="color:var(--red); background:none; border:none; cursor:pointer;">WIS</button>
+            </div>
+        `).join('');
     };
 
-    // Opslaan logic
     window.handleSave = async () => {
-        const fields = {
+        const d = {
             title: document.getElementById('f-title').value,
             location: document.getElementById('f-loc').value,
-            categories: Array.from(document.querySelectorAll('.cat-box:checked')).map(b => b.value),
             price: document.getElementById('f-price').value,
             bookingUrl: document.getElementById('f-url').value,
             image: document.getElementById('f-img').value,
             active: true
         };
-
-        try {
-            if(activeEditId) await updateDoc(doc(db, "activities", activeEditId), fields);
-            else await addDoc(collection(db, "activities"), fields);
-            cancelEdit();
-        } catch(e) { alert("Fout bij opslaan: " + e.message); }
+        await addDoc(collection(db, "activities"), d);
+        document.querySelector('form').reset();
     };
 
-    window.editItem = (id) => {
-        const item = dataItems.find(i => i.id === id);
-        activeEditId = id;
-        document.getElementById('f-title').value = item.title;
-        document.getElementById('f-loc').value = item.location || "";
-        document.getElementById('f-price').value = item.price || "";
-        document.getElementById('f-url').value = item.bookingUrl || "";
-        document.getElementById('f-img').value = item.image || "";
-        document.querySelectorAll('.cat-box').forEach(b => b.checked = item.categories?.includes(b.value));
-        document.getElementById('form-title').innerText = "Item Bewerken";
-        document.getElementById('f-btn').innerText = "Wijziging Opslaan";
-        document.getElementById('f-cancel').style.display = "block";
-    };
-
-    window.cancelEdit = () => {
-        activeEditId = null;
-        document.getElementById('main-form').reset();
-        document.getElementById('form-title').innerText = "Nieuw Item Toevoegen";
-        document.getElementById('f-btn').innerText = "Item Opslaan";
-        document.getElementById('f-cancel').style.display = "none";
-    };
-
-    window.toggleAct = async (id, cur) => { await updateDoc(doc(db, "activities", id), { active: !cur }); };
-    window.deleteItem = async (id) => { if(confirm("Dit item permanent verwijderen?")) await deleteDoc(doc(db, "activities", id)); };
+    window.deleteItem = async (id) => { if(confirm("Wissen?")) await deleteDoc(doc(db, "activities", id)); };
 
     function updateStats() {
-        const table = document.getElementById('table-data');
+        const tbody = document.getElementById('table-data');
         const summary = {};
-
         dataItems.forEach(i => {
-            const likes = statsData.filter(s => (s.activityId === i.id || s.activityTitle === i.title) && s.action === 'like').length;
-            const dislikes = statsData.filter(s => (s.activityId === i.id || s.activityTitle === i.title) && s.action === 'dislike').length;
-            summary[i.title] = { likes, dislikes };
+            summary[i.title] = statsData.filter(s => (s.activityId === i.id || s.activityTitle === i.title) && s.action === 'like').length;
         });
 
-        const sorted = Object.keys(summary).sort((a,b) => summary[b].likes - summary[a].likes);
-        table.innerHTML = sorted.map(name => {
-            const total = summary[name].likes + summary[name].dislikes;
-            const score = total > 0 ? Math.round((summary[name].likes / total) * 100) : 0;
-            return `<tr><td>${name}</td><td>${summary[name].likes}</td><td>${summary[name].dislikes}</td><td style="color:var(--mint); font-weight:800;">${score}%</td></tr>`;
-        }).join('');
+        const labels = Object.keys(summary);
+        tbody.innerHTML = labels.map(l => `<tr><td>${l}</td><td align="right"><strong>${summary[l]} Likes</strong></td></tr>`).join('');
 
-        // Update Chart
-        const ctx = document.getElementById('mainChart');
-        if(!ctx) return;
         if(chartInstance) chartInstance.destroy();
-        chartInstance = new Chart(ctx, {
+        const ctx = document.getElementById('mainChart');
+        if(ctx) chartInstance = new Chart(ctx, {
             type: 'bar',
-            data: {
-                labels: sorted,
-                datasets: [
-                    { label: 'Likes', data: sorted.map(n => summary[n].likes), backgroundColor: '#00FFC2' },
-                    { label: 'Dislikes', data: sorted.map(n => summary[n].dislikes), backgroundColor: '#FF4B4B' }
-                ]
-            },
+            data: { labels, datasets: [{ label: 'Likes', data: labels.map(l => summary[l]), backgroundColor: '#00FFC2' }] },
             options: { responsive: true, maintainAspectRatio: false }
         });
     }
