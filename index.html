@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FlipOrTrip | v0.50 Analytics Edition</title>
+    <title>FlipOrTrip | v0.51 Analytics Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
@@ -21,7 +21,7 @@
         .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; }
         
         .input-box, .select-box { background: var(--card-bg); border: 1px solid rgba(0,255,194,0.3); padding: 14px; border-radius: 15px; color: white; text-align: center; margin-bottom: 12px; width: 100%; box-sizing: border-box; font-size: 16px; outline: none; -webkit-appearance: none; }
-        .select-box { text-align-last: center; cursor: pointer; }
+        .select-box { text-align-last: center; cursor: pointer; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2300FFC2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right 15px top 50%; background-size: 12px auto; }
         
         .label { font-size: 9px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 4px; display: block; text-align: left; }
 
@@ -120,6 +120,11 @@
             } else { alert("Gegevens komen niet overeen."); }
         };
 
+        // Trigger Age Selection voor zowel host als deelnemer
+        window.triggerAgeCheck = () => {
+            document.getElementById('age-modal').style.display = 'flex';
+        };
+
         window.confirmJoin = async () => {
             const code = document.getElementById('join-code-input').value.trim();
             const name = document.getElementById('join-name-input').value.trim();
@@ -129,8 +134,7 @@
             
             window.currentRoom = code;
             document.getElementById('join-modal').style.display = 'none';
-            // Nu naar de leeftijd-check
-            document.getElementById('age-modal').style.display = 'flex';
+            window.triggerAgeCheck();
         };
 
         window.submitAge = async () => {
@@ -197,7 +201,6 @@
             h.on('panend', async e => {
                 if(Math.abs(e.deltaX) > 100) {
                     const action = e.deltaX > 0 ? 'like' : 'dislike';
-                    // DATA VOOR DASHBOARD
                     addDoc(collection(db, "global_analytics"), { 
                         activityId: window.acts[window.actIdx].id,
                         activityTitle: window.acts[window.actIdx].title, 
@@ -228,7 +231,7 @@
                 aqs.forEach(doc => actNames[doc.id] = doc.data().title);
                 const sortedVotes = Object.entries(d.votes || {}).sort((a,b) => b[1] - a[1]).slice(0, 3);
                 if (sortedVotes.length > 0) {
-                    const top3 = sortedVotes.map(([id, count], i) => `${i+1}. ${actNames[id]} (${count} votes)`).join("\n");
+                    const top3 = sortedVotes.map(([id, count], i) => `${i+1}. ${actNames[id]} (${count} stemmen)`).join("\n");
                     emailjs.send(SERVICE_ID, TEMPLATE_ID, { to_name: d.hostName, to_email: d.hostEmail, room_code: window.currentRoom, top_matches: top3 });
                 }
             }
@@ -248,7 +251,7 @@
                 const sorted = Object.entries(d.votes || {}).sort((a,b) => b[1] - a[1]);
                 sorted.forEach(([id, count]) => {
                     const p = total > 0 ? Math.round((count / total) * 100) : 0;
-                    html += `<div class="stat-bar-container"><div class="stat-info"><span>${actNames[id]}</span><span>${count} votes</span></div><div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${p}%"></div></div></div>`;
+                    html += `<div class="stat-bar-container"><div class="stat-info"><span>${actNames[id]}</span><span>${count} stemmen</span></div><div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${p}%"></div></div></div>`;
                 });
                 document.getElementById('live-leaderboard').innerHTML = html || "Wachten op stemmen...";
             });
@@ -289,6 +292,7 @@
             <h3 style="color:var(--mint)">Bijna klaar!</h3>
             <p style="font-size:12px; opacity:0.7; margin-bottom:20px;">Hoe oud ben je? (Voor de statistieken)</p>
             <select id="age-select" class="select-box">
+                <option value="" disabled selected>Kies leeftijd...</option>
                 <option value="<18">Jonger dan 18</option>
                 <option value="18-25">18 - 25 jaar</option>
                 <option value="26-35">26 - 35 jaar</option>
@@ -303,7 +307,7 @@
         <h3>Kamer Code:</h3>
         <div style="font-size: 48px; font-weight: 800; color: var(--mint); margin: 20px 0;" id="display-code">----</div>
         <button class="btn btn-wa" onclick="shareWA()">Deel via WhatsApp</button>
-        <button class="btn btn-outline" onclick="window.startSwiping()">Start nu zelf</button>
+        <button class="btn btn-outline" onclick="triggerAgeCheck()">Start nu zelf</button>
     </div>
 
     <div id="room-header" class="hidden">
