@@ -134,12 +134,18 @@
             
             if(timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(() => {
-                const diff = deadline - Date.now();
-                const m = Math.floor(Math.max(0, diff) / 60000);
-                const s = Math.floor((Math.max(0, diff) % 60000) / 1000);
-                document.getElementById('timer-display').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
-                if(diff <= 0) clearInterval(timerInterval);
-            }, 1000);
+    const diff = deadline - Date.now();
+    const m = Math.floor(Math.max(0, diff) / 60000);
+    const s = Math.floor((Math.max(0, diff) % 60000) / 1000);
+    
+    document.getElementById('timer-display').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+    
+    if(diff <= 0) {
+        clearInterval(timerInterval);
+        // Deadline verstreken: trigger de mail voor de host
+        checkAndSendFinalMail(); 
+    }
+}, 1000);
 
             const qs = await getDocs(collection(db, "activities"));
             window.acts = qs.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -203,46 +209,32 @@
             });
         }
 
-        window.showLiveStats = async () => {
-    const statsModal = document.getElementById('stats-modal');
-    statsModal.style.display = 'flex';
+window.showLiveStats = async () => {
+    document.getElementById('stats-modal').style.display = 'flex';
     
-    // Zorg dat we eerst de namen hebben
+    // 1. Haal EERST de namen op
     const aqs = await getDocs(collection(db, "activities"));
     const actNames = {};
     aqs.forEach(doc => actNames[doc.id] = doc.data().title);
 
-    // Luister nu live naar de kamer
+    // 2. Start dan pas de live listener
     onSnapshot(doc(db, "rooms", window.currentRoom), (ds) => {
         const d = ds.data();
-        if(!d) return;
+        const total = d.finishedCount || 0;
+        document.getElementById('live-progress').innerText = `${total} / ${d.targetParticipants} klaar`;
         
-        const totalFinished = d.finishedCount || 0;
-        document.getElementById('live-progress').innerText = `${totalFinished} / ${d.targetParticipants} personen klaar`;
-        
-        // Maak de lijst leeg en bouw opnieuw op
         let html = "";
-        const sortedVotes = Object.entries(d.votes || {}).sort((a,b) => b[1] - a[1]);
+        // Sorteer stemmen direct voor de host
+        const sorted = Object.entries(d.votes || {}).sort((a,b) => b[1] - a[1]);
         
-        if (sortedVotes.length === 0) {
-            html = "<p style='font-size:12px; opacity:0.5; text-align:center;'>Nog geen stemmen ontvangen...</p>";
-        } else {
-            sortedVotes.forEach(([id, count]) => {
-                // Gebruik d.targetParticipants voor een eerlijker percentage tijdens het wachten
-                const p = totalFinished > 0 ? Math.round((count / totalFinished) * 100) : 0;
-                html += `
-                    <div class="stat-bar-container">
-                        <div class="stat-info">
-                            <span>${actNames[id] || 'Onbekend'}</span>
-                            <span>${count} stemmen (${p}%)</span>
-                        </div>
-                        <div class="stat-bar-bg">
-                            <div class="stat-bar-fill" style="width:${p}%"></div>
-                        </div>
+        sorted.forEach(([id, count]) => {
+            const p = total > 0 ? Math.round((count / total) * 100) : 0;
+            html += `<div class="stat-bar-container">
+                        <div class="stat-info"><span>${actNames[id]}</span><span>${count} stemmen</span></div>
+                        <div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${p}%"></div></div>
                     </div>`;
-            });
-        }
-        document.getElementById('live-leaderboard').innerHTML = html;
+        });
+        document.getElementById('live-leaderboard').innerHTML = html || "Wachten op eerste stemmen...";
     });
 };
 
@@ -251,32 +243,31 @@
     const snap = await getDoc(rRef);
     const d = snap.data();
 
-    // Controleer of iedereen klaar is en de mail nog niet is verstuurd
-    if (d.finishedCount >= d.targetParticipants && !d.mailSent) {
-        // Forceer ophalen van namen om te voorkomen dat ze leeg zijn
+    // Verstuur alleen als de mail nog niet is gegaan
+    if (!d.mailSent) {
+        // Haal alle activiteit-namen op voor de vertaling van ID naar Titel
         const aqs = await getDocs(collection(db, "activities"));
         const actNames = {};
         aqs.forEach(doc => actNames[doc.id] = doc.data().title);
 
-        // Sorteer stemmen en pak de top 3
+        // Sorteer de stemmen en pak de top 3
         const sortedVotes = Object.entries(d.votes || {})
             .sort((a,b) => b[1] - a[1])
             .slice(0, 3);
 
-        const top3String = sortedVotes.map(([id, count], i) => {
-            const percentage = Math.round((count / d.finishedCount) * 100);
-            return `${i+1}. ${actNames[id]} (${percentage}%)`;
-        }).join("\n");
-
         if (sortedVotes.length > 0) {
+            const top3String = sortedVotes.map(([id, count], i) => {
+                return `${i+1}. ${actNames[id]} (${count} stemmen)`;
+            }).join("\n");
+
             emailjs.send(SERVICE_ID, TEMPLATE_ID, {
                 to_name: d.hostName,
                 to_email: d.hostEmail,
                 room_code: window.currentRoom,
-                top_matches: top3String // Zorg dat dit overeenkomt met je EmailJS template variable
+                top_matches: top3String // Zorg dat {{top_matches}} in je EmailJS template staat
             }).then(() => {
                 updateDoc(rRef, { mailSent: true });
-                console.log("Resultaten succesvol gemaild.");
+                console.log("Resultaten gemaild naar host.");
             });
         }
     }
