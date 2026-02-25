@@ -3,46 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlipOrTrip | Business Suite v2.6.3</title>
+    <title>FlipOrTrip | Business Suite</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBGms1-wiv_5tq1ehzhhJOjM905WnFMexo&libraries=places"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     
     <style>
-        :root { --mint: #00FFC2; --obsidian: #0B0E14; --card-bg: #161B22; --text-muted: #8899A6; --red: #FF4B4B; --orange: #FFA500; }
+        :root { --mint: #00FFC2; --obsidian: #0B0E14; --card-bg: #161B22; --text-muted: #8899A6; --red: #FF4B4B; }
+        
+        * { box-sizing: border-box; }
         body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Layout */
+        /* Sidebar */
         .sidebar { width: 260px; background: var(--card-bg); padding: 30px; border-right: 1px solid rgba(0,255,194,0.1); display: flex; flex-direction: column; flex-shrink: 0; }
-        .main-content { flex: 1; padding: 40px; overflow-y: auto; background: radial-gradient(circle at top right, #1a202c, #0b0e14); }
+        .nav-btn { background: transparent; border: none; color: var(--text-muted); padding: 15px; text-align: left; font-size: 14px; font-weight: 800; cursor: pointer; width: 100%; border-radius: 12px; margin-bottom: 5px; transition: 0.3s; }
+        .nav-btn.active { background: rgba(0,255,194,0.1); color: var(--mint); }
+
+        /* Main Area */
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
         .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.4s ease; }
+        .tab-content.active { display: block; }
 
-        /* Modal */
-        #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(12px); z-index: 100000; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .modal { background: var(--card-bg); width: 100%; max-width: 950px; max-height: 90vh; border-radius: 32px; padding: 40px; position: relative; overflow-y: auto; border: 1px solid rgba(0,255,194,0.3); }
-
-        /* UI Elements */
-        .card { background: var(--card-bg); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; position: relative; }
-        .label { font-size: 10px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 8px; display: block; letter-spacing: 1px; }
-        input, select { background: #0B0E14; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 14px; border-radius: 12px; width: 100%; box-sizing: border-box; margin-bottom: 12px; outline: none; }
+        /* Cards & UI */
+        .card { background: var(--card-bg); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; }
+        .label { font-size: 10px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 8px; display: block; }
         
-        .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #0B0E14; padding: 12px; border-radius: 12px; margin-bottom: 15px; }
+        input, select { background: #0B0E14; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 14px; border-radius: 12px; width: 100%; margin-bottom: 12px; outline: none; font-family: inherit; }
+        
         .btn-save { background: var(--mint); color: var(--obsidian); border: none; padding: 16px; border-radius: 50px; font-weight: 800; cursor: pointer; width: 100%; text-transform: uppercase; }
         
-        /* Status Badges */
-        .status-badge { font-size: 9px; padding: 4px 8px; border-radius: 6px; font-weight: 800; text-transform: uppercase; margin-left: 10px; }
-        .status-active { background: rgba(0,255,194,0.1); color: var(--mint); }
-        .status-inactive { background: rgba(255,75,75,0.1); color: var(--red); }
+        /* Table */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; color: var(--mint); font-size: 10px; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
 
-        .btn-action { background: none; border: none; cursor: pointer; font-weight: 800; font-size: 11px; margin-left: 10px; transition: 0.2s; }
-        .btn-delete { color: var(--red); opacity: 0.6; }
-        .btn-delete:hover { opacity: 1; }
-        .btn-toggle { color: var(--orange); }
+        /* Status & Actions */
+        .status-badge { font-size: 9px; padding: 4px 8px; border-radius: 4px; font-weight: 800; margin-left: 8px; }
+        .live { background: rgba(0,255,194,0.1); color: var(--mint); }
+        .pauze { background: rgba(255,75,75,0.1); color: var(--red); }
+        
+        .action-link { background: none; border: none; cursor: pointer; font-size: 11px; font-weight: 800; margin-left: 10px; }
 
-        #login-gate { position: fixed; inset: 0; background: var(--obsidian); z-index: 999999; display: flex; align-items: center; justify-content: center; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Modal */
+        #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .modal { background: var(--card-bg); width: 100%; max-width: 900px; padding: 40px; border-radius: 30px; border: 1px solid var(--mint); max-height: 90vh; overflow-y: auto; }
+
+        #login-gate { position: fixed; inset: 0; background: var(--obsidian); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        
+        /* Google Maps Autocomplete styling fix */
+        .pac-container { z-index: 10000 !important; border-radius: 8px; background: #1c222d; border: none; font-family: inherit; }
+        .pac-item { color: #fff; border-top: 1px solid rgba(255,255,255,0.1); padding: 8px; }
+        .pac-item-query { color: var(--mint); }
     </style>
 </head>
 <body>
@@ -50,21 +62,18 @@
     <div id="login-gate">
         <div class="card" style="width: 320px; text-align: center;">
             <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="120" style="margin-bottom:20px;">
-            <input type="password" id="pw" placeholder="Admin Code" onkeypress="if(event.key === 'Enter') tryLogin()" style="text-align:center;">
-            <button class="btn-save" onclick="tryLogin()">Open Business Suite</button>
+            <input type="password" id="pw" placeholder="Admin Code" onkeypress="if(event.key === 'Enter') tryLogin()">
+            <button class="btn-save" onclick="tryLogin()">Inloggen</button>
         </div>
     </div>
 
     <div id="modal-overlay" onclick="this.style.display='none'">
         <div class="modal" onclick="event.stopPropagation()">
-            <div style="display:flex; justify-content:space-between; margin-bottom:30px;">
-                <h2 id="modal-title" style="margin:0;">Statistieken</h2>
-                <button onclick="document.getElementById('modal-overlay').style.display='none'" style="background:none; border:none; color:white; cursor:pointer; font-size:24px;">&times;</button>
-            </div>
+            <h2 id="modal-title" style="margin-top:0;">Detail Analyse</h2>
             <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:20px;">
                 <div class="card"><span class="label">Leeftijd</span><canvas id="chartAge"></canvas></div>
-                <div class="card"><span class="label">M/V</span><canvas id="chartGender"></canvas></div>
-                <div class="card"><span class="label">Gezelschap</span><canvas id="chartType"></canvas></div>
+                <div class="card"><span class="label">Geslacht</span><canvas id="chartGender"></canvas></div>
+                <div class="card"><span class="label">Groep</span><canvas id="chartType"></canvas></div>
             </div>
         </div>
     </div>
@@ -77,39 +86,39 @@
 
     <div class="main-content">
         <div id="tab-stats" class="tab-content active">
-            <h2>Management Dashboard</h2>
+            <h2>Live Statistieken</h2>
             <div class="card" style="height:350px;"><canvas id="mainChart"></canvas></div>
             <div class="card">
+                <span class="label">Populaire Activiteiten</span>
                 <table>
-                    <thead><tr><th>Activiteit</th><th>Likes</th><th>Dislikes</th><th>Score</th></tr></thead>
-                    <tbody id="stats-table-body"></tbody>
+                    <thead><tr><th>Naam</th><th>Likes</th><th>Dislikes</th><th>Ratio</th></tr></thead>
+                    <tbody id="stats-tbody"></tbody>
                 </table>
             </div>
         </div>
 
         <div id="tab-activities" class="tab-content">
-            <div style="display:grid; grid-template-columns: 1fr 1.2fr; gap:30px;">
+            <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap:30px;">
                 <div class="card">
                     <span class="label" id="form-mode">Nieuw Item</span>
                     <form id="act-form" onsubmit="event.preventDefault(); saveItem();">
-                        <input type="text" id="act-title" placeholder="Naam Activiteit" required>
-                        <input type="text" id="act-loc" placeholder="Zoek Locatie in Google..." autocomplete="off">
-                        <div class="cat-grid">
-                            <label><input type="checkbox" class="cat-checkbox" value="actief"> Actief</label>
-                            <label><input type="checkbox" class="cat-checkbox" value="ontspanning"> Relax</label>
-                            <label><input type="checkbox" class="cat-checkbox" value="food"> Food</label>
-                            <label><input type="checkbox" class="cat-checkbox" value="cultuur"> Cultuur</label>
+                        <input type="text" id="act-title" placeholder="Naam" required>
+                        <input type="text" id="act-loc" placeholder="Locatie (Zoek in Google...)" autocomplete="off">
+                        <div style="background:#0B0E14; padding:12px; border-radius:12px; margin-bottom:12px; display:grid; grid-template-columns: 1fr 1fr;">
+                            <label style="font-size:11px;"><input type="checkbox" class="cat-checkbox" value="actief"> Actief</label>
+                            <label style="font-size:11px;"><input type="checkbox" class="cat-checkbox" value="food"> Food</label>
+                            <label style="font-size:11px;"><input type="checkbox" class="cat-checkbox" value="cultuur"> Cultuur</label>
+                            <label style="font-size:11px;"><input type="checkbox" class="cat-checkbox" value="ontspanning"> Relax</label>
                         </div>
-                        <input type="text" id="act-price" placeholder="Prijs (bijv. € 15,00)">
-                        <input type="text" id="act-url" placeholder="Website URL">
-                        <input type="text" id="act-img" placeholder="Afbeelding URL" oninput="updatePreview()">
-                        <div id="img-prev" style="height:100px; background:#000; border-radius:12px; margin-bottom:15px; border:1px dashed #333; overflow:hidden;"></div>
+                        <input type="text" id="act-price" placeholder="Prijs">
+                        <input type="text" id="act-url" placeholder="URL">
+                        <input type="text" id="act-img" placeholder="Afbeelding URL">
                         <button type="submit" class="btn-save" id="btn-text">Opslaan</button>
-                        <button type="button" onclick="resetForm()" id="btn-cancel" style="display:none; width:100%; background:none; border:none; color:white; margin-top:10px;">Annuleren</button>
+                        <button type="button" onclick="resetForm()" id="btn-cancel" style="display:none; width:100%; background:none; border:none; color:white; margin-top:10px; cursor:pointer;">Annuleren</button>
                     </form>
                 </div>
                 <div>
-                    <input type="text" id="search" placeholder="Filteren..." oninput="renderList()">
+                    <input type="text" id="search" placeholder="Zoek in catalogus..." oninput="renderList()">
                     <div id="list-container"></div>
                 </div>
             </div>
@@ -131,96 +140,66 @@
 
         let activities = [];
         let analytics = [];
-        let rooms = {};
         let mainChart = null;
         let editingId = null;
-        let currentLocSelection = "";
 
         window.tryLogin = () => {
             if(document.getElementById('pw').value === 'Flip2026') {
                 document.getElementById('login-gate').style.display = 'none';
                 initGoogle();
                 startLiveSync();
-            } else alert("Foute code.");
+            } else { alert("Foute code."); }
         };
 
         function initGoogle() {
             const input = document.getElementById('act-loc');
-            const autocomplete = new google.maps.places.Autocomplete(input, { 
-                componentRestrictions: {country: "nl"},
-                fields: ["formatted_address"]
-            });
+            const autocomplete = new google.maps.places.Autocomplete(input, { componentRestrictions: {country: "nl"} });
+            // Zorg dat de waarde behouden blijft bij selectie
             autocomplete.addListener('place_changed', () => {
                 const place = autocomplete.getPlace();
-                currentLocSelection = place.formatted_address || input.value;
+                if(place.formatted_address) input.value = place.formatted_address;
             });
         }
 
         function startLiveSync() {
+            // Activiteiten ophalen
             onSnapshot(collection(db, "activities"), (snap) => {
                 activities = snap.docs.map(d => ({id: d.id, ...d.data()}));
                 renderList();
-                renderDashboard();
+                updateDashboard();
             });
+
+            // Analytics ophalen
             onSnapshot(collection(db, "global_analytics"), (snap) => {
                 analytics = snap.docs.map(d => d.data());
-                renderDashboard();
-            });
-            onSnapshot(collection(db, "rooms"), (snap) => {
-                snap.docs.forEach(d => rooms[d.id] = d.data().groupType);
+                updateDashboard();
             });
         }
 
         window.renderList = () => {
             const term = document.getElementById('search').value.toLowerCase();
-            document.getElementById('list-container').innerHTML = activities
+            const container = document.getElementById('list-container');
+            container.innerHTML = activities
                 .filter(a => a.title.toLowerCase().includes(term))
                 .map(a => `
                 <div class="card" style="padding:15px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
                     <div>
-                        <span style="font-weight:800;">${a.title}</span>
-                        <span class="status-badge ${a.active !== false ? 'status-active' : 'status-inactive'}">
-                            ${a.active !== false ? 'Live' : 'Gepauzeerd'}
-                        </span>
-                        <div style="font-size:10px; color:var(--text-muted);">${a.location || 'Geen locatie'}</div>
+                        <strong style="font-size:16px;">${a.title}</strong>
+                        <span class="status-badge ${a.active !== false ? 'live' : 'pauze'}">${a.active !== false ? 'LIVE' : 'UIT'}</span>
+                        <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">${a.location || 'Geen locatie'}</div>
                     </div>
                     <div>
-                        <button class="btn-action btn-toggle" onclick="toggleStatus('${a.id}', ${a.active !== false})">STATUS</button>
-                        <button class="btn-action" onclick="editItem('${a.id}')" style="color:var(--mint)">EDIT</button>
-                        <button class="btn-action btn-delete" onclick="deleteItem('${a.id}')">DELETE</button>
+                        <button class="action-link" style="color:var(--mint);" onclick="editItem('${a.id}')">EDIT</button>
+                        <button class="action-link" style="color:#ffa500;" onclick="toggleStatus('${a.id}', ${a.active !== false})">STATUS</button>
+                        <button class="action-link" style="color:var(--red);" onclick="deleteItem('${a.id}')">WIS</button>
                     </div>
                 </div>`).join('');
-        };
-
-        window.toggleStatus = async (id, currentStatus) => {
-            await updateDoc(doc(db, "activities", id), { active: !currentStatus });
-        };
-
-        window.deleteItem = async (id) => {
-            if(confirm("Weet je zeker dat je deze activiteit wilt verwijderen?")) {
-                await deleteDoc(doc(db, "activities", id));
-            }
-        };
-
-        window.editItem = (id) => {
-            const item = activities.find(a => a.id === id);
-            editingId = id;
-            document.getElementById('act-title').value = item.title;
-            document.getElementById('act-loc').value = item.location || "";
-            currentLocSelection = item.location || "";
-            document.getElementById('act-price').value = item.price || "";
-            document.getElementById('act-url').value = item.bookingUrl || "";
-            document.getElementById('act-img').value = item.image || "";
-            document.querySelectorAll('.cat-checkbox').forEach(cb => cb.checked = item.categories?.includes(cb.value));
-            document.getElementById('form-mode').innerText = "Item Bewerken";
-            document.getElementById('btn-cancel').style.display = "block";
-            updatePreview();
         };
 
         window.saveItem = async () => {
             const data = {
                 title: document.getElementById('act-title').value,
-                location: document.getElementById('act-loc').value || currentLocSelection,
+                location: document.getElementById('act-loc').value,
                 categories: Array.from(document.querySelectorAll('.cat-checkbox:checked')).map(cb => cb.value),
                 price: document.getElementById('act-price').value,
                 bookingUrl: document.getElementById('act-url').value,
@@ -232,56 +211,73 @@
             resetForm();
         };
 
+        window.editItem = (id) => {
+            const item = activities.find(a => a.id === id);
+            editingId = id;
+            document.getElementById('act-title').value = item.title;
+            document.getElementById('act-loc').value = item.location || "";
+            document.getElementById('act-price').value = item.price || "";
+            document.getElementById('act-url').value = item.bookingUrl || "";
+            document.getElementById('act-img').value = item.image || "";
+            document.querySelectorAll('.cat-checkbox').forEach(cb => cb.checked = item.categories?.includes(cb.value));
+            document.getElementById('form-mode').innerText = "Bewerken";
+            document.getElementById('btn-cancel').style.display = "block";
+        };
+
+        window.toggleStatus = async (id, current) => {
+            await updateDoc(doc(db, "activities", id), { active: !current });
+        };
+
+        window.deleteItem = async (id) => {
+            if(confirm("Zeker weten?")) await deleteDoc(doc(db, "activities", id));
+        };
+
         window.resetForm = () => {
-            editingId = null; currentLocSelection = "";
+            editingId = null;
             document.getElementById('act-form').reset();
             document.getElementById('form-mode').innerText = "Nieuw Item";
             document.getElementById('btn-cancel').style.display = "none";
-            document.getElementById('img-prev').innerHTML = "";
         };
 
-        window.renderDashboard = () => {
+        function updateDashboard() {
+            const tableBody = document.getElementById('stats-tbody');
             const dataMap = {};
+
             activities.forEach(act => {
-                const stats = analytics.filter(a => a.activityId === act.id || a.activityTitle === act.title);
-                const likes = stats.filter(a => a.action === 'like').length;
-                const dislikes = stats.filter(a => a.action === 'dislike').length;
-                dataMap[act.title] = { id: act.id, likes, dislikes, ratio: (likes+dislikes > 0) ? Math.round((likes/(likes+dislikes))*100) : 0 };
+                const actLikes = analytics.filter(a => (a.activityId === act.id || a.activityTitle === act.title) && a.action === 'like').length;
+                const actDislikes = analytics.filter(a => (a.activityId === act.id || a.activityTitle === act.title) && a.action === 'dislike').length;
+                dataMap[act.title] = { likes: actLikes, dislikes: actDislikes };
             });
-            const labels = Object.keys(dataMap).sort((a,b) => dataMap[b].likes - dataMap[a].likes);
-            document.getElementById('stats-table-body').innerHTML = labels.map(l => `
-                <tr class="clickable-row" onclick="openDeepDive('${dataMap[l].id}', '${l}')">
-                    <td>${l}</td><td>${dataMap[l].likes}</td><td>${dataMap[l].dislikes}</td><td style="color:var(--mint)">${dataMap[l].ratio}%</td>
-                </tr>`).join('');
-            
+
+            const sortedKeys = Object.keys(dataMap).sort((a,b) => dataMap[b].likes - dataMap[a].likes);
+            tableBody.innerHTML = sortedKeys.map(k => {
+                const ratio = (dataMap[k].likes + dataMap[k].dislikes) > 0 ? Math.round((dataMap[k].likes / (dataMap[k].likes + dataMap[k].dislikes)) * 100) : 0;
+                return `<tr><td>${k}</td><td>${dataMap[k].likes}</td><td>${dataMap[k].dislikes}</td><td style="color:var(--mint); font-weight:800;">${ratio}%</td></tr>`;
+            }).join('');
+
+            // Chart update
             if(mainChart) mainChart.destroy();
             const ctx = document.getElementById('mainChart');
-            if(ctx) mainChart = new Chart(ctx, {
-                type: 'bar',
-                data: { labels, datasets: [
-                    { label: 'Likes', data: labels.map(l => dataMap[l].likes), backgroundColor: '#00FFC2' },
-                    { label: 'Dislikes', data: labels.map(l => dataMap[l].dislikes), backgroundColor: '#FF4B4B' }
-                ]},
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-        };
-
-        window.updatePreview = () => {
-            const u = document.getElementById('act-img').value;
-            document.getElementById('img-prev').innerHTML = u ? `<img src="${u}" style="width:100%; height:100%; object-fit:cover;">` : "";
-        };
+            if(ctx) {
+                mainChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: sortedKeys,
+                        datasets: [
+                            { label: 'Likes', data: sortedKeys.map(k => dataMap[k].likes), backgroundColor: '#00FFC2' },
+                            { label: 'Dislikes', data: sortedKeys.map(k => dataMap[k].dislikes), backgroundColor: '#FF4B4B' }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+        }
 
         window.switchTab = (id, btn) => {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             btn.classList.add('active');
-        };
-        
-        window.openDeepDive = (id, title) => {
-            document.getElementById('modal-title').innerText = title;
-            document.getElementById('modal-overlay').style.display = 'flex';
-            // Chart rendering logic hier... (is behouden uit vorige versie)
         };
     </script>
 </body>
