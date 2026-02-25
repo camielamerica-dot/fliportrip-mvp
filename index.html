@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FlipOrTrip | v0.49 MVP</title>
+    <title>FlipOrTrip | v0.50 Analytics Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
@@ -19,7 +19,10 @@
         .btn { background: var(--mint); color: var(--obsidian); padding: 16px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; width: 260px; margin-bottom: 10px; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
         .btn-wa { background: #25D366; color: white; }
         .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; }
-        .input-box { background: var(--card-bg); border: 1px solid rgba(0,255,194,0.3); padding: 14px; border-radius: 15px; color: white; text-align: center; margin-bottom: 12px; width: 100%; box-sizing: border-box; font-size: 16px; outline: none; }
+        
+        .input-box, .select-box { background: var(--card-bg); border: 1px solid rgba(0,255,194,0.3); padding: 14px; border-radius: 15px; color: white; text-align: center; margin-bottom: 12px; width: 100%; box-sizing: border-box; font-size: 16px; outline: none; -webkit-appearance: none; }
+        .select-box { text-align-last: center; cursor: pointer; }
+        
         .label { font-size: 9px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 4px; display: block; text-align: left; }
 
         /* Header */
@@ -28,13 +31,14 @@
         .header-info-row { display: flex; gap: 12px; align-items: center; }
         .header-tag { font-size: 10px; background: rgba(0,255,194,0.1); border: 1px solid var(--mint); padding: 5px 12px; border-radius: 20px; font-weight: 800; }
 
-        /* Swipe & Modals */
+        /* Swipe & Card */
         #swipe-screen { position: relative; width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center; touch-action: none; }
         .card { width: 85vw; max-width: 320px; height: 60vh; max-height: 460px; background: var(--card-bg); border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); position: absolute; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .card-img { height: 55%; background-size: cover; background-position: center; pointer-events: none; }
         .card-info { padding: 15px; text-align: left; pointer-events: none; }
         .card-info h2 { margin: 0; font-size: 18px; }
         .card-info p { font-size: 13px; opacity: 0.7; margin: 8px 0; line-height: 1.4; }
+
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.97); backdrop-filter: blur(10px); display: none; align-items: center; justify-content: center; z-index: 99999; padding: 20px; box-sizing: border-box; }
         .modal-card { background: var(--card-bg); padding: 25px; border-radius: 25px; border: 1px solid var(--mint); width: 100%; max-width: 320px; text-align: center; }
         
@@ -70,6 +74,7 @@
 
         let timerInterval;
         window.currentRoom = null;
+        window.userAge = null;
 
         window.goHome = () => location.reload();
 
@@ -78,19 +83,25 @@
                 const name = document.getElementById('host-name').value;
                 const email = document.getElementById('host-email').value.toLowerCase();
                 const target = document.getElementById('target-p').value;
+                const groupType = document.getElementById('group-type').value;
                 const min = document.getElementById('deadline-input').value || 60;
+                
                 if(!name || !email) return alert("Vul alles in!");
+                
                 const code = Math.floor(1000 + Math.random() * 9000).toString();
                 const deadline = Date.now() + (parseInt(min) * 60000); 
+
                 await setDoc(doc(db, "rooms", code), { 
                     hostName: name, hostEmail: email, targetParticipants: parseInt(target), 
-                    deadline, participants: [name], votes: {}, finishedCount: 0, mailSent: false 
+                    groupType, deadline, participants: [name], votes: {}, finishedCount: 0, 
+                    mailSent: false, createdAt: new Date()
                 });
+                
                 window.currentRoom = code;
                 document.getElementById('setup-screen').classList.add('hidden');
                 document.getElementById('share-screen').classList.remove('hidden');
                 document.getElementById('display-code').innerText = code;
-            } catch (e) { console.error(e); alert("Fout bij aanmaken room."); }
+            } catch (e) { console.error(e); alert("Fout bij aanmaken."); }
         };
 
         window.shareWA = () => {
@@ -115,9 +126,18 @@
             if(!code || !name) return alert("Vul code en naam in!");
             const ds = await getDoc(doc(db, "rooms", code));
             if(!ds.exists()) return alert("Code niet gevonden!");
+            
             window.currentRoom = code;
-            await updateDoc(doc(db, "rooms", code), { participants: arrayUnion(name) });
             document.getElementById('join-modal').style.display = 'none';
+            // Nu naar de leeftijd-check
+            document.getElementById('age-modal').style.display = 'flex';
+        };
+
+        window.submitAge = async () => {
+            const age = document.getElementById('age-select').value;
+            if(!age) return alert("Kies een leeftijd!");
+            window.userAge = age;
+            document.getElementById('age-modal').style.display = 'none';
             window.startSwiping();
         };
 
@@ -127,7 +147,6 @@
             document.getElementById('swipe-screen').classList.remove('hidden');
             document.getElementById('active-code-display').innerText = window.currentRoom;
             
-            // Toon instructies
             document.getElementById('instruction-modal').style.display = 'flex';
 
             const ds = await getDoc(doc(db, "rooms", window.currentRoom));
@@ -139,10 +158,7 @@
                 const m = Math.floor(Math.max(0, diff) / 60000);
                 const s = Math.floor((Math.max(0, diff) % 60000) / 1000);
                 document.getElementById('timer-display').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
-                if(diff <= 0) {
-                    clearInterval(timerInterval);
-                    checkAndSendFinalMail(); 
-                }
+                if(diff <= 0) { clearInterval(timerInterval); checkAndSendFinalMail(); }
             }, 1000);
 
             const qs = await getDocs(collection(db, "activities"));
@@ -159,15 +175,7 @@
             const container = document.getElementById('swipe-screen');
             container.innerHTML = "";
             if(window.actIdx >= window.acts.length) {
-                container.innerHTML = `
-                    <div style='text-align:center; padding: 20px;'>
-                        <h1 style='color:var(--mint); font-size: 40px;'>Lekker bezig! 🔥</h1>
-                        <p style='line-height:1.5; opacity:0.8;'>Je hebt alle activiteiten beoordeeld.</p>
-                        <div style="background:rgba(255,255,255,0.05); padding:20px; border-radius:20px; margin: 20px 0;">
-                            <p style="font-size:13px;">We wachten nu op de rest van de groep. De host ontvangt de <b>Top 3</b> zodra iedereen klaar is!</p>
-                        </div>
-                        <button class='btn btn-outline' onclick='goHome()'>TERUG NAAR MENU</button>
-                    </div>`;
+                container.innerHTML = `<div style='text-align:center; padding: 20px;'><h1 style='color:var(--mint); font-size: 32px;'>Lekker bezig! 🔥</h1><p style='line-height:1.5; opacity:0.8;'>Je hebt alle activiteiten beoordeeld.</p><div style="background:rgba(255,255,255,0.05); padding:20px; border-radius:20px; margin: 20px 0;"><p style="font-size:13px;">We wachten nu op de rest van de groep. De host ontvangt de <b>Top 3</b> zodra iedereen klaar is!</p></div><button class='btn btn-outline' onclick='goHome()'>TERUG NAAR MENU</button></div>`;
                 updateDoc(doc(db, "rooms", window.currentRoom), { finishedCount: increment(1) }).then(() => {
                     checkAndSendFinalMail(); 
                 });
@@ -189,7 +197,15 @@
             h.on('panend', async e => {
                 if(Math.abs(e.deltaX) > 100) {
                     const action = e.deltaX > 0 ? 'like' : 'dislike';
-                    addDoc(collection(db, "global_analytics"), { activityTitle: window.acts[window.actIdx].title, action, timestamp: new Date() });
+                    // DATA VOOR DASHBOARD
+                    addDoc(collection(db, "global_analytics"), { 
+                        activityId: window.acts[window.actIdx].id,
+                        activityTitle: window.acts[window.actIdx].title, 
+                        action, 
+                        ageGroup: window.userAge,
+                        roomCode: window.currentRoom,
+                        timestamp: new Date() 
+                    });
                     if(action === 'like') {
                         const up = {}; up[`votes.${window.acts[window.actIdx].id}`] = increment(1);
                         await updateDoc(doc(db, "rooms", window.currentRoom), up);
@@ -205,10 +221,7 @@
             if(!snap.exists()) return;
             const d = snap.data();
             if (d.mailSent) return;
-            const isKlaar = d.finishedCount >= d.targetParticipants;
-            const isDeadline = Date.now() >= d.deadline;
-
-            if (isKlaar || isDeadline) {
+            if (d.finishedCount >= d.targetParticipants || Date.now() >= d.deadline) {
                 await updateDoc(rRef, { mailSent: true }); 
                 const aqs = await getDocs(collection(db, "activities"));
                 const actNames = {};
@@ -230,7 +243,7 @@
                 const d = ds.data();
                 if(!d) return;
                 const total = d.finishedCount || 0;
-                document.getElementById('live-progress').innerText = `${total} / ${d.targetParticipants} klaar`;
+                document.getElementById('live-progress').innerText = `${total} / ${d.targetParticipants} personen klaar`;
                 let html = "";
                 const sorted = Object.entries(d.votes || {}).sort((a,b) => b[1] - a[1]);
                 sorted.forEach(([id, count]) => {
@@ -256,10 +269,33 @@
         <div style="width:280px; margin: 0 auto;">
             <span class="label">Naam</span><input type="text" id="host-name" class="input-box">
             <span class="label">E-mail</span><input type="email" id="host-email" class="input-box">
-            <span class="label">Personen</span><input type="number" id="target-p" class="input-box" value="4">
+            <span class="label">Wat voor uitje?</span>
+            <select id="group-type" class="select-box">
+                <option value="vrienden">Vrienden</option>
+                <option value="familie">Familie</option>
+                <option value="collegas">Collega's</option>
+                <option value="vrijgezellenfeest">Vrijgezellenfeest</option>
+                <option value="anders">Anders</option>
+            </select>
+            <span class="label">Aantal personen</span><input type="number" id="target-p" class="input-box" value="4">
             <span class="label">Deadline (minuten)</span><input type="number" id="deadline-input" class="input-box" value="60">
             <button class="btn" onclick="createRoom()">Trip Maken</button>
             <p onclick="goHome()" class="footer-link">Terug</p>
+        </div>
+    </div>
+
+    <div id="age-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h3 style="color:var(--mint)">Bijna klaar!</h3>
+            <p style="font-size:12px; opacity:0.7; margin-bottom:20px;">Hoe oud ben je? (Voor de statistieken)</p>
+            <select id="age-select" class="select-box">
+                <option value="<18">Jonger dan 18</option>
+                <option value="18-25">18 - 25 jaar</option>
+                <option value="26-35">26 - 35 jaar</option>
+                <option value="36-50">36 - 50 jaar</option>
+                <option value="50+">Ouder dan 50</option>
+            </select>
+            <button class="btn" onclick="submitAge()">Start Flippen</button>
         </div>
     </div>
 
@@ -277,7 +313,6 @@
             <div id="timer-display" style="font-weight:800; font-size:14px;">--:--</div>
         </div>
     </div>
-
     <div id="swipe-screen" class="hidden screen-content"></div>
 
     <div id="instruction-modal" class="modal-overlay">
@@ -286,7 +321,7 @@
             <div style="text-align:left; font-size:13px; line-height:1.6; margin: 20px 0;">
                 <p>♥ <b>Rechts:</b> Dit lijkt me vet!</p>
                 <p>✕ <b>Links:</b> Deze sla ik over.</p>
-                <p>📍 <b>Samen:</b> Vinden jullie hetzelfde leuk? Dan wordt het een match!</p>
+                <p>📍 <b>Match:</b> Vinden jullie hetzelfde leuk? Match!</p>
             </div>
             <button class="btn" onclick="closeInstructions()">Snap ik!</button>
         </div>
@@ -294,10 +329,10 @@
 
     <div id="join-modal" class="modal-overlay">
         <div class="modal-card">
-            <h3 style="color:var(--mint)">Join Trip</h3>
-            <input type="number" id="join-code-input" class="input-box" placeholder="Code">
+            <h3 style="color:var(--mint)">Deelnemen</h3>
+            <input type="number" id="join-code-input" class="input-box" placeholder="Kamer Code">
             <input type="text" id="join-name-input" class="input-box" placeholder="Jouw Naam">
-            <button class="btn" onclick="window.confirmJoin()">Start Flippen</button>
+            <button class="btn" onclick="window.confirmJoin()">Verder</button>
             <p onclick="document.getElementById('join-modal').style.display='none'" class="footer-link">Terug</p>
         </div>
     </div>
