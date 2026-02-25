@@ -238,19 +238,22 @@ window.showLiveStats = async () => {
     });
 };
 
-       async function checkAndSendFinalMail() {
+     async function checkAndSendFinalMail() {
     const rRef = doc(db, "rooms", window.currentRoom);
     const snap = await getDoc(rRef);
     const d = snap.data();
 
-    // Verstuur alleen als de mail nog niet is gegaan
-    if (!d.mailSent) {
-        // Haal alle activiteit-namen op voor de vertaling van ID naar Titel
+    if (!d || d.mailSent) return; // Stop als mail al is gestuurd
+
+    const isDeadlineVoorbij = Date.now() >= d.deadline;
+    const iedereenKlaar = d.finishedCount >= d.targetParticipants;
+
+    // Alleen sturen als aan één van de twee voorwaarden is voldaan
+    if (isDeadlineVoorbij || iedereenKlaar) {
         const aqs = await getDocs(collection(db, "activities"));
         const actNames = {};
         aqs.forEach(doc => actNames[doc.id] = doc.data().title);
 
-        // Sorteer de stemmen en pak de top 3
         const sortedVotes = Object.entries(d.votes || {})
             .sort((a,b) => b[1] - a[1])
             .slice(0, 3);
@@ -260,14 +263,19 @@ window.showLiveStats = async () => {
                 return `${i+1}. ${actNames[id]} (${count} stemmen)`;
             }).join("\n");
 
+            // We zetten de vlag in de database EERST op true om dubbele mails bij gelijktijdig finishen te voorkomen
+            await updateDoc(rRef, { mailSent: true });
+
             emailjs.send(SERVICE_ID, TEMPLATE_ID, {
                 to_name: d.hostName,
                 to_email: d.hostEmail,
                 room_code: window.currentRoom,
-                top_matches: top3String // Zorg dat {{top_matches}} in je EmailJS template staat
+                top_matches: top3String
             }).then(() => {
-                updateDoc(rRef, { mailSent: true });
-                console.log("Resultaten gemaild naar host.");
+                console.log("Eindrapportage verzonden naar host.");
+            }).catch(err => {
+                // Als verzenden mislukt, zetten we de vlag terug zodat het opnieuw geprobeerd kan worden
+                updateDoc(rRef, { mailSent: false });
             });
         }
     }
