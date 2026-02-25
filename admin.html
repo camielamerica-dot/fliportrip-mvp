@@ -2,81 +2,76 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>FlipOrTrip | Pro Business Suite v4.3</title>
+    <title>FlipOrTrip | Business Suite v4.4</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBGms1-wiv_5tq1ehzhhJOjM905WnFMexo&libraries=places"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     <style>
         :root { --mint: #00FFC2; --obsidian: #0B0E14; --card: #161B22; --text: #8899A6; --red: #FF4B4B; }
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; transition: all 0.2s ease; }
         body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Layout */
+        /* Sidebar */
         .sidebar { width: 260px; background: var(--card); padding: 30px; border-right: 1px solid rgba(0,255,194,0.1); display: flex; flex-direction: column; }
+        .nav-tag { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 800; margin-bottom: 10px; text-align: center; color: var(--text); border: 1px solid transparent; }
+        .nav-tag.active { background: rgba(0,255,194,0.1); color: var(--mint); border-color: var(--mint); }
+
+        /* Main Area */
         .main { flex: 1; padding: 40px; overflow-y: auto; }
         .tab { display: none; }
-        .tab.active { display: block; }
+        .tab.active { display: block; animation: fadeIn 0.3s ease; }
 
-        /* UI Elements */
+        /* Filters */
+        .filter-bar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .filter-pill { background: #252b35; padding: 8px 16px; border-radius: 50px; font-size: 11px; font-weight: 800; cursor: pointer; border: 1px solid #333; }
+        .filter-pill.active { background: var(--mint); color: #000; border-color: var(--mint); }
+
+        /* UI Cards */
         .card { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; }
-        .label { font-size: 10px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 8px; display: block; }
         input, select { background: #0B0E14; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 12px; border-radius: 10px; width: 100%; margin-bottom: 10px; outline: none; font-family: inherit; }
         .btn-mint { background: var(--mint); color: #000; border: none; padding: 15px; border-radius: 50px; font-weight: 800; cursor: pointer; width: 100%; text-transform: uppercase; }
-        
-        /* Catalogus List with Images */
-        .item-row { display: flex; align-items: center; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 15px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); }
-        .item-img { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; margin-right: 20px; background: #333; }
-        .item-info { flex: 1; }
-        
-        /* Tables */
+
+        /* List Styling */
+        .item-card { display: flex; align-items: center; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 18px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); }
+        .item-card:hover { background: rgba(255,255,255,0.04); border-color: var(--mint); }
+        .thumb { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; margin-right: 15px; background: #000; }
+
+        /* Table */
         table { width: 100%; border-collapse: collapse; }
-        td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
-        tr:hover td { background: rgba(0,255,194,0.05); }
-
-        /* Modal */
-        #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
-        .modal { background: var(--card); width: 90%; max-width: 900px; padding: 40px; border-radius: 30px; border: 1px solid var(--mint); }
-
-        #login { position: fixed; inset: 0; background: var(--obsidian); z-index: 99999; display: flex; align-items: center; justify-content: center; }
-        .tag { background: rgba(255,255,255,0.05); padding: 8px 15px; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: 800; margin-bottom: 10px; text-align: center; }
-        .tag.active { background: var(--mint); color: #000; }
+        td { padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
+        
+        #login-gate { position: fixed; inset: 0; background: var(--obsidian); z-index: 100000; display: flex; align-items: center; justify-content: center; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-<div id="login">
-    <div class="card" style="width: 300px; text-align: center;">
-        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="100" style="margin-bottom:20px;">
-        <input type="password" id="pw" placeholder="Wachtwoord">
-        <button class="btn-mint" onclick="doAuth()">Login</button>
-    </div>
-</div>
-
-<div id="modal-overlay" onclick="this.style.display='none'">
-    <div class="modal" onclick="event.stopPropagation()">
-        <h2 id="m-title">Analyse</h2>
-        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:20px;">
-            <div class="card"><span class="label">Leeftijd</span><canvas id="cA"></canvas></div>
-            <div class="card"><span class="label">Geslacht</span><canvas id="cG"></canvas></div>
-            <div class="card"><span class="label">Gezelschap</span><canvas id="cT"></canvas></div>
-        </div>
+<div id="login-gate">
+    <div class="card" style="width: 320px; text-align: center;">
+        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="120" style="margin-bottom:20px;">
+        <input type="password" id="pw" placeholder="Admin Code">
+        <button class="btn-mint" onclick="doAuth()">Suite Openen</button>
     </div>
 </div>
 
 <div class="sidebar">
-    <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="120" style="margin-bottom:40px;">
-    <div class="tag active" id="nav-dash" onclick="setTab('dash')">📊 Dashboard</div>
-    <div class="tag" id="nav-cat" onclick="setTab('cat')">🎡 Catalogus</div>
+    <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="130" style="margin-bottom:40px;">
+    <div class="nav-tag active" id="n-dash" onclick="switchTab('dash')">📊 Dashboard</div>
+    <div class="nav-tag" id="n-cat" onclick="switchTab('cat')">🎡 Catalogus</div>
+    <div style="margin-top:auto; font-size:10px; color:var(--text); text-align:center;">Valkenburg Business v4.4</div>
 </div>
 
 <div class="main">
     <div id="tab-dash" class="tab active">
-        <h2>Live Performance</h2>
-        <div class="card" style="height:300px;"><canvas id="mainChart"></canvas></div>
+        <h2>Performance Insights</h2>
+        <div class="card" style="height:320px;"><canvas id="mainChart"></canvas></div>
         <div class="card">
-            <input type="text" id="dash-search" placeholder="Filter resultaten..." oninput="drawStats()">
+            <div class="filter-bar">
+                <input type="text" id="dash-search" placeholder="Filter dashboard op naam..." oninput="drawStats()" style="max-width:300px; margin-bottom:0;">
+                <div class="filter-pill active">Meest Populair</div>
+            </div>
             <table>
-                <thead><tr style="text-align:left; font-size:10px; color:var(--mint);"><th>NAAM</th><th>LIKES</th><th>DISLIKES</th><th>SCORE</th></tr></thead>
+                <thead><tr style="text-align:left; font-size:10px; color:var(--mint); opacity:0.7;"><th>ACTIVITEIT</th><th>LIKES</th><th>DISLIKES</th><th>SCORE</th></tr></thead>
                 <tbody id="stat-list"></tbody>
             </table>
         </div>
@@ -85,20 +80,33 @@
     <div id="tab-cat" class="tab">
         <div style="display:grid; grid-template-columns: 350px 1fr; gap:30px;">
             <div class="card">
-                <span class="label" id="edit-label">Nieuw Item</span>
-                <input type="text" id="i-title" placeholder="Naam">
-                <input type="text" id="i-loc" placeholder="Locatie">
+                <span style="font-size:10px; color:var(--mint); font-weight:800;" id="edit-indicator">NIEUW ITEM</span>
+                <input type="text" id="i-title" placeholder="Naam Activiteit">
+                <input type="text" id="i-loc" placeholder="Locatie (Stad/Adres)">
                 <select id="i-cat">
                     <option value="actief">Actief</option>
                     <option value="food">Food</option>
                     <option value="cultuur">Cultuur</option>
+                    <option value="ontspanning">Ontspanning</option>
                 </select>
                 <input type="text" id="i-price" placeholder="Prijs">
-                <input type="text" id="i-img" placeholder="Afbeelding URL" oninput="document.getElementById('p-img').src=this.value">
-                <img id="p-img" src="" style="width:100%; border-radius:10px; margin-bottom:10px; min-height:50px; background:#000;">
-                <button class="btn-mint" id="save-btn" onclick="saveItem()">Opslaan</button>
+                <input type="text" id="i-img" placeholder="Afbeelding URL" oninput="document.getElementById('live-p').src=this.value">
+                <img id="live-p" src="" style="width:100%; height:120px; border-radius:12px; object-fit:cover; margin-bottom:10px; background:#000;">
+                <button class="btn-mint" id="save-btn" onclick="saveItem()">Opslaan in Database</button>
+                <button id="cancel-btn" style="display:none; background:none; border:none; color:white; width:100%; margin-top:10px; cursor:pointer;" onclick="resetForm()">Annuleren</button>
             </div>
-            <div id="item-list"></div>
+
+            <div>
+                <div class="filter-bar" id="cat-filters">
+                    <div class="filter-pill active" onclick="setCatFilter('all', this)">Alles</div>
+                    <div class="filter-pill" onclick="setCatFilter('actief', this)">Actief</div>
+                    <div class="filter-pill" onclick="setCatFilter('food', this)">Food</div>
+                    <div class="filter-pill" onclick="setCatFilter('cultuur', this)">Cultuur</div>
+                    <div class="filter-pill" onclick="setCatFilter('ontspanning', this)">Ontspanning</div>
+                </div>
+                <input type="text" id="cat-search" placeholder="Zoek in catalogus..." oninput="drawCat()" style="margin-bottom:20px;">
+                <div id="cat-list"></div>
+            </div>
         </div>
     </div>
 </div>
@@ -116,23 +124,49 @@
     const app = initializeApp(config);
     const db = getFirestore(app);
 
-    let items = [], logs = [], mChart, cA, cG, cT, editingId = null;
+    let activities = [], analytics = [], mChart, editingId = null, currentCat = 'all';
 
-    window.doAuth = () => { if(document.getElementById('pw').value === 'Flip2026') { document.getElementById('login').style.display='none'; init(); } };
+    window.doAuth = () => { if(document.getElementById('pw').value === 'Flip2026') { document.getElementById('login-gate').style.display='none'; init(); } };
 
     function init() {
         const ac = new google.maps.places.Autocomplete(document.getElementById('i-loc'), {componentRestrictions:{country:'nl'}});
         ac.addListener('place_changed', () => { document.getElementById('i-loc').value = ac.getPlace().formatted_address; });
 
-        onSnapshot(collection(db, "activities"), s => { items = s.docs.map(d => ({id:d.id, ...d.data()})); renderCat(); drawStats(); });
-        onSnapshot(collection(db, "global_analytics"), s => { logs = s.docs.map(d => d.data()); drawStats(); });
+        onSnapshot(collection(db, "activities"), s => { activities = s.docs.map(d => ({id:d.id, ...d.data()})); drawCat(); drawStats(); });
+        onSnapshot(collection(db, "global_analytics"), s => { analytics = s.docs.map(d => d.data()); drawStats(); });
     }
 
-    window.setTab = (t) => {
+    window.switchTab = (t) => {
         document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-        document.querySelectorAll('.tag').forEach(x => x.classList.remove('active'));
+        document.querySelectorAll('.nav-tag').forEach(x => x.classList.remove('active'));
         document.getElementById('tab-'+t).classList.add('active');
-        document.getElementById('nav-'+t).classList.add('active');
+        document.getElementById('n-'+t).classList.add('active');
+    };
+
+    // --- CATALOGUS LOGIC ---
+    window.setCatFilter = (cat, el) => {
+        currentCat = cat;
+        document.querySelectorAll('#cat-filters .filter-pill').forEach(p => p.classList.remove('active'));
+        el.classList.add('active');
+        drawCat();
+    };
+
+    window.drawCat = () => {
+        const search = document.getElementById('cat-search').value.toLowerCase();
+        const filtered = activities.filter(a => {
+            const matchesCat = (currentCat === 'all' || a.category === currentCat);
+            const matchesSearch = a.title.toLowerCase().includes(search);
+            return matchesCat && matchesSearch;
+        });
+
+        document.getElementById('cat-list').innerHTML = filtered.map(a => `
+            <div class="item-card">
+                <img src="${a.image}" class="thumb" onerror="this.src='https://via.placeholder.com/50'">
+                <div style="flex:1"><strong>${a.title}</strong><br><small style="color:var(--text)">${a.category || 'Geen categorie'}</small></div>
+                <button onclick="editItem('${a.id}')" style="background:none; border:none; color:var(--mint); cursor:pointer; font-weight:800; font-size:10px; margin-right:15px;">BEWERK</button>
+                <button onclick="delItem('${a.id}')" style="background:none; border:none; color:var(--red); cursor:pointer; font-weight:800; font-size:10px;">WIS</button>
+            </div>
+        `).join('');
     };
 
     window.saveItem = async () => {
@@ -146,86 +180,60 @@
         };
         if(editingId) await updateDoc(doc(db, "activities", editingId), data);
         else await addDoc(collection(db, "activities"), data);
-        
-        editingId = null;
-        document.querySelectorAll('input').forEach(i => i.value='');
-        document.getElementById('p-img').src = '';
-        document.getElementById('save-btn').innerText = "Opslaan";
-    };
-
-    window.renderCat = () => {
-        document.getElementById('item-list').innerHTML = items.map(i => `
-            <div class="item-row">
-                <img src="${i.image}" class="item-img" onerror="this.src='https://via.placeholder.com/60'">
-                <div class="item-info"><strong>${i.title}</strong><br><small>${i.location || ''}</small></div>
-                <button onclick="editItem('${i.id}')" style="color:var(--mint); background:none; border:none; cursor:pointer; margin-right:10px;">EDIT</button>
-                <button onclick="delItem('${i.id}')" style="color:var(--red); background:none; border:none; cursor:pointer;">WIS</button>
-            </div>`).join('');
+        resetForm();
     };
 
     window.editItem = (id) => {
-        const i = items.find(x => x.id === id);
+        const a = activities.find(x => x.id === id);
         editingId = id;
-        document.getElementById('i-title').value = i.title;
-        document.getElementById('i-loc').value = i.location || '';
-        document.getElementById('i-img').value = i.image || '';
-        document.getElementById('p-img').src = i.image || '';
-        document.getElementById('save-btn').innerText = "Wijzigen";
+        document.getElementById('i-title').value = a.title;
+        document.getElementById('i-loc').value = a.location || '';
+        document.getElementById('i-cat').value = a.category || 'actief';
+        document.getElementById('i-price').value = a.price || '';
+        document.getElementById('i-img').value = a.image || '';
+        document.getElementById('live-p').src = a.image || '';
+        document.getElementById('save-btn').innerText = "WIJZIGINGEN OPSLAAN";
+        document.getElementById('edit-indicator').innerText = "ITEM BEWERKEN";
+        document.getElementById('cancel-btn').style.display = 'block';
     };
 
-    window.delItem = async (id) => { if(confirm('Wissen?')) await deleteDoc(doc(db, "activities", id)); };
+    window.resetForm = () => {
+        editingId = null;
+        document.querySelectorAll('#tab-cat input').forEach(i => i.value='');
+        document.getElementById('live-p').src = '';
+        document.getElementById('save-btn').innerText = "OPSLAAN IN DATABASE";
+        document.getElementById('edit-indicator').innerText = "NIEUW ITEM";
+        document.getElementById('cancel-btn').style.display = 'none';
+    };
 
+    window.delItem = async (id) => { if(confirm('Permanent verwijderen uit catalogus?')) await deleteDoc(doc(db, "activities", id)); };
+
+    // --- DASHBOARD LOGIC ---
     window.drawStats = () => {
         const search = document.getElementById('dash-search').value.toLowerCase();
-        const filteredItems = items.filter(i => i.title.toLowerCase().includes(search));
-        const labels = [], counts = [];
+        const dataSet = activities.map(a => {
+            const logs = analytics.filter(l => l.activityId === a.id || l.activityTitle === a.title);
+            const likes = logs.filter(l => l.action === 'like').length;
+            const dislikes = logs.filter(l => l.action === 'dislike').length;
+            const score = (likes + dislikes) > 0 ? Math.round((likes / (likes + dislikes)) * 100) : 0;
+            return { title: a.title, likes, dislikes, score };
+        }).filter(a => a.title.toLowerCase().includes(search))
+          .sort((a, b) => b.score - a.score);
 
-        document.getElementById('stat-list').innerHTML = filteredItems.map(i => {
-            const s = logs.filter(l => l.activityId === i.id || l.activityTitle === i.title);
-            const likes = s.filter(l => l.action === 'like').length;
-            const dislikes = s.filter(l => l.action === 'dislike').length;
-            const score = (likes+dislikes) > 0 ? Math.round((likes/(likes+dislikes))*100) : 0;
-            labels.push(i.title); counts.push(likes);
-            return `<tr onclick="openDeep('${i.id}', '${i.title}')"><td>${i.title}</td><td>${likes}</td><td>${dislikes}</td><td>${score}%</td></tr>`;
-        }).join('');
+        document.getElementById('stat-list').innerHTML = dataSet.map(d => `
+            <tr>
+                <td><strong>${d.title}</strong></td>
+                <td>${d.likes}</td>
+                <td>${d.dislikes}</td>
+                <td style="color:${d.score > 50 ? 'var(--mint)' : 'var(--red)'}; font-weight:800;">${d.score}%</td>
+            </tr>
+        `).join('');
 
         if(mChart) mChart.destroy();
         mChart = new Chart(document.getElementById('mainChart'), {
-            type:'bar', data: {labels, datasets:[{label:'Likes', data:counts, backgroundColor:'#00FFC2'}]},
-            options: {responsive:true, maintainAspectRatio:false}
+            type:'bar', data: {labels: dataSet.map(d => d.title), datasets:[{label:'Likes', data:dataSet.map(d => d.likes), backgroundColor:'#00FFC2', borderRadius:8}]},
+            options: {responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true}}}
         });
-    };
-
-    window.openDeep = (id, title) => {
-        document.getElementById('m-title').innerText = title;
-        document.getElementById('modal-overlay').style.display = 'flex';
-        const s = logs.filter(l => l.activityId === id || l.activityTitle === title);
-
-        // Verbeterde data-uitlezing (ongeacht hoofdletters)
-        const getVal = (obj, keys) => {
-            for(let k of keys) if(obj[k] !== undefined) return obj[k];
-            return null;
-        };
-
-        const ageData = {'18-25': 0, '26-40': 0, '41+': 0};
-        const genData = {'Man': 0, 'Vrouw': 0};
-        const typData = {'Solo': 0, 'Koppel': 0, 'Groep': 0};
-
-        s.forEach(l => {
-            const age = getVal(l, ['age', 'userAge']);
-            if(age < 26) ageData['18-25']++; else if(age < 41) ageData['26-40']++; else if(age >= 41) ageData['41+']++;
-
-            const gen = (getVal(l, ['gender', 'userGender', 'sex']) || '').toLowerCase();
-            if(['man', 'male', 'm'].includes(gen)) genData['Man']++;
-            if(['vrouw', 'female', 'f'].includes(gen)) genData['Vrouw']++;
-
-            const typ = getVal(l, ['groupType', 'type']);
-            if(typData[typ] !== undefined) typData[typ]++;
-        });
-
-        if(cA) cA.destroy(); cA = new Chart(document.getElementById('cA'), {type:'pie', data:{labels:Object.keys(ageData), datasets:[{data:Object.values(ageData), backgroundColor:['#00FFC2','#00D1FF','#FF4B4B']}]}});
-        if(cG) cG.destroy(); cG = new Chart(document.getElementById('cG'), {type:'doughnut', data:{labels:Object.keys(genData), datasets:[{data:Object.values(genData), backgroundColor:['#00D1FF','#FF00FF']}]}});
-        if(cT) cT.destroy(); cT = new Chart(document.getElementById('cT'), {type:'bar', data:{labels:Object.keys(typData), datasets:[{label:'Aantal', data:Object.values(typData), backgroundColor:'#00FFC2'}]}});
     };
 </script>
 </body>
