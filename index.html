@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FlipOrTrip | v0.48 MVP Fixed</title>
+    <title>FlipOrTrip | v0.48 Fixed</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
@@ -12,25 +12,21 @@
         body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; position: fixed; width: 100%; }
         .hidden { display: none !important; }
         
-        /* Logo & Glow */
         .logo-container { position: relative; margin-bottom: 2vh; }
         .logo-glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 120px; height: 120px; background: var(--mint); filter: blur(50px); opacity: 0.15; z-index: 0; }
         .logo-img { width: 140px; position: relative; z-index: 1; }
 
-        /* UI */
         .btn { background: var(--mint); color: var(--obsidian); padding: 16px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; width: 260px; margin-bottom: 10px; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
         .btn-wa { background: #25D366; color: white; }
         .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; }
         .input-box { background: var(--card-bg); border: 1px solid rgba(0,255,194,0.3); padding: 14px; border-radius: 15px; color: white; text-align: center; margin-bottom: 12px; width: 100%; box-sizing: border-box; font-size: 16px; outline: none; }
         .label { font-size: 9px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 4px; display: block; text-align: left; }
 
-        /* Header */
         #room-header { position: fixed; top: 0; width: 100%; height: 85px; display: flex; flex-direction: column; justify-content: center; align-items: center; background: var(--obsidian); z-index: 1000; border-bottom: 1px solid rgba(0,255,194,0.2); }
         .header-slogan { color: var(--mint); font-size: 8px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
         .header-info-row { display: flex; gap: 12px; align-items: center; }
         .header-tag { font-size: 10px; background: rgba(0,255,194,0.1); border: 1px solid var(--mint); padding: 5px 12px; border-radius: 20px; font-weight: 800; }
 
-        /* Swipe UI */
         #swipe-screen { position: relative; width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center; touch-action: none; }
         .card { width: 85vw; max-width: 320px; height: 60vh; max-height: 460px; background: var(--card-bg); border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); position: absolute; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .card-img { height: 55%; background-size: cover; background-position: center; pointer-events: none; }
@@ -38,7 +34,6 @@
         .card-info h2 { margin: 0; font-size: 18px; }
         .card-info p { font-size: 13px; opacity: 0.7; margin: 8px 0; line-height: 1.4; }
 
-        /* Modals */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.97); backdrop-filter: blur(10px); display: none; align-items: center; justify-content: center; z-index: 99999; padding: 20px; box-sizing: border-box; }
         .modal-card { background: var(--card-bg); padding: 25px; border-radius: 25px; border: 1px solid var(--mint); width: 100%; max-width: 320px; text-align: center; }
         
@@ -78,21 +73,23 @@
         window.goHome = () => location.reload();
 
         window.createRoom = async () => {
-            const name = document.getElementById('host-name').value;
-            const email = document.getElementById('host-email').value.toLowerCase();
-            const target = document.getElementById('target-p').value;
-            const min = document.getElementById('deadline-input').value || 60;
-            if(!name || !email) return alert("Vul alles in!");
-            const code = Math.floor(1000 + Math.random() * 9000).toString();
-            const deadline = Date.now() + (parseInt(min) * 60000); 
-            await setDoc(doc(db, "rooms", code), { 
-                hostName: name, hostEmail: email, targetParticipants: parseInt(target), 
-                deadline, participants: [name], votes: {}, finishedCount: 0, mailSent: false 
-            });
-            window.currentRoom = code;
-            document.getElementById('setup-screen').classList.add('hidden');
-            document.getElementById('share-screen').classList.remove('hidden');
-            document.getElementById('display-code').innerText = code;
+            try {
+                const name = document.getElementById('host-name').value;
+                const email = document.getElementById('host-email').value.toLowerCase();
+                const target = document.getElementById('target-p').value;
+                const min = document.getElementById('deadline-input').value || 60;
+                if(!name || !email) return alert("Vul alles in!");
+                const code = Math.floor(1000 + Math.random() * 9000).toString();
+                const deadline = Date.now() + (parseInt(min) * 60000); 
+                await setDoc(doc(db, "rooms", code), { 
+                    hostName: name, hostEmail: email, targetParticipants: parseInt(target), 
+                    deadline, participants: [name], votes: {}, finishedCount: 0, mailSent: false 
+                });
+                window.currentRoom = code;
+                document.getElementById('setup-screen').classList.add('hidden');
+                document.getElementById('share-screen').classList.remove('hidden');
+                document.getElementById('display-code').innerText = code;
+            } catch (e) { console.error(e); alert("Fout bij aanmaken room."); }
         };
 
         window.shareWA = () => {
@@ -134,18 +131,15 @@
             
             if(timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(() => {
-    const diff = deadline - Date.now();
-    const m = Math.floor(Math.max(0, diff) / 60000);
-    const s = Math.floor((Math.max(0, diff) % 60000) / 1000);
-    
-    document.getElementById('timer-display').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
-    
-    if(diff <= 0) {
-        clearInterval(timerInterval);
-        // Deadline verstreken: trigger de mail voor de host
-        checkAndSendFinalMail(); 
-    }
-}, 1000);
+                const diff = deadline - Date.now();
+                const m = Math.floor(Math.max(0, diff) / 60000);
+                const s = Math.floor((Math.max(0, diff) % 60000) / 1000);
+                document.getElementById('timer-display').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+                if(diff <= 0) {
+                    clearInterval(timerInterval);
+                    checkAndSendFinalMail(); // Mail bij deadline
+                }
+            }, 1000);
 
             const qs = await getDocs(collection(db, "activities"));
             window.acts = qs.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -156,18 +150,12 @@
         function renderCard() {
             const container = document.getElementById('swipe-screen');
             container.innerHTML = "";
-           if(window.actIdx >= window.acts.length) {
-    container.innerHTML = "<div style='text-align:center'><h2 style='color:var(--mint)'>GEFLIPT!</h2><p>Uitslag volgt via de host.</p><button class='btn btn-outline' onclick='goHome()'>MENU</button></div>";
-    
-    // Update alleen de teller
-    updateDoc(doc(db, "rooms", window.currentRoom), { 
-        finishedCount: increment(1) 
-    }).then(() => {
-        // Pas NA de update controleren we of de mail gestuurd moet worden
-        checkAndSendFinalMail(); 
-    });
-    return;
-}
+            if(window.actIdx >= window.acts.length) {
+                container.innerHTML = "<div style='text-align:center'><h2 style='color:var(--mint)'>GEFLIPT!</h2><p>Uitslag volgt via de host.</p><button class='btn btn-outline' onclick='goHome()'>MENU</button></div>";
+                updateDoc(doc(db, "rooms", window.currentRoom), { finishedCount: increment(1) }).then(() => {
+                    checkAndSendFinalMail(); 
+                });
+                return;
             }
             const a = window.acts[window.actIdx];
             const card = document.createElement('div');
@@ -176,136 +164,76 @@
             container.appendChild(card);
             
             const h = new Hammer(card);
-            const likeInd = card.querySelector('.indicator-like');
-            const dislikeInd = card.querySelector('.indicator-dislike');
-
             h.on('pan', e => {
                 card.style.transform = `translateX(${e.deltaX}px) rotate(${e.deltaX/20}deg)`;
-                if (e.deltaX > 0) {
-                    likeInd.style.opacity = Math.min(e.deltaX / 100, 0.8);
-                    dislikeInd.style.opacity = 0;
-                } else {
-                    dislikeInd.style.opacity = Math.min(Math.abs(e.deltaX) / 100, 0.8);
-                    likeInd.style.opacity = 0;
-                }
+                card.querySelector('.indicator-like').style.opacity = e.deltaX > 0 ? Math.min(e.deltaX / 100, 0.8) : 0;
+                card.querySelector('.indicator-dislike').style.opacity = e.deltaX < 0 ? Math.min(Math.abs(e.deltaX) / 100, 0.8) : 0;
             });
 
             h.on('panend', async e => {
                 if(Math.abs(e.deltaX) > 100) {
                     const action = e.deltaX > 0 ? 'like' : 'dislike';
-                    
-                    // 1. Dashboard Sync (Stil)
-                    addDoc(collection(db, "global_analytics"), {
-                        activityTitle: window.acts[window.actIdx].title,
-                        action: action,
-                        timestamp: new Date()
-                    });
-
-                    // 2. Room Vote Sync
+                    addDoc(collection(db, "global_analytics"), { activityTitle: window.acts[window.actIdx].title, action, timestamp: new Date() });
                     if(action === 'like') {
                         const up = {}; up[`votes.${window.acts[window.actIdx].id}`] = increment(1);
                         await updateDoc(doc(db, "rooms", window.currentRoom), up);
                     }
-                    
                     window.actIdx++; renderCard();
-                } else { 
-                    card.style.transform = ''; 
-                    likeInd.style.opacity = 0; 
-                    dislikeInd.style.opacity = 0; 
+                } else { card.style.transform = ''; card.querySelectorAll('.swipe-indicator').forEach(i => i.style.opacity = 0); }
+            });
+        }
+
+        async function checkAndSendFinalMail() {
+            const rRef = doc(db, "rooms", window.currentRoom);
+            const snap = await getDoc(rRef);
+            if(!snap.exists()) return;
+            const d = snap.data();
+            
+            if (d.mailSent) return;
+
+            const isKlaar = d.finishedCount >= d.targetParticipants;
+            const isDeadline = Date.now() >= d.deadline;
+
+            if (isKlaar || isDeadline) {
+                await updateDoc(rRef, { mailSent: true }); // Lock direct
+                
+                const aqs = await getDocs(collection(db, "activities"));
+                const actNames = {};
+                aqs.forEach(doc => actNames[doc.id] = doc.data().title);
+
+                const sortedVotes = Object.entries(d.votes || {}).sort((a,b) => b[1] - a[1]).slice(0, 3);
+                if (sortedVotes.length > 0) {
+                    const top3 = sortedVotes.map(([id, count], i) => `${i+1}. ${actNames[id]} (${count} votes)`).join("\n");
+                    emailjs.send(SERVICE_ID, TEMPLATE_ID, { to_name: d.hostName, to_email: d.hostEmail, room_code: window.currentRoom, top_matches: top3 });
                 }
-            });
+            }
         }
 
-window.showLiveStats = async () => {
-    document.getElementById('stats-modal').style.display = 'flex';
-    
-    // 1. Haal EERST de namen op
-    const aqs = await getDocs(collection(db, "activities"));
-    const actNames = {};
-    aqs.forEach(doc => actNames[doc.id] = doc.data().title);
+        window.showLiveStats = async () => {
+            document.getElementById('stats-modal').style.display = 'flex';
+            const aqs = await getDocs(collection(db, "activities"));
+            const actNames = {};
+            aqs.forEach(doc => actNames[doc.id] = doc.data().title);
 
-    // 2. Start dan pas de live listener
-    onSnapshot(doc(db, "rooms", window.currentRoom), (ds) => {
-        const d = ds.data();
-        const total = d.finishedCount || 0;
-        document.getElementById('live-progress').innerText = `${total} / ${d.targetParticipants} klaar`;
-        
-        let html = "";
-        // Sorteer stemmen direct voor de host
-        const sorted = Object.entries(d.votes || {}).sort((a,b) => b[1] - a[1]);
-        
-        sorted.forEach(([id, count]) => {
-            const p = total > 0 ? Math.round((count / total) * 100) : 0;
-            html += `<div class="stat-bar-container">
-                        <div class="stat-info"><span>${actNames[id]}</span><span>${count} stemmen</span></div>
-                        <div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${p}%"></div></div>
-                    </div>`;
-        });
-        document.getElementById('live-leaderboard').innerHTML = html || "Wachten op eerste stemmen...";
-    });
-};
-
-    async function checkAndSendFinalMail() {
-    const rRef = doc(db, "rooms", window.currentRoom);
-    
-    // We halen de allernieuwste data op uit de database om dubbelcheck te doen
-    const snap = await getDoc(rRef);
-    if (!snap.exists()) return;
-    const d = snap.data();
-
-    // STOP CONDITIES:
-    // 1. Mail is al verstuurd
-    if (d.mailSent === true) return;
-
-    // 2. Is het moment echt daar? 
-    // (Iedereen klaar OF deadline voorbij)
-    const iedereenKlaar = d.finishedCount >= d.targetParticipants;
-    const deadlineVoorbij = Date.now() >= d.deadline;
-
-    if (iedereenKlaar || deadlineVoorbij) {
-        // DIRECT de mailSent op true zetten in Firebase (Locks de kamer)
-        // Dit voorkomt dat andere gebruikers die 1 seconde later klaar zijn ook sturen
-        await updateDoc(rRef, { mailSent: true });
-
-        // Nu pas de data voor de mail verzamelen
-        const aqs = await getDocs(collection(db, "activities"));
-        const actNames = {};
-        aqs.forEach(doc => actNames[doc.id] = doc.data().title);
-
-        const sortedVotes = Object.entries(d.votes || {})
-            .sort((a,b) => b[1] - a[1])
-            .slice(0, 3);
-
-        if (sortedVotes.length > 0) {
-            const top3String = sortedVotes.map(([id, count], i) => {
-                return `${i+1}. ${actNames[id]} (${count} stemmen)`;
-            }).join("\n");
-
-            emailjs.send(SERVICE_ID, TEMPLATE_ID, {
-                to_name: d.hostName,
-                to_email: d.hostEmail,
-                room_code: window.currentRoom,
-                top_matches: top3String
-            }).then(() => {
-                console.log("Success: Eindrapportage verzonden.");
-            }).catch(err => {
-                console.error("EmailJS Error:", err);
-                // Bij fout eventueel mailSent weer op false zetten
+            onSnapshot(doc(db, "rooms", window.currentRoom), (ds) => {
+                const d = ds.data();
+                if(!d) return;
+                const total = d.finishedCount || 0;
+                document.getElementById('live-progress').innerText = `${total} / ${d.targetParticipants} personen klaar`;
+                let html = "";
+                const sorted = Object.entries(d.votes || {}).sort((a,b) => b[1] - a[1]);
+                sorted.forEach(([id, count]) => {
+                    const p = total > 0 ? Math.round((count / total) * 100) : 0;
+                    html += `<div class="stat-bar-container"><div class="stat-info"><span>${actNames[id]}</span><span>${count} stemmen</span></div><div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${p}%"></div></div></div>`;
+                });
+                document.getElementById('live-leaderboard').innerHTML = html || "Wachten op stemmen...";
             });
-        }
-    } else {
-        console.log("Nog niet iedereen is klaar, we wachten nog met de mail.");
-    }
-}
+        };
     </script>
 </head>
 <body>
-
     <div id="start-screen" class="screen-content" style="text-align:center;">
-        <div class="logo-container">
-            <div class="logo-glow"></div>
-            <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" class="logo-img">
-        </div>
+        <div class="logo-container"><div class="logo-glow"></div><img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" class="logo-img"></div>
         <button class="btn" onclick="document.getElementById('start-screen').classList.add('hidden'); document.getElementById('setup-screen').classList.remove('hidden');">Trip Maken</button>
         <div style="margin: 8px; opacity: 0.3; font-size: 12px;">of</div>
         <button class="btn" style="background:white; color:black;" onclick="document.getElementById('join-modal').style.display='flex'">Deelnemen met Code</button>
@@ -369,6 +297,5 @@ window.showLiveStats = async () => {
             <button class="btn btn-outline" style="margin-top:15px;" onclick="document.getElementById('stats-modal').style.display='none'">Sluiten</button>
         </div>
     </div>
-
 </body>
 </html>
