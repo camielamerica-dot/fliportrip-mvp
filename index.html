@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FlipOrTrip | v0.51 Analytics Pro</title>
+    <title>FlipOrTrip | v0.52 Full Analytics</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
@@ -22,7 +22,6 @@
         
         .input-box, .select-box { background: var(--card-bg); border: 1px solid rgba(0,255,194,0.3); padding: 14px; border-radius: 15px; color: white; text-align: center; margin-bottom: 12px; width: 100%; box-sizing: border-box; font-size: 16px; outline: none; -webkit-appearance: none; }
         .select-box { text-align-last: center; cursor: pointer; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2300FFC2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right 15px top 50%; background-size: 12px auto; }
-        
         .label { font-size: 9px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 4px; display: block; text-align: left; }
 
         /* Header */
@@ -31,7 +30,7 @@
         .header-info-row { display: flex; gap: 12px; align-items: center; }
         .header-tag { font-size: 10px; background: rgba(0,255,194,0.1); border: 1px solid var(--mint); padding: 5px 12px; border-radius: 20px; font-weight: 800; }
 
-        /* Swipe & Card */
+        /* Card System */
         #swipe-screen { position: relative; width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center; touch-action: none; }
         .card { width: 85vw; max-width: 320px; height: 60vh; max-height: 460px; background: var(--card-bg); border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); position: absolute; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .card-img { height: 55%; background-size: cover; background-position: center; pointer-events: none; }
@@ -39,9 +38,11 @@
         .card-info h2 { margin: 0; font-size: 18px; }
         .card-info p { font-size: 13px; opacity: 0.7; margin: 8px 0; line-height: 1.4; }
 
+        /* Modals */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.97); backdrop-filter: blur(10px); display: none; align-items: center; justify-content: center; z-index: 99999; padding: 20px; box-sizing: border-box; }
         .modal-card { background: var(--card-bg); padding: 25px; border-radius: 25px; border: 1px solid var(--mint); width: 100%; max-width: 320px; text-align: center; }
         
+        /* Stats */
         .stat-bar-container { background: rgba(255,255,255,0.05); border-radius: 10px; margin-bottom: 8px; padding: 10px; }
         .stat-info { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 5px; }
         .stat-bar-bg { background: rgba(255,255,255,0.1); height: 5px; border-radius: 3px; }
@@ -75,6 +76,7 @@
         let timerInterval;
         window.currentRoom = null;
         window.userAge = null;
+        window.userGender = null;
 
         window.goHome = () => location.reload();
 
@@ -87,7 +89,6 @@
                 const min = document.getElementById('deadline-input').value || 60;
                 
                 if(!name || !email) return alert("Vul alles in!");
-                
                 const code = Math.floor(1000 + Math.random() * 9000).toString();
                 const deadline = Date.now() + (parseInt(min) * 60000); 
 
@@ -120,9 +121,8 @@
             } else { alert("Gegevens komen niet overeen."); }
         };
 
-        // Trigger Age Selection voor zowel host als deelnemer
-        window.triggerAgeCheck = () => {
-            document.getElementById('age-modal').style.display = 'flex';
+        window.triggerProfileCheck = () => {
+            document.getElementById('profile-modal').style.display = 'flex';
         };
 
         window.confirmJoin = async () => {
@@ -134,14 +134,16 @@
             
             window.currentRoom = code;
             document.getElementById('join-modal').style.display = 'none';
-            window.triggerAgeCheck();
+            window.triggerProfileCheck();
         };
 
-        window.submitAge = async () => {
+        window.submitProfile = async () => {
             const age = document.getElementById('age-select').value;
-            if(!age) return alert("Kies een leeftijd!");
+            const gender = document.getElementById('gender-select').value;
+            if(!age || !gender) return alert("Vul alles in!");
             window.userAge = age;
-            document.getElementById('age-modal').style.display = 'none';
+            window.userGender = gender;
+            document.getElementById('profile-modal').style.display = 'none';
             window.startSwiping();
         };
 
@@ -150,7 +152,6 @@
             document.getElementById('room-header').classList.remove('hidden');
             document.getElementById('swipe-screen').classList.remove('hidden');
             document.getElementById('active-code-display').innerText = window.currentRoom;
-            
             document.getElementById('instruction-modal').style.display = 'flex';
 
             const ds = await getDoc(doc(db, "rooms", window.currentRoom));
@@ -206,6 +207,7 @@
                         activityTitle: window.acts[window.actIdx].title, 
                         action, 
                         ageGroup: window.userAge,
+                        gender: window.userGender,
                         roomCode: window.currentRoom,
                         timestamp: new Date() 
                     });
@@ -287,10 +289,20 @@
         </div>
     </div>
 
-    <div id="age-modal" class="modal-overlay">
+    <div id="profile-modal" class="modal-overlay">
         <div class="modal-card">
-            <h3 style="color:var(--mint)">Bijna klaar!</h3>
-            <p style="font-size:12px; opacity:0.7; margin-bottom:20px;">Hoe oud ben je? (Voor de statistieken)</p>
+            <h3 style="color:var(--mint)">Even voorstellen...</h3>
+            <p style="font-size:12px; opacity:0.7; margin-bottom:20px;">Dit helpt ons de beste matches te analyseren.</p>
+            
+            <span class="label">Ik ben een:</span>
+            <select id="gender-select" class="select-box">
+                <option value="" disabled selected>Kies geslacht...</option>
+                <option value="man">Man</option>
+                <option value="vrouw">Vrouw</option>
+                <option value="anders">Anders / Neutraal</option>
+            </select>
+
+            <span class="label">Mijn leeftijd:</span>
             <select id="age-select" class="select-box">
                 <option value="" disabled selected>Kies leeftijd...</option>
                 <option value="<18">Jonger dan 18</option>
@@ -299,7 +311,8 @@
                 <option value="36-50">36 - 50 jaar</option>
                 <option value="50+">Ouder dan 50</option>
             </select>
-            <button class="btn" onclick="submitAge()">Start Flippen</button>
+            
+            <button class="btn" onclick="submitProfile()">Start Flippen</button>
         </div>
     </div>
 
@@ -307,7 +320,7 @@
         <h3>Kamer Code:</h3>
         <div style="font-size: 48px; font-weight: 800; color: var(--mint); margin: 20px 0;" id="display-code">----</div>
         <button class="btn btn-wa" onclick="shareWA()">Deel via WhatsApp</button>
-        <button class="btn btn-outline" onclick="triggerAgeCheck()">Start nu zelf</button>
+        <button class="btn btn-outline" onclick="triggerProfileCheck()">Start nu zelf</button>
     </div>
 
     <div id="room-header" class="hidden">
