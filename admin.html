@@ -2,203 +2,190 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlipOrTrip Business v3.0.2</title>
-    
+    <title>FlipOrTrip Suite v3.1</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBGms1-wiv_5tq1ehzhhJOjM905WnFMexo&libraries=places"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
-    
     <style>
-        :root { --mint: #00FFC2; --obsidian: #0B0E14; --card: #161B22; --red: #FF4B4B; --text: #8899A6; }
-        * { box-sizing: border-box; }
-        body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        :root { --mint: #00FFC2; --dark: #0B0E14; --card: #161B22; }
+        body { background: var(--dark); color: white; font-family: sans-serif; margin: 0; display: flex; height: 100vh; }
         
-        .sidebar { width: 250px; background: var(--card); padding: 30px; border-right: 1px solid rgba(0,255,194,0.1); display: flex; flex-direction: column; }
-        .content { flex: 1; padding: 40px; overflow-y: auto; }
+        /* Sidebar */
+        .sidebar { width: 220px; background: var(--card); border-right: 1px solid #333; padding: 20px; display: flex; flex-direction: column; }
+        .nav-item { padding: 15px; color: #889; cursor: pointer; font-weight: bold; border-radius: 8px; margin-bottom: 5px; }
+        .nav-item.active { background: rgba(0,255,194,0.1); color: var(--mint); }
+
+        /* Main */
+        .main { flex: 1; padding: 40px; overflow-y: auto; }
         .tab { display: none; }
         .tab.active { display: block; }
 
-        .card { background: var(--card); border-radius: 20px; padding: 25px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; }
-        .label { color: var(--mint); font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 10px; display: block; }
+        .card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid #333; margin-bottom: 20px; }
+        input { width: 100%; background: #000; border: 1px solid #444; color: white; padding: 12px; border-radius: 8px; margin-bottom: 10px; }
+        .btn { background: var(--mint); color: #000; border: none; padding: 15px; width: 100%; border-radius: 30px; font-weight: bold; cursor: pointer; }
         
-        input { background: #0b0e14; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 12px; border-radius: 10px; width: 100%; margin-bottom: 10px; font-family: inherit; }
-        .btn { background: var(--mint); color: var(--obsidian); border: none; padding: 14px; border-radius: 50px; font-weight: 800; cursor: pointer; width: 100%; text-transform: uppercase; }
+        /* List UI */
+        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #333; }
+        .badge { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
+        .badge-live { background: rgba(0,255,194,0.2); color: var(--mint); }
         
-        .nav-link { color: var(--text); padding: 15px; cursor: pointer; border-radius: 12px; font-weight: 800; margin-bottom: 5px; }
-        .nav-link.active { background: rgba(0,255,194,0.1); color: var(--mint); }
-
-        /* Google Suggestie lijst moet bovenop alles */
-        .pac-container { z-index: 99999 !important; background: #1c222d; border: 1px solid var(--mint); color: white; border-radius: 8px; }
-        .pac-item { color: #fff; border-top: 1px solid #333; }
-        
-        /* Debug melding */
-        #api-debug { font-size: 10px; color: var(--red); margin-top: -5px; margin-bottom: 10px; display: none; }
-        
-        #login { position: fixed; inset: 0; background: var(--obsidian); z-index: 9999; display: flex; align-items: center; justify-content: center; }
-        table { width: 100%; border-collapse: collapse; }
-        td { padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
+        #login-screen { position: fixed; inset: 0; background: var(--dark); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        .pac-container { background: #1c222d; color: white; border: 1px solid var(--mint); }
     </style>
 </head>
 <body>
 
-<div id="login">
+<div id="login-screen">
     <div class="card" style="width: 300px; text-align: center;">
-        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="100" style="margin-bottom:20px;">
-        <input type="password" id="pw" placeholder="Admin Code">
-        <button class="btn" onclick="checkLogin()">Inloggen</button>
+        <h2>FlipOrTrip Admin</h2>
+        <input type="password" id="admin-pw" placeholder="Wachtwoord">
+        <button class="btn" onclick="doLogin()">Inloggen</button>
     </div>
 </div>
 
 <div class="sidebar">
-    <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="120" style="margin-bottom:40px;">
-    <div class="nav-link active" onclick="showTab('tab1', this)">📊 Dashboard</div>
-    <div class="nav-link" onclick="showTab('tab2', this)">🎡 Catalogus</div>
+    <div class="nav-item active" onclick="setTab('dash', this)">📊 Dashboard</div>
+    <div class="nav-item" onclick="setTab('cat', this)">🎡 Catalogus</div>
 </div>
 
-<div class="content">
-    <div id="tab1" class="tab active">
-        <h2>Live Dashboard</h2>
-        <div class="card" style="height: 300px;"><canvas id="mainChart"></canvas></div>
-        <div class="card">
-            <table><tbody id="table-data"></tbody></table>
-        </div>
+<div class="main">
+    <div id="tab-dash" class="tab active">
+        <h2>Dashboard</h2>
+        <div class="card" style="height: 300px;"><canvas id="statsChart"></canvas></div>
+        <div class="card"><div id="stats-list">Laden...</div></div>
     </div>
 
-    <div id="tab2" class="tab">
-        <div style="display:grid; grid-template-columns: 350px 1fr; gap:30px;">
+    <div id="tab-cat" class="tab">
+        <div style="display: grid; grid-template-columns: 300px 1fr; gap: 20px;">
             <div class="card">
-                <span class="label">Nieuw Item</span>
-                <form onsubmit="event.preventDefault(); handleSave();">
-                    <input type="text" id="f-title" placeholder="Naam activiteit" required>
-                    
-                    <div id="api-debug">Google Maps Error: Billing required of Key restricted.</div>
-                    <input type="text" id="f-loc" placeholder="Locatie (Start met typen...)" autocomplete="off">
-                    
-                    <input type="text" id="f-price" placeholder="Prijs info">
-                    <input type="text" id="f-url" placeholder="Website URL">
-                    <input type="text" id="f-img" placeholder="Afbeelding URL">
-                    <button type="submit" class="btn">Item Opslaan</button>
-                </form>
+                <h3>Toevoegen</h3>
+                <input type="text" id="f-name" placeholder="Naam">
+                <input type="text" id="f-loc" placeholder="Locatie (Handmatig of Google)">
+                <input type="text" id="f-img" placeholder="Afbeelding URL">
+                <button class="btn" onclick="saveData()">Opslaan</button>
             </div>
-            <div id="item-list"></div>
+            <div class="card">
+                <h3>Items in Catalogus</h3>
+                <div id="catalogue-list"></div>
+            </div>
         </div>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    const config = {
+    const firebaseConfig = {
         apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0",
         authDomain: "fliportrip-valkenburg.firebaseapp.com",
         projectId: "fliportrip-valkenburg",
         storageBucket: "fliportrip-valkenburg.firebasestorage.app"
     };
-    
-    const app = initializeApp(config);
+
+    const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    let activities = [];
+    let stats = [];
+    let myChart = null;
 
-    let dataItems = [];
-    let statsData = [];
-    let chartInstance = null;
-
-    window.checkLogin = () => {
-        if(document.getElementById('pw').value === 'Flip2026') {
-            document.getElementById('login').style.display = 'none';
+    window.doLogin = () => {
+        if(document.getElementById('admin-pw').value === 'Flip2026') {
+            document.getElementById('login-screen').style.display = 'none';
             initApp();
-        } else { alert("Fout"); }
+        } else { alert('Fout!'); }
     };
 
     function initApp() {
-        // --- Google Maps Debug Logic ---
-        const locInput = document.getElementById('f-loc');
+        // Google Autocomplete (zal falen bij billing error, maar input blijft bruikbaar)
+        const input = document.getElementById('f-loc');
         try {
-            const autocomplete = new google.maps.places.Autocomplete(locInput, { 
-                componentRestrictions: {country: 'nl'},
-                fields: ["formatted_address"]
-            });
-            
-            // Luister naar fouten van Google
-            google.maps.event.addDomListener(window, 'load', () => {
-                if(!window.google.maps.places) {
-                    document.getElementById('api-debug').style.display = 'block';
-                    document.getElementById('api-debug').innerText = "Places API niet geladen.";
-                }
-            });
-
+            const autocomplete = new google.maps.places.Autocomplete(input, { componentRestrictions: {country: "nl"} });
             autocomplete.addListener('place_changed', () => {
-                const p = autocomplete.getPlace();
-                if(p && p.formatted_address) locInput.value = p.formatted_address;
+                const place = autocomplete.getPlace();
+                if(place.formatted_address) input.value = place.formatted_address;
             });
-        } catch(e) {
-            console.error(e);
-            document.getElementById('api-debug').style.display = 'block';
-        }
+        } catch(e) { console.log("Google error, manual input mode."); }
 
-        // --- Firebase Data ---
-        onSnapshot(collection(db, "activities"), (s) => {
-            dataItems = s.docs.map(d => ({id: d.id, ...d.data()}));
-            drawList();
-            updateStats();
+        // Live Sync
+        onSnapshot(collection(db, "activities"), (snap) => {
+            activities = snap.docs.map(d => ({id: d.id, ...d.data()}));
+            renderAll();
         });
-
-        onSnapshot(collection(db, "global_analytics"), (s) => {
-            statsData = s.docs.map(d => d.data());
-            updateStats();
+        onSnapshot(collection(db, "global_analytics"), (snap) => {
+            stats = snap.docs.map(d => d.data());
+            renderAll();
         });
     }
 
-    window.showTab = (id, el) => {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
+    window.setTab = (t, el) => {
+        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
+        document.getElementById('tab-' + t).classList.add('active');
         el.classList.add('active');
     };
 
-    window.drawList = () => {
-        document.getElementById('item-list').innerHTML = dataItems.map(i => `
-            <div class="card" style="padding:15px; display:flex; justify-content:space-between; align-items:center;">
-                <div><strong>${i.title}</strong><br><small>${i.location || ''}</small></div>
-                <button onclick="deleteItem('${i.id}')" style="color:var(--red); background:none; border:none; cursor:pointer;">WIS</button>
+    window.saveData = async () => {
+        const name = document.getElementById('f-name').value;
+        const loc = document.getElementById('f-loc').value;
+        const img = document.getElementById('f-img').value;
+        if(!name) return alert("Naam verplicht");
+        
+        await addDoc(collection(db, "activities"), {
+            title: name,
+            location: loc,
+            image: img,
+            active: true,
+            createdAt: new Date()
+        });
+        document.getElementById('f-name').value = '';
+        document.getElementById('f-loc').value = '';
+        document.getElementById('f-img').value = '';
+    };
+
+    window.removeItem = async (id) => {
+        if(confirm("Verwijderen?")) await deleteDoc(doc(db, "activities", id));
+    };
+
+    function renderAll() {
+        // Render List
+        const list = document.getElementById('catalogue-list');
+        list.innerHTML = activities.map(a => `
+            <div class="item-row">
+                <div>
+                    <strong>${a.title}</strong><br>
+                    <small style="color:#889">${a.location || 'Geen locatie'}</small>
+                </div>
+                <button onclick="removeItem('${a.id}')" style="background:none; border:none; color:#f44; cursor:pointer;">WIS</button>
             </div>
         `).join('');
-    };
 
-    window.handleSave = async () => {
-        const d = {
-            title: document.getElementById('f-title').value,
-            location: document.getElementById('f-loc').value,
-            price: document.getElementById('f-price').value,
-            bookingUrl: document.getElementById('f-url').value,
-            image: document.getElementById('f-img').value,
-            active: true
-        };
-        await addDoc(collection(db, "activities"), d);
-        document.querySelector('form').reset();
-    };
-
-    window.deleteItem = async (id) => { if(confirm("Wissen?")) await deleteDoc(doc(db, "activities", id)); };
-
-    function updateStats() {
-        const tbody = document.getElementById('table-data');
-        const summary = {};
-        dataItems.forEach(i => {
-            summary[i.title] = statsData.filter(s => (s.activityId === i.id || s.activityTitle === i.title) && s.action === 'like').length;
+        // Render Stats
+        const statsList = document.getElementById('stats-list');
+        const labels = [];
+        const counts = [];
+        
+        let html = '<table style="width:100%">';
+        activities.forEach(a => {
+            const likes = stats.filter(s => (s.activityId === a.id || s.activityTitle === a.title) && s.action === 'like').length;
+            labels.push(a.title);
+            counts.push(likes);
+            html += `<tr><td>${a.title}</td><td align="right"><strong>${likes} Likes</strong></td></tr>`;
         });
+        statsList.innerHTML = html + '</table>';
 
-        const labels = Object.keys(summary);
-        tbody.innerHTML = labels.map(l => `<tr><td>${l}</td><td align="right"><strong>${summary[l]} Likes</strong></td></tr>`).join('');
-
-        if(chartInstance) chartInstance.destroy();
-        const ctx = document.getElementById('mainChart');
-        if(ctx) chartInstance = new Chart(ctx, {
+        // Render Chart
+        if(myChart) myChart.destroy();
+        const ctx = document.getElementById('statsChart').getContext('2d');
+        myChart = new Chart(ctx, {
             type: 'bar',
-            data: { labels, datasets: [{ label: 'Likes', data: labels.map(l => summary[l]), backgroundColor: '#00FFC2' }] },
-            options: { responsive: true, maintainAspectRatio: false }
+            data: {
+                labels: labels,
+                datasets: [{ label: 'Likes', data: counts, backgroundColor: '#00FFC2' }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
         });
     }
 </script>
+
 </body>
 </html>
