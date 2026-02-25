@@ -225,28 +225,56 @@
             } else alert("Toegang geweigerd.");
         };
 
-        function initGoogle() {
-            new google.maps.places.Autocomplete(document.getElementById('act-loc'), { componentRestrictions: {country: "nl"} });
+        // Verbeterde Google Init: zorgt dat de selectie ook echt in het veld blijft staan
+function initGoogle() {
+    const input = document.getElementById('act-loc');
+    const autocomplete = new google.maps.places.Autocomplete(input, { 
+        componentRestrictions: {country: "nl"},
+        fields: ["formatted_address", "name", "geometry"] 
+    });
+
+    // Voorkom dat het formulier verzendt als je op 'Enter' drukt in de autocomplete lijst
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && document.querySelector('.pac-item-selected')) {
+            e.preventDefault();
         }
+    });
+}
 
-        // LIVE SYNC FUNCTIE (onSnapshot)
-        function startLiveSync() {
-            onSnapshot(collection(db, "activities"), (snap) => {
-                activities = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                renderList();
-                renderDashboard();
-            });
+// Verbeterde Save: pakt nu expliciet de waarde van de locatie
+window.saveItem = async () => {
+    const title = document.getElementById('act-title').value;
+    const location = document.getElementById('act-loc').value; // Pakt de string van Google
+    const cats = Array.from(document.querySelectorAll('.cat-checkbox:checked')).map(cb => cb.value);
+    const price = document.getElementById('act-price').value;
+    const url = document.getElementById('act-url').value;
+    const img = document.getElementById('act-img').value;
 
-            onSnapshot(collection(db, "rooms"), (snap) => {
-                snap.docs.forEach(d => rooms[d.id] = d.data().groupType);
-                renderDashboard();
-            });
+    if(!title) { alert("Naam is verplicht"); return; }
 
-            onSnapshot(collection(db, "global_analytics"), (snap) => {
-                analytics = snap.docs.map(d => d.data());
-                renderDashboard();
-            });
+    const data = {
+        title: title,
+        location: location, // Wordt nu correct meegestuurd naar Firebase
+        categories: cats,
+        price: price,
+        bookingUrl: url,
+        image: img,
+        updatedAt: new Date()
+    };
+
+    try {
+        if(editingId) {
+            await updateDoc(doc(db, "activities", editingId), data);
+        } else {
+            await addDoc(collection(db, "activities"), data);
         }
+        resetForm();
+        // De onSnapshot zorgt automatisch voor de refresh van de lijst
+    } catch (e) {
+        console.error("Error adding document: ", e);
+        alert("Fout bij opslaan: " + e.message);
+    }
+};
 
         function renderDashboard() {
             const dataMap = {};
