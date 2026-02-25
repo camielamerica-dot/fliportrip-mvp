@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlipOrTrip | Business Suite v2.4</title>
+    <title>FlipOrTrip | Business Suite v2.5</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBGms1-wiv_5tq1ehzhhJOjM905WnFMexo&libraries=places"></script>
@@ -13,35 +13,62 @@
         :root { --mint: #00FFC2; --obsidian: #0B0E14; --card-bg: #161B22; --text-muted: #8899A6; --red: #FF4B4B; }
         body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        .sidebar { width: 260px; background: var(--card-bg); padding: 30px; border-right: 1px solid rgba(0,255,194,0.1); display: flex; flex-direction: column; }
+        /* Layout */
+        .sidebar { width: 260px; background: var(--card-bg); padding: 30px; border-right: 1px solid rgba(0,255,194,0.1); display: flex; flex-direction: column; flex-shrink: 0; }
         .main-content { flex: 1; padding: 40px; overflow-y: auto; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
+        /* UI Components */
         .card { background: var(--card-bg); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; }
         .label { font-size: 10px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 5px; display: block; }
+        input, select { background: #0B0E14; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 12px; border-radius: 12px; width: 100%; box-sizing: border-box; margin-bottom: 12px; outline: none; font-family: inherit; }
         
-        input, select { background: #0B0E14; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 12px; border-radius: 12px; width: 100%; box-sizing: border-box; margin-bottom: 15px; outline: none; }
-        .btn-save { background: var(--mint); color: var(--obsidian); border: none; padding: 16px; border-radius: 50px; font-weight: 800; cursor: pointer; width: 100%; text-transform: uppercase; }
+        .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #0B0E14; padding: 12px; border-radius: 12px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); }
+        .cat-item { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-muted); }
+        .cat-item input { width: auto; margin: 0; accent-color: var(--mint); }
 
-        /* Tabel Styling */
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-        th { text-align: left; color: var(--mint); font-size: 10px; text-transform: uppercase; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        tr:hover { background: rgba(255,255,255,0.02); }
+        .btn-save { background: var(--mint); color: var(--obsidian); border: none; padding: 16px; border-radius: 50px; font-weight: 800; cursor: pointer; width: 100%; text-transform: uppercase; transition: 0.3s; }
+        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,255,194,0.3); }
 
-        .nav-btn { background: transparent; border: none; color: var(--text-muted); padding: 15px; text-align: left; font-size: 14px; font-weight: 800; cursor: pointer; width: 100%; border-radius: 12px; }
+        /* Deep Dive Modal */
+        #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal { background: var(--card-bg); width: 80%; max-width: 900px; max-height: 90vh; border-radius: 30px; padding: 40px; position: relative; overflow-y: auto; border: 1px solid var(--mint); }
+        
+        /* Table */
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; color: var(--mint); font-size: 10px; text-transform: uppercase; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
+        .clickable-row { cursor: pointer; transition: 0.2s; }
+        .clickable-row:hover { background: rgba(0,255,194,0.05); }
+
+        .list-item { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 15px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .nav-btn { background: transparent; border: none; color: var(--text-muted); padding: 15px; text-align: left; font-size: 14px; font-weight: 800; cursor: pointer; width: 100%; border-radius: 12px; margin-bottom: 5px; }
         .nav-btn.active { background: rgba(0,255,194,0.1); color: var(--mint); }
-        #login-gate { position: fixed; inset: 0; background: var(--obsidian); z-index: 99999; display: flex; align-items: center; justify-content: center; }
+        #login-gate { position: fixed; inset: 0; background: var(--obsidian); z-index: 999999; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
     <div id="login-gate">
-        <div class="card" style="width: 300px; text-align: center;">
-            <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="100" style="margin-bottom:20px;">
-            <input type="password" id="pw" placeholder="Wachtwoord" onkeypress="if(event.key === 'Enter') tryLogin()">
-            <button class="btn-save" onclick="tryLogin()">Dashboard Betreden</button>
+        <div class="card" style="width: 320px; text-align: center;">
+            <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="120" style="margin-bottom:20px;">
+            <input type="password" id="pw" placeholder="Admin Code" onkeypress="if(event.key === 'Enter') tryLogin()" style="text-align:center;">
+            <button class="btn-save" onclick="tryLogin()">Open Business Suite</button>
+        </div>
+    </div>
+
+    <div id="modal-overlay" onclick="closeModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+                <h2 id="modal-title" style="margin:0; color:var(--mint);">Activiteit Detail</h2>
+                <button onclick="document.getElementById('modal-overlay').style.display='none'" style="background:none; border:none; color:white; font-size:24px; cursor:pointer;">&times;</button>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:20px;">
+                <div class="card"><span class="label">Leeftijd</span><canvas id="chartAge"></canvas></div>
+                <div class="card"><span class="label">Geslacht</span><canvas id="chartGender"></canvas></div>
+                <div class="card"><span class="label">Gezelschap</span><canvas id="chartType"></canvas></div>
+            </div>
         </div>
     </div>
 
@@ -54,37 +81,16 @@
     <div class="main-content">
         
         <div id="tab-stats" class="tab-content active">
-            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:20px;">
-                <h2 style="margin:0;">Management Insights</h2>
-                <div style="display:flex; gap:10px;">
-                    <div style="width:150px;"><span class="label">Categorie</span>
-                        <select id="dash-filter-cat" onchange="updateCharts()" style="margin:0;">
-                            <option value="all">Alles</option>
-                            <option value="actief">Actief</option>
-                            <option value="ontspanning">Relax</option>
-                            <option value="food">Food</option>
-                            <option value="cultuur">Cultuur</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
+            <h2 style="margin-top:0;">Management Insights</h2>
+            <div class="card" style="height:350px;"><canvas id="mainChart"></canvas></div>
+            
             <div class="card">
-                <div style="height:350px;"><canvas id="mainChart"></canvas></div>
-            </div>
-
-            <div class="card">
-                <span class="label">Gedetailleerde Cijfers</span>
-                <table id="stats-table">
+                <span class="label">Klik op een rij voor doelgroep-analyse</span>
+                <table>
                     <thead>
-                        <tr>
-                            <th>Activiteit</th>
-                            <th>Likes</th>
-                            <th>Dislikes</th>
-                            <th>Sentiment %</th>
-                        </tr>
+                        <tr><th>Activiteit</th><th>Likes</th><th>Dislikes</th><th>Ratio</th></tr>
                     </thead>
-                    <tbody id="table-body"></tbody>
+                    <tbody id="stats-table-body"></tbody>
                 </table>
             </div>
         </div>
@@ -94,16 +100,43 @@
                 <div class="card">
                     <span class="label" id="form-mode">Nieuw Item</span>
                     <form id="act-form" onsubmit="event.preventDefault(); saveItem();">
-                        <input type="text" id="act-title" placeholder="Naam" required>
-                        <input type="text" id="act-loc" placeholder="Locatie...">
-                        <input type="text" id="act-price" placeholder="Prijs">
-                        <input type="text" id="act-url" placeholder="URL">
-                        <input type="text" id="act-img" placeholder="Afbeelding URL">
-                        <button type="submit" class="btn-save" id="btn-text">Opslaan</button>
+                        <input type="text" id="act-title" placeholder="Naam Activiteit" required>
+                        <input type="text" id="act-loc" placeholder="Locatie Zoeken (Google)...">
+                        
+                        <span class="label">Categorieën</span>
+                        <div class="cat-grid">
+                            <label class="cat-item"><input type="checkbox" class="cat-checkbox" value="actief"> Actief</label>
+                            <label class="cat-item"><input type="checkbox" class="cat-checkbox" value="ontspanning"> Relax</label>
+                            <label class="cat-item"><input type="checkbox" class="cat-checkbox" value="food"> Food</label>
+                            <label class="cat-item"><input type="checkbox" class="cat-checkbox" value="cultuur"> Cultuur</label>
+                        </div>
+
+                        <div style="display:flex; gap:10px;">
+                            <input type="text" id="act-price" placeholder="Prijs">
+                            <input type="text" id="act-url" placeholder="Affiliate URL">
+                        </div>
+                        
+                        <input type="text" id="act-img" placeholder="Afbeelding URL" oninput="updatePreview()">
+                        <div id="img-prev" style="height:100px; background:#000; border-radius:12px; margin-bottom:15px; border:1px dashed #333; overflow:hidden; display:flex; align-items:center; justify-content:center;">
+                            <span>Preview</span>
+                        </div>
+                        
+                        <button type="submit" class="btn-save" id="btn-text">Item Opslaan</button>
+                        <button type="button" onclick="resetForm()" id="btn-cancel" style="display:none; background:none; border:none; color:white; width:100%; margin-top:10px; cursor:pointer; opacity:0.5;">Annuleren</button>
                     </form>
                 </div>
+
                 <div>
-                    <input type="text" id="search" placeholder="Zoeken..." oninput="renderList()">
+                    <div style="display:flex; gap:10px; margin-bottom:15px;">
+                        <input type="text" id="search" placeholder="Zoeken in catalogus..." style="margin:0;" oninput="renderList()">
+                        <select id="cat-filter" onchange="renderList()" style="margin:0; width:150px;">
+                            <option value="all">Alle Types</option>
+                            <option value="actief">Actief</option>
+                            <option value="ontspanning">Relax</option>
+                            <option value="food">Food</option>
+                            <option value="cultuur">Cultuur</option>
+                        </select>
+                    </div>
                     <div id="list-container"></div>
                 </div>
             </div>
@@ -125,14 +158,21 @@
 
         let activities = [];
         let analytics = [];
-        let myChart = null;
+        let mainChart = null;
+        let detailCharts = [];
+        let editingId = null;
 
         window.tryLogin = () => {
             if(document.getElementById('pw').value === 'Flip2026') {
                 document.getElementById('login-gate').style.display = 'none';
+                initGoogle();
                 refreshData();
-            } else alert("Fout");
+            } else alert("Toegang geweigerd.");
         };
+
+        function initGoogle() {
+            new google.maps.places.Autocomplete(document.getElementById('act-loc'), { componentRestrictions: {country: "nl"} });
+        }
 
         async function refreshData() {
             const [snapActs, snapStats] = await Promise.all([
@@ -141,73 +181,144 @@
             ]);
             activities = snapActs.docs.map(d => ({id: d.id, ...d.data()}));
             analytics = snapStats.docs.map(d => d.data());
-            updateCharts();
+            renderDashboard();
             renderList();
         }
 
-        window.updateCharts = () => {
-            const selectedCat = document.getElementById('dash-filter-cat').value;
+        function renderDashboard() {
             const dataMap = {};
-
-            // We bouwen de map op basis van ALLE activiteiten die we hebben
             activities.forEach(act => {
-                if(selectedCat !== 'all' && !act.categories?.includes(selectedCat)) return;
-                
-                const stats = analytics.filter(an => an.activityTitle === act.title);
-                const likes = stats.filter(an => an.action === 'like' || !an.action).length; // Fallback: geen action = like
-                const dislikes = stats.filter(an => an.action === 'dislike').length;
-                const total = likes + dislikes;
-                const ratio = total > 0 ? Math.round((likes / total) * 100) : 0;
-
-                dataMap[act.title] = { likes, dislikes, ratio };
+                const stats = analytics.filter(a => a.activityTitle === act.title);
+                const likes = stats.filter(a => a.action === 'like' || !a.action).length;
+                const dislikes = stats.filter(a => a.action === 'dislike').length;
+                dataMap[act.title] = { likes, dislikes, ratio: (likes + dislikes > 0) ? Math.round((likes/(likes+dislikes))*100) : 0 };
             });
 
             const labels = Object.keys(dataMap);
-            const tableBody = document.getElementById('table-body');
-            tableBody.innerHTML = labels.map(l => `
-                <tr>
+            document.getElementById('stats-table-body').innerHTML = labels.map(l => `
+                <tr class="clickable-row" onclick="openDeepDive('${l}')">
                     <td>${l}</td>
                     <td>${dataMap[l].likes}</td>
                     <td>${dataMap[l].dislikes}</td>
-                    <td style="color:${dataMap[l].ratio > 50 ? 'var(--mint)' : 'var(--red)'}">${dataMap[l].ratio}%</td>
+                    <td style="color:var(--mint); font-weight:800;">${dataMap[l].ratio}%</td>
                 </tr>
             `).join('');
 
-            if(myChart) myChart.destroy();
-            myChart = new Chart(document.getElementById('mainChart'), {
+            if(mainChart) mainChart.destroy();
+            mainChart = new Chart(document.getElementById('mainChart'), {
                 type: 'bar',
                 data: {
-                    labels: labels,
+                    labels,
                     datasets: [
                         { label: 'Likes', data: labels.map(l => dataMap[l].likes), backgroundColor: '#00FFC2' },
                         { label: 'Dislikes', data: labels.map(l => dataMap[l].dislikes), backgroundColor: '#FF4B4B' }
                     ]
                 },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    scales: { y: { stacked: true, beginAtZero: true }, x: { stacked: true } }
-                }
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { stacked: true }, x: { stacked: true } } }
             });
+        }
+
+        window.openDeepDive = (title) => {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-overlay').style.display = 'flex';
+            
+            // Filter analytics voor deze activiteit
+            const data = analytics.filter(a => a.activityTitle === title && (a.action === 'like' || !a.action));
+            
+            // Demo data generatie (bij gebrek aan echte userProfile koppeling in deze analytics mock)
+            const ageData = { '18-24': 0, '25-34': 0, '35-50': 0, '50+': 0 };
+            const genderData = { 'Man': 0, 'Vrouw': 0, 'Anders': 0 };
+            const typeData = { 'Vrienden': 0, 'Familie': 0, 'Partner': 0 };
+
+            data.forEach(d => {
+                // In een echte scenario komen deze velden uit de userProfile die mee-gesaved is
+                const age = d.userAge || '25-34'; 
+                const gen = d.userGender || 'Vrouw';
+                const typ = d.tripType || 'Partner';
+                if(ageData[age] !== undefined) ageData[age]++;
+                if(genderData[gen] !== undefined) genderData[gen]++;
+                if(typeData[typ] !== undefined) typeData[typ]++;
+            });
+
+            renderDetailChart('chartAge', ageData, '#00FFC2');
+            renderDetailChart('chartGender', genderData, '#00CCFF');
+            renderDetailChart('chartType', typeData, '#FFCC00');
         };
+
+        function renderDetailChart(id, dataObj, color) {
+            const ctx = document.getElementById(id);
+            if(window[id + 'Chart']) window[id + 'Chart'].destroy();
+            window[id + 'Chart'] = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(dataObj),
+                    datasets: [{ data: Object.values(dataObj), backgroundColor: [color, '#333', '#555', '#777'] }]
+                },
+                options: { plugins: { legend: { position: 'bottom', labels: { color: '#fff', font: { size: 8 } } } } }
+            });
+        }
 
         window.renderList = () => {
             const term = document.getElementById('search').value.toLowerCase();
+            const cat = document.getElementById('cat-filter').value;
             document.getElementById('list-container').innerHTML = activities
-                .filter(a => a.title.toLowerCase().includes(term))
-                .map(a => `<div class="list-item"><span>${a.title}</span><button onclick="window.editItem('${a.id}')" style="background:none;border:none;color:var(--mint);cursor:pointer;">EDIT</button></div>`)
-                .join('');
+                .filter(a => (cat === 'all' || a.categories?.includes(cat)) && a.title.toLowerCase().includes(term))
+                .map(a => `<div class="list-item">
+                    <span>${a.title}</span>
+                    <button onclick="editItem('${a.id}')" style="background:none; border:none; color:var(--mint); cursor:pointer; font-weight:800;">EDIT</button>
+                </div>`).join('');
         };
 
         window.editItem = (id) => {
             const item = activities.find(a => a.id === id);
+            editingId = id;
             document.getElementById('act-title').value = item.title;
-            document.getElementById('form-mode').innerText = "Bewerken";
+            document.getElementById('act-loc').value = item.location || "";
+            document.getElementById('act-price').value = item.price || "";
+            document.getElementById('act-url').value = item.bookingUrl || "";
+            document.getElementById('act-img').value = item.image || "";
+            document.querySelectorAll('.cat-checkbox').forEach(cb => cb.checked = item.categories?.includes(cb.value));
+            document.getElementById('form-mode').innerText = "Item Bewerken";
+            document.getElementById('btn-text').innerText = "Wijziging Opslaan";
+            document.getElementById('btn-cancel').style.display = "block";
+            updatePreview();
         };
 
-        window.saveItem = async () => { /* Identiek aan v2.3 */ refreshData(); };
+        window.saveItem = async () => {
+            const cats = Array.from(document.querySelectorAll('.cat-checkbox:checked')).map(cb => cb.value);
+            const data = {
+                title: document.getElementById('act-title').value,
+                location: document.getElementById('act-loc').value,
+                categories: cats,
+                price: document.getElementById('act-price').value,
+                bookingUrl: document.getElementById('act-url').value,
+                image: document.getElementById('act-img').value
+            };
+            if(editingId) await updateDoc(doc(db, "activities", editingId), data);
+            else await addDoc(collection(db, "activities"), data);
+            resetForm();
+            refreshData();
+        };
+
+        window.resetForm = () => {
+            editingId = null;
+            document.getElementById('act-form').reset();
+            document.getElementById('form-mode').innerText = "Nieuw Item";
+            document.getElementById('btn-text').innerText = "Item Opslaan";
+            document.getElementById('btn-cancel').style.display = "none";
+            updatePreview();
+        };
+
+        window.updatePreview = () => {
+            const u = document.getElementById('act-img').value;
+            document.getElementById('img-prev').innerHTML = u ? `<img src="${u}" style="width:100%; height:100%; object-fit:cover;">` : "<span>Preview</span>";
+        };
+
         window.switchTab = (id, btn) => {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(id).classList.add('active');
+            btn.classList.add('active');
         };
     </script>
 </body>
