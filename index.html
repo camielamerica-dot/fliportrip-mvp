@@ -3,102 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FlipOrTrip | Swipe & Match</title>
+    <title>FlipOrTrip | Swipe & Match v.049+</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     <script src="https://hammerjs.github.io/dist/hammer.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
     <style>
-        :root { --mint: #00FFC2; --obsidian: #0B0E14; --card-bg: #161B22; --text-muted: #8899A6; }
+        :root { --mint: #00FFC2; --obsidian: #0B0E14; --card-bg: #161B22; --text-muted: #8899A6; --red: #FF4B4B; }
         body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; overflow: hidden; }
         
-        .screen { display: none; height: 100vh; padding: 20px; box-sizing: border-box; flex-direction: column; }
+        .screen { display: none; height: 100vh; padding: 25px; box-sizing: border-box; flex-direction: column; }
         .screen.active { display: flex; }
 
-        /* Welcome & Onboarding */
-        .logo { width: 120px; margin: 40px auto; display: block; }
-        .card-bg { background: var(--card-bg); padding: 25px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.05); }
-        .btn-main { background: var(--mint); color: var(--obsidian); border: none; padding: 18px; border-radius: 50px; font-weight: 800; width: 100%; cursor: pointer; text-transform: uppercase; font-size: 14px; margin-top: 15px; }
-        input { background: #0B0E14; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 15px; border-radius: 15px; width: 100%; box-sizing: border-box; margin-bottom: 10px; font-family: inherit; text-align: center; font-size: 16px; }
+        /* UI Elements */
+        .logo { width: 140px; margin: 40px auto; display: block; }
+        .card-bg { background: var(--card-bg); padding: 25px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.05); }
+        .btn-main { background: var(--mint); color: var(--obsidian); border: none; padding: 20px; border-radius: 50px; font-weight: 800; width: 100%; cursor: pointer; text-transform: uppercase; font-size: 14px; margin-top: 15px; }
+        input { background: #0B0E14; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 18px; border-radius: 20px; width: 100%; box-sizing: border-box; margin-bottom: 12px; font-family: inherit; text-align: center; font-size: 16px; }
 
-        .opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
-        .opt-btn { background: var(--card-bg); border: 2px solid transparent; padding: 15px; border-radius: 15px; color: white; cursor: pointer; text-align: center; font-size: 12px; font-weight: 800; }
-        .opt-btn.selected { border-color: var(--mint); background: rgba(0,255,194,0.1); color: var(--mint); }
+        /* Onboarding Grids */
+        .grid-select { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 25px; }
+        .grid-btn { background: var(--card-bg); border: 2px solid transparent; padding: 18px; border-radius: 20px; color: white; cursor: pointer; text-align: center; font-size: 13px; font-weight: 800; transition: 0.2s; }
+        .grid-btn.selected { border-color: var(--mint); background: rgba(0,255,194,0.1); color: var(--mint); }
 
-        /* Swipe UI */
-        .deck-container { position: relative; flex: 1; margin: 20px 0; perspective: 1000px; }
-        .swipe-card { position: absolute; width: 100%; height: 100%; border-radius: 30px; overflow: hidden; background: var(--card-bg); box-shadow: 0 10px 30px rgba(0,0,0,0.5); transform-origin: 50% 100%; }
+        /* Swipe Deck */
+        .deck { position: relative; flex: 1; margin: 20px 0; }
+        .swipe-card { position: absolute; width: 100%; height: 100%; border-radius: 35px; overflow: hidden; background: var(--card-bg); box-shadow: 0 15px 40px rgba(0,0,0,0.6); transform-origin: 50% 100%; touch-action: none; }
         .swipe-card img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
-        .card-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 30px; background: linear-gradient(transparent, rgba(0,0,0,1)); }
+        .card-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 35px; background: linear-gradient(transparent, rgba(0,0,0,1)); }
         
-        .match-overlay { position: fixed; inset: 0; background: rgba(0,255,194,0.9); z-index: 1000; display: none; flex-direction: column; align-items: center; justify-content: center; color: var(--obsidian); }
+        /* Overlays */
+        .match-overlay { position: fixed; inset: 0; background: rgba(0,255,194,0.95); z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; color: var(--obsidian); text-align: center; padding: 40px; }
 
-        .controls { display: flex; justify-content: center; gap: 20px; padding-bottom: 20px; }
-        .round-btn { width: 65px; height: 65px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; }
-        .btn-no { background: #161B22; color: #FF4B4B; border: 2px solid #FF4B4B; }
+        .controls { display: flex; justify-content: center; gap: 25px; padding-bottom: 30px; }
+        .round-btn { width: 70px; height: 70px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .btn-no { background: #161B22; color: var(--red); border: 2px solid var(--red); }
         .btn-yes { background: var(--mint); color: var(--obsidian); }
 
-        /* Header Info */
-        .header-bar { display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        .progress-bar { height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-bottom: 20px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--mint); width: 0%; transition: 0.3s; }
     </style>
 </head>
 <body>
 
     <div id="match-notif" class="match-overlay">
-        <h1 style="font-size: 60px; margin: 0;">MATCH!</h1>
-        <p id="match-name" style="font-weight: 800;"></p>
-        <button class="btn-main" style="width: 200px;" onclick="closeMatch()">Doorgaan</button>
+        <h1 style="font-size: 50px; margin-bottom: 10px;">BOOM! 🔥</h1>
+        <p id="match-name" style="font-size: 20px; font-weight: 800; margin-bottom: 30px;"></p>
+        <button class="btn-main" onclick="closeMatch()">Lekker! Verder gaan</button>
     </div>
 
-    <div id="screen-welcome" class="screen active">
+    <div id="screen-start" class="screen active">
         <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" class="logo">
         <div class="card-bg">
-            <h2 style="text-align: center; margin-top: 0;">Valkenburg Ontdekken</h2>
-            <button class="btn-main" onclick="createRoom()">Nieuwe Groep</button>
-            <div style="margin: 20px 0; text-align: center; font-size: 12px; color: var(--text-muted);">OF JOIN EEN CODE</div>
-            <input type="text" id="join-code" placeholder="CODE">
+            <h2 style="text-align: center; margin-top: 0;">Samen op pad?</h2>
+            <button class="btn-main" onclick="setupRoom()">Nieuwe Groep Aanmaken</button>
+            <div style="margin: 25px 0; text-align: center; font-size: 11px; color: var(--text-muted); font-weight: 800; letter-spacing: 1px;">OF JOIN JE VRIENDEN</div>
+            <input type="text" id="join-room-code" placeholder="VUL CODE IN">
             <button class="btn-main" style="background:transparent; border:1px solid var(--mint); color:white;" onclick="joinRoom()">Join Room</button>
         </div>
     </div>
 
-    <div id="screen-onboarding" class="screen">
-        <div class="header-bar"><span>Stap 1/2</span><span id="display-code"></span></div>
-        <h2 style="margin: 20px 0;">Stel je profiel in</h2>
-        <div class="card-bg">
-            <span style="font-size: 10px; color: var(--mint); font-weight: 800;">LEEFTIJD</span>
-            <div class="opt-grid">
-                <div class="opt-btn" onclick="setProfile('age', '18-24', this)">18-24</div>
-                <div class="opt-btn" onclick="setProfile('age', '25-34', this)">25-34</div>
-                <div class="opt-btn" onclick="setProfile('age', '35-50', this)">35-50</div>
-                <div class="opt-btn" onclick="setProfile('age', '50+', this)">50+</div>
+    <div id="screen-profile" class="screen">
+        <div class="progress-bar"><div class="progress-fill" id="p-fill"></div></div>
+        <div id="step-1">
+            <h2>Wat is je leeftijd?</h2>
+            <div class="grid-select">
+                <div class="grid-btn" onclick="pSelect('age', '18-24', this)">18-24</div>
+                <div class="grid-btn" onclick="pSelect('age', '25-34', this)">25-34</div>
+                <div class="grid-btn" onclick="pSelect('age', '35-50', this)">35-50</div>
+                <div class="grid-btn" onclick="pSelect('age', '50+', this)">50+</div>
             </div>
-            <span style="font-size: 10px; color: var(--mint); font-weight: 800;">GEZELSCHAP</span>
-            <div class="opt-grid">
-                <div class="opt-btn" onclick="setProfile('tripType', 'Partner', this)">Partner</div>
-                <div class="opt-btn" onclick="setProfile('tripType', 'Vrienden', this)">Vrienden</div>
-                <div class="opt-btn" onclick="setProfile('tripType', 'Gezin', this)">Gezin</div>
-                <div class="opt-btn" onclick="setProfile('tripType', 'Solo', this)">Solo</div>
+            <button class="btn-main" onclick="nextStep(2)">Volgende</button>
+        </div>
+        <div id="step-2" style="display:none;">
+            <h2>Met wie ben je?</h2>
+            <div class="grid-select">
+                <div class="grid-btn" onclick="pSelect('tripType', 'Partner', this)">Partner</div>
+                <div class="grid-btn" onclick="pSelect('tripType', 'Vrienden', this)">Vrienden</div>
+                <div class="grid-btn" onclick="pSelect('tripType', 'Gezin', this)">Gezin</div>
+                <div class="grid-btn" onclick="pSelect('tripType', 'Solo', this)">Solo</div>
             </div>
-            <button class="btn-main" onclick="initSwipe()">Bekijk Activiteiten</button>
+            <button class="btn-main" onclick="nextStep(3)">Laatste Stap</button>
+        </div>
+        <div id="step-3" style="display:none;">
+            <h2>Wat wil je doen?</h2>
+            <div class="grid-select">
+                <div class="grid-btn" onclick="pSelect('pref', 'actief', this)">Actief</div>
+                <div class="grid-btn" onclick="pSelect('pref', 'ontspanning', this)">Ontspanning</div>
+                <div class="grid-btn" onclick="pSelect('pref', 'food', this)">Food</div>
+                <div class="grid-btn" onclick="pSelect('pref', 'cultuur', this)">Cultuur</div>
+            </div>
+            <button class="btn-main" onclick="startApp()">Start Flipping</button>
         </div>
     </div>
 
     <div id="screen-swipe" class="screen">
-        <div class="header-bar"><span id="room-id">ROOM</span><span>Swipe naar rechts voor Like</span></div>
-        <div class="deck-container" id="deck"></div>
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; font-weight:800; color:var(--text-muted);">
+            <span>ROOM: <span id="r-code" style="color:var(--mint);"></span></span>
+            <span id="card-count"></span>
+        </div>
+        <div class="deck" id="main-deck"></div>
         <div class="controls">
-            <button class="round-btn btn-no" onclick="manualAction('left')">✕</button>
-            <button class="round-btn btn-yes" onclick="manualAction('right')">♥</button>
+            <button class="round-btn btn-no" onclick="btnAction('left')">✕</button>
+            <button class="round-btn btn-yes" onclick="btnAction('right')">♥</button>
         </div>
     </div>
 
     <div id="screen-results" class="screen">
-        <h2 style="text-align: center;">Jullie Plan 🔥</h2>
-        <div id="matches-list" style="flex: 1; overflow-y: auto;"></div>
-        <div class="card-bg" style="margin-top: 20px;">
-            <input type="email" id="email-input" placeholder="Je e-mail">
-            <button class="btn-main" onclick="sendPlan()">Mail Plan</button>
+        <h2 style="text-align:center;">Jullie Matches 🔥</h2>
+        <div id="match-list" style="flex:1; overflow-y:auto; padding-bottom:20px;"></div>
+        <div class="card-bg">
+            <input type="email" id="email-to" placeholder="E-mail mijn plan">
+            <button class="btn-main" onclick="mailPlan()">Verstuur Plan</button>
         </div>
     </div>
 
@@ -117,76 +134,85 @@
         const db = getFirestore(app);
         emailjs.init("VlUuJ7R9pE7W7XwVq");
 
-        let roomId = '';
-        let acts = [];
-        let profile = { age: '', tripType: '' };
-        let matchedSoFar = [];
+        let rId = '';
+        let stack = [];
+        let profile = { age: '', tripType: '', pref: '' };
+        let currentMatches = [];
 
-        window.show = (s) => {
-            document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
-            document.getElementById(s).classList.add('active');
+        window.showS = (id) => {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
         };
 
-        window.createRoom = async () => {
-            roomId = Math.random().toString(36).substring(2,6).toUpperCase();
-            await setDoc(doc(db, "rooms", roomId), { likes: [], matches: [], created: new Date() });
-            document.getElementById('display-code').innerText = "CODE: " + roomId;
-            show('screen-onboarding');
+        window.setupRoom = async () => {
+            rId = Math.random().toString(36).substring(2,6).toUpperCase();
+            await setDoc(doc(db, "rooms", rId), { likes: [], matches: [], created: new Date() });
+            showS('screen-profile');
         };
 
         window.joinRoom = async () => {
-            const code = document.getElementById('join-code').value.toUpperCase();
-            const s = await getDoc(doc(db, "rooms", code));
-            if(s.exists()) { roomId = code; show('screen-onboarding'); }
-            else alert("Niet gevonden");
+            const code = document.getElementById('join-room-code').value.toUpperCase();
+            const snap = await getDoc(doc(db, "rooms", code));
+            if(snap.exists()) { rId = code; showS('screen-profile'); }
+            else alert("Code niet gevonden!");
         };
 
-        window.setProfile = (k, v, el) => {
-            el.parentElement.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
+        window.pSelect = (k, v, el) => {
+            el.parentElement.querySelectorAll('.grid-btn').forEach(b => b.classList.remove('selected'));
             el.classList.add('selected');
             profile[k] = v;
         };
 
-        window.initSwipe = async () => {
-            const s = await getDocs(collection(db, "activities"));
-            acts = s.docs.map(d => ({ id: d.id, ...d.data() }));
-            document.getElementById('room-id').innerText = "ROOM: " + roomId;
-            renderDeck();
-            listen();
-            show('screen-swipe');
+        window.nextStep = (n) => {
+            document.getElementById('step-1').style.display = n === 1 ? 'block' : 'none';
+            document.getElementById('step-2').style.display = n === 2 ? 'block' : 'none';
+            document.getElementById('step-3').style.display = n === 3 ? 'block' : 'none';
+            document.getElementById('p-fill').style.width = (n-1) * 33 + '%';
         };
 
-        function renderDeck() {
-            const d = document.getElementById('deck'); d.innerHTML = '';
-            acts.forEach((a, i) => {
-                const c = document.createElement('div');
-                c.className = 'swipe-card';
-                c.style.zIndex = acts.length - i;
-                c.innerHTML = `<img src="${a.image}"><div class="card-info">
-                    <span style="color:var(--mint);font-size:10px;font-weight:800;">${a.price}</span>
+        window.startApp = async () => {
+            document.getElementById('r-code').innerText = rId;
+            const snap = await getDocs(collection(db, "activities"));
+            stack = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+                        .filter(a => !profile.pref || a.categories?.includes(profile.pref));
+            renderCards();
+            listenMatches();
+            showS('screen-swipe');
+        };
+
+        function renderCards() {
+            const container = document.getElementById('main-deck');
+            container.innerHTML = '';
+            document.getElementById('card-count').innerText = stack.length + " ITEMS";
+            stack.forEach((a, i) => {
+                const card = document.createElement('div');
+                card.className = 'swipe-card';
+                card.style.zIndex = stack.length - i;
+                card.innerHTML = `<img src="${a.image}"><div class="card-info">
+                    <span style="color:var(--mint);font-size:10px;font-weight:800;text-transform:uppercase;">${a.price || '€€'}</span>
                     <h2 style="margin:5px 0 0;">${a.title}</h2>
                 </div>`;
-                d.appendChild(c);
-                if(i === 0) bind(c, a);
+                container.appendChild(card);
+                if(i === 0) setupHammer(card, a);
             });
         }
 
-        function bind(el, a) {
-            const h = new Hammer(el);
-            h.on('pan', e => el.style.transform = `translate(${e.deltaX}px, ${e.deltaY}px) rotate(${e.deltaX/20}deg)`);
-            h.on('panend', e => {
-                if(e.deltaX > 120) act(a, 'right');
-                else if(e.deltaX < -120) act(a, 'left');
-                else el.style.transform = '';
+        function setupHammer(el, activity) {
+            const mc = new Hammer(el);
+            mc.on('pan', e => el.style.transform = `translate(${e.deltaX}px, ${e.deltaY}px) rotate(${e.deltaX/15}deg)`);
+            mc.on('panend', e => {
+                if(e.deltaX > 140) processSwipe(activity, 'right');
+                else if(e.deltaX < -140) processSwipe(activity, 'left');
+                else { el.style.transition = '0.3s'; el.style.transform = ''; }
             });
         }
 
-        async function act(a, dir) {
-            const c = document.querySelector('.swipe-card');
-            c.style.transition = '0.4s';
-            c.style.transform = dir === 'right' ? 'translateX(200%) rotate(30deg)' : 'translateX(-200%) rotate(-30deg)';
+        async function processSwipe(a, dir) {
+            const card = document.querySelector('.swipe-card');
+            card.style.transition = '0.5s';
+            card.style.transform = dir === 'right' ? 'translateX(200%) rotate(40deg)' : 'translateX(-200%) rotate(-40deg)';
             
-            // MANAGEMENT DASHBOARD SYNC
+            // ANALYTICS VOOR DASHBOARD
             addDoc(collection(db, "global_analytics"), {
                 activityTitle: a.title,
                 action: dir === 'right' ? 'like' : 'dislike',
@@ -195,47 +221,47 @@
                 timestamp: new Date()
             });
 
-            // ROOM SYNC
+            // ROOM MATCH LOGIC
             if(dir === 'right') {
-                const r = doc(db, "rooms", roomId);
-                const snap = await getDoc(r);
-                const l = snap.data().likes || [];
-                if(l.includes(a.title)) updateDoc(r, { matches: arrayUnion(a.title) });
-                else updateDoc(r, { likes: arrayUnion(a.title) });
+                const roomRef = doc(db, "rooms", rId);
+                const roomSnap = await getDoc(roomRef);
+                const likes = roomSnap.data().likes || [];
+                if(likes.includes(a.title)) updateDoc(roomRef, { matches: arrayUnion(a.title) });
+                else updateDoc(roomRef, { likes: arrayUnion(a.title) });
             }
 
             setTimeout(() => {
-                c.remove(); acts.shift();
-                if(acts.length > 0) renderDeck();
-                else show('screen-results');
+                card.remove();
+                stack.shift();
+                if(stack.length > 0) renderCards();
+                else showS('screen-results');
             }, 300);
         }
 
-        function listen() {
-            onSnapshot(doc(db, "rooms", roomId), (s) => {
+        function listenMatches() {
+            onSnapshot(doc(db, "rooms", rId), (s) => {
                 const m = s.data().matches || [];
-                if(m.length > matchedSoFar.length) {
+                if(m.length > currentMatches.length) {
                     document.getElementById('match-name').innerText = m[m.length-1];
                     document.getElementById('match-notif').style.display = 'flex';
                 }
-                matchedSoFar = m;
-                document.getElementById('matches-list').innerHTML = m.map(item => `
-                    <div class="card-bg" style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
-                        <span>${item}</span>
-                        <button class="btn-main" style="width:auto; margin:0; padding:8px 15px;" onclick="window.open('https://google.com/search?q=${item}+Valkenburg')">Google</button>
+                currentMatches = m;
+                document.getElementById('match-list').innerHTML = m.map(title => `
+                    <div class="card-bg" style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-weight:800;">${title}</span>
+                        <button class="btn-main" style="width:auto; margin:0; padding:10px 20px;" onclick="window.open('https://google.com/search?q=${title}+Valkenburg')">Gids</button>
                     </div>
                 `).join('');
             });
         }
 
         window.closeMatch = () => document.getElementById('match-notif').style.display = 'none';
-        window.manualAction = (d) => act(acts[0], d);
-
-        window.sendPlan = () => {
-            const e = document.getElementById('email-input').value;
+        window.btnAction = (dir) => processSwipe(stack[0], dir);
+        window.mailPlan = () => {
+            const mail = document.getElementById('email-to').value;
             emailjs.send("service_xsnq464", "template_4276tqc", {
-                to_email: e, room_code: roomId, matches: matchedSoFar.join(", ")
-            }).then(() => alert("Plan verzonden!"));
+                to_email: mail, room_code: rId, matches: currentMatches.join(", ")
+            }).then(() => alert("Plan verzonden naar " + mail));
         };
     </script>
 </body>
