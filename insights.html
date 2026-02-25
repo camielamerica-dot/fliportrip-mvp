@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>FlipOrTrip | Business Intelligence</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --mint: #00FFC2; --obsidian: #0B0E14; --card-bg: #161B22; --text-muted: #8899A6; }
+        body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; }
+        
+        /* Login Overlay */
+        #login-overlay { position: fixed; inset: 0; background: var(--obsidian); z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        .login-box { background: var(--card-bg); padding: 40px; border-radius: 30px; border: 1px solid var(--mint); text-align: center; }
+
+        /* Dashboard Layout */
+        .dashboard-wrapper { display: flex; height: 100vh; display: none; } /* Verberg tot login */
+        .sidebar { width: 320px; background: var(--card-bg); padding: 30px; border-right: 1px solid rgba(0,255,194,0.1); display: flex; flex-direction: column; }
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
+        
+        h1 { color: var(--mint); font-size: 22px; margin-bottom: 30px; }
+        .btn-action { background: var(--mint); color: var(--obsidian); border: none; padding: 15px; border-radius: 50px; font-weight: 800; cursor: pointer; text-transform: uppercase; font-size: 11px; margin-top: 10px; width: 100%; display: block; text-align: center; text-decoration: none; }
+        .btn-outline { background: transparent; border: 1px solid var(--mint); color: var(--mint); margin-top: 10px; }
+        
+        .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: var(--card-bg); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); }
+        .stat-value { font-size: 36px; font-weight: 800; color: var(--mint); display: block; }
+        
+        select, input { background: #0B0E14; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 12px; width: 100%; border-radius: 12px; margin-bottom: 15px; outline: none; }
+        .chart-container { background: var(--card-bg); padding: 30px; border-radius: 25px; height: 400px; }
+    </style>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0",
+            authDomain: "fliportrip-valkenburg.firebaseapp.com",
+            projectId: "fliportrip-valkenburg",
+            storageBucket: "fliportrip-valkenburg.firebasestorage.app",
+            messagingSenderId: "1050989330669",
+            appId: "1:1050989330669:web:6649f61cbec8ee3b3f8ce4"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let myChart;
+
+        // Eenvoudige wachtwoord check
+        window.checkLogin = () => {
+            const pw = document.getElementById('admin-pw').value;
+            if(pw === 'Flip2026') { // Verander dit in je eigen wachtwoord
+                document.getElementById('login-overlay').style.display = 'none';
+                document.getElementById('dashboard-ui').style.display = 'flex';
+                loadInsights();
+            } else {
+                alert('Fout wachtwoord');
+            }
+        };
+
+        async function loadInsights() {
+            const fGender = document.getElementById('f-gender').value;
+            const fType = document.getElementById('f-type').value;
+            const fDuration = document.getElementById('f-duration').value;
+            
+            let q = collection(db, "global_analytics");
+            let constraints = [];
+            
+            if(fGender !== 'all') constraints.push(where("gender", "==", fGender));
+            if(fType !== 'all') constraints.push(where("tripType", "==", fType));
+            if(fDuration !== 'all') constraints.push(where("tripDuration", "==", fDuration));
+            
+            const qFinal = constraints.length > 0 ? query(q, ...constraints) : q;
+            const qs = await getDocs(qFinal);
+            
+            let data = [];
+            qs.forEach(doc => data.push(doc.data()));
+
+            updateDashboard(data);
+        }
+
+        function updateDashboard(data) {
+            document.getElementById('total-swipes').innerText = data.length;
+            const avgAge = data.length > 0 ? Math.round(data.reduce((acc, curr) => acc + (curr.age || 0), 0) / data.length) : 0;
+            document.getElementById('avg-age').innerText = avgAge;
+            
+            const counts = {};
+            data.forEach(item => { counts[item.activityTitle] = (counts[item.activityTitle] || 0) + 1; });
+            const sortedKeys = Object.keys(counts).sort((a,b) => counts[b] - counts[a]);
+
+            if(myChart) myChart.destroy();
+            myChart = new Chart(document.getElementById('insightsChart'), {
+                type: 'bar',
+                data: {
+                    labels: sortedKeys,
+                    datasets: [{ label: 'Likes', data: sortedKeys.map(k => counts[k]), backgroundColor: '#00FFC2', borderRadius: 8 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        }
+        window.refreshData = loadInsights;
+    </script>
+</head>
+<body>
+
+    <div id="login-overlay">
+        <div class="login-box">
+            <h1>ADMIN LOGIN</h1>
+            <input type="password" id="admin-pw" placeholder="Wachtwoord">
+            <button class="btn-action" onclick="checkLogin()">Inloggen</button>
+        </div>
+    </div>
+
+    <div id="dashboard-ui" class="dashboard-wrapper">
+        <div class="sidebar">
+            <h1>INSIGHTS</h1>
+            
+            <span style="font-size:10px; color:var(--mint); font-weight:800; margin-bottom:10px;">FILTERS</span>
+            <select id="f-gender"><option value="all">Alle genders</option><option value="man">Man</option><option value="vrouw">Vrouw</option></select>
+            <select id="f-type"><option value="all">Alle types</option><option value="actief">Actief</option><option value="relax">Relax</option><option value="party">Party</option></select>
+            <select id="f-duration"><option value="all">Alle duren</option><option value="dagje-uit">Dagje uit</option><option value="meerdaags">Meerdaags</option></select>
+
+            <button class="btn-action" onclick="refreshData()">Update Analyse</button>
+            
+            <hr style="width:100%; border:0; border-top:1px solid rgba(255,255,255,0.1); margin:20px 0;">
+            
+            <span style="font-size:10px; color:var(--text-muted); font-weight:800; margin-bottom:10px;">BEHEER</span>
+            <a href="admin-activiteiten.html" class="btn-action btn-outline">Activiteiten Beheer</a>
+        </div>
+
+        <div class="main-content">
+            <div class="stat-grid">
+                <div class="stat-card"><span class="stat-value" id="total-swipes">0</span><span class="stat-title">Swipes</span></div>
+                <div class="stat-card"><span class="stat-value" id="avg-age">0</span><span class="stat-title">Gem. Leeftijd</span></div>
+                <div class="stat-card"><span class="stat-value">Valkenburg</span><span class="stat-title">Locatie</span></div>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="insightsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
