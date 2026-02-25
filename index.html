@@ -163,7 +163,7 @@
                         await addDoc(collection(db, "global_analytics"), {
                             activityTitle: window.acts[window.actIdx].title,
                             gender: prof.gender || 'onbekend', age: parseInt(prof.age) || 0,
-                            tripType: rd.tripType, budget: rd.budget, timestamp: Date.now()
+                            tripType: rd.tripType, budget: rd.budget, tripDuration: rd.tripDuration, timestamp: Date.now()
                         });
                     }
                     window.actIdx++; renderCard();
@@ -228,8 +228,12 @@
         <div style="display:flex; gap:10px;"><div style="flex:1;"><span class="label">Personen</span><input type="number" id="target-p" class="input-box" value="4"></div>
         <div style="flex:1;"><span class="label">Deadline (min)</span><input type="number" id="deadline-input" class="input-box" value="60"></div></div>
         <span class="label">Type Trip</span><select id="trip-type" class="select-box"><option value="actief">Actief</option><option value="relax">Relax</option><option value="party">Party</option></select>
-        <span class="label">Afstand</span><select id="trip-distance" class="select-box"><option value="2u">Max 2u rijden</option><option value="wereld">Wereldwijd</option></select>
-        <span class="label">Budget</span><select id="trip-budget" class="select-box"><option value="budget">Budget</option><option value="luxury">Luxury</option></select>
+<span class="label">Soort Trip</span>
+<select id="trip-duration" class="select-box">
+    <option value="dagje-uit">Een dagje uit</option>
+    <option value="meerdaags">Meerdaagse inspiratie</option>
+    <option value="activiteit">Alleen een activiteit</option>
+</select>        <span class="label">Budget</span><select id="trip-budget" class="select-box"><option value="budget">Budget</option><option value="luxury">Luxury</option></select>
         <button class="btn" onclick="createRoom()">Trip Maken</button>
     </div>
 
