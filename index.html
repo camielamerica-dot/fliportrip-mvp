@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FlipOrTrip | v0.48 MVP</title>
+    <title>FlipOrTrip | v0.52 MVP</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
@@ -21,7 +21,8 @@
         .btn { background: var(--mint); color: var(--obsidian); padding: 16px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; width: 260px; margin-bottom: 10px; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
         .btn-wa { background: #25D366; color: white; }
         .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; }
-        .input-box { background: var(--card-bg); border: 1px solid rgba(0,255,194,0.3); padding: 14px; border-radius: 15px; color: white; text-align: center; margin-bottom: 12px; width: 100%; box-sizing: border-box; font-size: 16px; outline: none; }
+        .input-box { background: var(--card-bg); border: 1px solid rgba(0,255,194,0.3); padding: 12px; border-radius: 12px; color: white; text-align: center; margin-bottom: 10px; width: 100%; box-sizing: border-box; font-size: 14px; outline: none; }
+        .select-box { background: var(--card-bg); border: 1px solid rgba(0,255,194,0.3); padding: 12px; border-radius: 12px; color: white; width: 100%; margin-bottom: 10px; font-size: 14px; outline: none; }
         .label { font-size: 9px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 4px; display: block; text-align: left; }
 
         /* Header */
@@ -32,15 +33,15 @@
 
         /* Swipe UI */
         #swipe-screen { position: relative; width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center; touch-action: none; }
-        .card { width: 85vw; max-width: 320px; height: 60vh; max-height: 460px; background: var(--card-bg); border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); position: absolute; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .card-img { height: 55%; background-size: cover; background-position: center; pointer-events: none; }
+        .card { width: 85vw; max-width: 320px; height: 58vh; background: var(--card-bg); border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); position: absolute; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .card-img { height: 50%; background-size: cover; background-position: center; pointer-events: none; }
         .card-info { padding: 15px; text-align: left; pointer-events: none; }
         .card-info h2 { margin: 0; font-size: 18px; }
         .card-info p { font-size: 13px; opacity: 0.7; margin: 8px 0; line-height: 1.4; }
 
         /* Modals */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.97); backdrop-filter: blur(10px); display: none; align-items: center; justify-content: center; z-index: 99999; padding: 20px; box-sizing: border-box; }
-        .modal-card { background: var(--card-bg); padding: 25px; border-radius: 25px; border: 1px solid var(--mint); width: 100%; max-width: 320px; text-align: center; }
+        .modal-card { background: var(--card-bg); padding: 25px; border-radius: 25px; border: 1px solid var(--mint); width: 100%; max-width: 320px; text-align: center; max-height: 90vh; overflow-y: auto; }
         
         .stat-bar-container { background: rgba(255,255,255,0.05); border-radius: 10px; margin-bottom: 8px; padding: 10px; }
         .stat-info { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 5px; }
@@ -56,7 +57,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, increment, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, increment, collection, getDocs, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0",
             authDomain: "fliportrip-valkenburg.firebaseapp.com",
@@ -75,70 +76,52 @@
 
         window.goHome = () => location.reload();
 
+        // 1. KAMER MAKEN
         window.createRoom = async () => {
-            const name = document.getElementById('host-name').value;
-            const email = document.getElementById('host-email').value.toLowerCase();
-            const target = document.getElementById('target-p').value;
-            const min = document.getElementById('deadline-input').value || 60;
-            if(!name || !email) return alert("Vul alles in!");
+            const setupData = {
+                hostName: document.getElementById('host-name').value,
+                hostEmail: document.getElementById('host-email').value.toLowerCase(),
+                targetParticipants: parseInt(document.getElementById('target-p').value),
+                tripType: document.getElementById('trip-type').value,
+                budget: document.getElementById('trip-budget').value,
+                maxTravel: document.getElementById('trip-distance').value,
+                deadline: Date.now() + (parseInt(document.getElementById('deadline-input').value) * 60000),
+                participants: [], votes: {}, finishedCount: 0, mailSent: false 
+            };
+            if(!setupData.hostName || !setupData.hostEmail) return alert("Vul alles in!");
             const code = Math.floor(1000 + Math.random() * 9000).toString();
-            const deadline = Date.now() + (parseInt(min) * 60000); 
-            await setDoc(doc(db, "rooms", code), { 
-                hostName: name, hostEmail: email, targetParticipants: parseInt(target), 
-                deadline, participants: [name], votes: {}, finishedCount: 0, mailSent: false 
-            });
+            await setDoc(doc(db, "rooms", code), setupData);
             window.currentRoom = code;
             document.getElementById('setup-screen').classList.add('hidden');
             document.getElementById('share-screen').classList.remove('hidden');
             document.getElementById('display-code').innerText = code;
         };
 
-        window.shareWA = () => {
-            const msg = `Samen flippen voor onze trip! 🌴 Code: *${window.currentRoom}*\nDoe mee op: ${window.location.origin}`;
-            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
-        };
-
-        window.verifyHost = async () => {
-            const code = document.getElementById('login-code').value.trim();
-            const email = document.getElementById('login-email').value.trim().toLowerCase();
-            const ds = await getDoc(doc(db, "rooms", code));
-            if(ds.exists() && ds.data().hostEmail.toLowerCase() === email) {
-                window.currentRoom = code;
-                document.getElementById('host-login-modal').style.display = 'none';
-                window.showLiveStats();
-            } else { alert("Gegevens komen niet overeen."); }
-        };
-
+        // 2. DEELNEMEN
         window.confirmJoin = async () => {
             const code = document.getElementById('join-code-input').value.trim();
-            const name = document.getElementById('join-name-input').value.trim();
-            if(!code || !name) return alert("Vul code en naam in!");
+            const userData = {
+                name: document.getElementById('join-name-input').value.trim(),
+                age: document.getElementById('join-age').value,
+                gender: document.getElementById('join-gender').value
+            };
+            if(!code || !userData.name) return alert("Vul code en naam in!");
             const ds = await getDoc(doc(db, "rooms", code));
             if(!ds.exists()) return alert("Code niet gevonden!");
             window.currentRoom = code;
-            await updateDoc(doc(db, "rooms", code), { participants: arrayUnion(name) });
+            localStorage.setItem('flip_profile', JSON.stringify(userData));
+            await updateDoc(doc(db, "rooms", code), { participants: arrayUnion(userData) });
             document.getElementById('join-modal').style.display = 'none';
             window.startSwiping();
         };
 
+        // 3. START SWIPING
         window.startSwiping = async () => {
             document.querySelectorAll('.screen-content').forEach(s => s.classList.add('hidden'));
             document.getElementById('room-header').classList.remove('hidden');
             document.getElementById('swipe-screen').classList.remove('hidden');
             document.getElementById('active-code-display').innerText = window.currentRoom;
             
-            const ds = await getDoc(doc(db, "rooms", window.currentRoom));
-            const deadline = ds.data().deadline;
-            
-            if(timerInterval) clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                const diff = deadline - Date.now();
-                const m = Math.floor(Math.max(0, diff) / 60000);
-                const s = Math.floor((Math.max(0, diff) % 60000) / 1000);
-                document.getElementById('timer-display').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
-                if(diff <= 0) clearInterval(timerInterval);
-            }, 1000);
-
             const qs = await getDocs(collection(db, "activities"));
             window.acts = qs.docs.map(d => ({ id: d.id, ...d.data() }));
             window.actIdx = 0;
@@ -156,128 +139,4 @@
             const a = window.acts[window.actIdx];
             const card = document.createElement('div');
             card.className = 'card';
-            card.innerHTML = `<div class="swipe-indicator indicator-like">♥</div><div class="swipe-indicator indicator-dislike">✕</div><div class="card-img" style="background-image:url('${a.image}')"></div><div class="card-info"><h2>${a.title}</h2><p>${a.desc}</p></div>`;
-            container.appendChild(card);
-            
-            const h = new Hammer(card);
-            const likeInd = card.querySelector('.indicator-like');
-            const dislikeInd = card.querySelector('.indicator-dislike');
-
-            h.on('pan', e => {
-                card.style.transform = `translateX(${e.deltaX}px) rotate(${e.deltaX/20}deg)`;
-                if (e.deltaX > 0) {
-                    likeInd.style.opacity = Math.min(e.deltaX / 100, 0.8);
-                    dislikeInd.style.opacity = 0;
-                } else {
-                    dislikeInd.style.opacity = Math.min(Math.abs(e.deltaX) / 100, 0.8);
-                    likeInd.style.opacity = 0;
-                }
-            });
-
-            h.on('panend', async e => {
-                if(Math.abs(e.deltaX) > 100) {
-                    if(e.deltaX > 0) {
-                        const up = {}; up[`votes.${window.acts[window.actIdx].id}`] = increment(1);
-                        await updateDoc(doc(db, "rooms", window.currentRoom), up);
-                    }
-                    window.actIdx++; renderCard();
-                } else { 
-                    card.style.transform = ''; 
-                    likeInd.style.opacity = 0; 
-                    dislikeInd.style.opacity = 0; 
-                }
-            });
-        }
-
-        window.showLiveStats = () => {
-            document.getElementById('stats-modal').style.display = 'flex';
-            onSnapshot(doc(db, "rooms", window.currentRoom), async (ds) => {
-                const d = ds.data();
-                const total = d.finishedCount || 1;
-                document.getElementById('live-progress').innerText = `${d.finishedCount} / ${d.targetParticipants} klaar`;
-                const qs = await getDocs(collection(db, "activities"));
-                const acts = qs.docs.map(doc => ({id: doc.id, ...doc.data()}));
-                let html = "";
-                acts.forEach(a => {
-                    const v = d.votes[a.id] || 0;
-                    const p = Math.round((v / total) * 100);
-                    html += `<div class="stat-bar-container"><div class="stat-info"><span>${a.title}</span><span>${p}%</span></div><div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${p}%"></div></div></div>`;
-                });
-                document.getElementById('live-leaderboard').innerHTML = html;
-            });
-        };
-    </script>
-</head>
-<body>
-
-    <div id="start-screen" class="screen-content" style="text-align:center;">
-        <div class="logo-container">
-            <div class="logo-glow"></div>
-            <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" class="logo-img">
-        </div>
-        <button class="btn" onclick="document.getElementById('start-screen').classList.add('hidden'); document.getElementById('setup-screen').classList.remove('hidden');">Trip Maken</button>
-        <div style="margin: 8px; opacity: 0.3; font-size: 12px;">of</div>
-        <button class="btn" style="background:white; color:black;" onclick="document.getElementById('join-modal').style.display='flex'">Deelnemen met Code</button>
-        <div class="footer-link" onclick="document.getElementById('host-login-modal').style.display='flex'">Host Log-in</div>
-    </div>
-
-    <div id="setup-screen" class="hidden screen-content" style="text-align:center; width: 100%;">
-        <h3 style="color:var(--mint); margin-bottom: 20px;">Nieuwe Trip</h3>
-        <div style="width:280px; margin: 0 auto;">
-            <span class="label">Naam</span><input type="text" id="host-name" class="input-box">
-            <span class="label">E-mail</span><input type="email" id="host-email" class="input-box">
-            <span class="label">Personen</span><input type="number" id="target-p" class="input-box" value="4">
-            <span class="label">Deadline (minuten)</span><input type="number" id="deadline-input" class="input-box" value="60">
-            <button class="btn" onclick="createRoom()">Trip Maken</button>
-            <p onclick="goHome()" class="footer-link">Terug</p>
-        </div>
-    </div>
-
-    <div id="share-screen" class="hidden screen-content" style="text-align:center;">
-        <h3>Kamer Code:</h3>
-        <div style="font-size: 48px; font-weight: 800; color: var(--mint); margin: 20px 0;" id="display-code">----</div>
-        <button class="btn btn-wa" onclick="shareWA()">Deel via WhatsApp</button>
-        <button class="btn btn-outline" onclick="window.startSwiping()">Start nu zelf</button>
-    </div>
-
-    <div id="room-header" class="hidden">
-        <div class="header-slogan">STOP DECIDING. START DOING.</div>
-        <div class="header-info-row">
-            <div class="header-tag">ROOM: <span id="active-code-display"></span></div>
-            <div id="timer-display" style="font-weight:800; font-size:14px;">--:--</div>
-        </div>
-    </div>
-
-    <div id="swipe-screen" class="hidden"></div>
-
-    <div id="join-modal" class="modal-overlay">
-        <div class="modal-card">
-            <h3 style="color:var(--mint)">Join Trip</h3>
-            <input type="number" id="join-code-input" class="input-box" placeholder="Code">
-            <input type="text" id="join-name-input" class="input-box" placeholder="Jouw Naam">
-            <button class="btn" onclick="window.confirmJoin()">Start Flippen</button>
-            <p onclick="document.getElementById('join-modal').style.display='none'" class="footer-link">Terug</p>
-        </div>
-    </div>
-
-    <div id="host-login-modal" class="modal-overlay">
-        <div class="modal-card">
-            <h3 style="color:var(--mint)">Host Login</h3>
-            <input type="number" id="login-code" class="input-box" placeholder="Kamer Code">
-            <input type="email" id="login-email" class="input-box" placeholder="E-mail">
-            <button class="btn" onclick="verifyHost()">Check Status</button>
-            <p onclick="document.getElementById('host-login-modal').style.display='none'" class="footer-link">Terug</p>
-        </div>
-    </div>
-
-    <div id="stats-modal" class="modal-overlay">
-        <div class="modal-card">
-            <h3 style="color:var(--mint); margin:0;">Voortgang</h3>
-            <p id="live-progress" style="font-size:12px; opacity:0.6; margin-bottom:15px;"></p>
-            <div id="live-leaderboard" style="text-align:left;"></div>
-            <button class="btn btn-outline" style="margin-top:15px;" onclick="document.getElementById('stats-modal').style.display='none'">Sluiten</button>
-        </div>
-    </div>
-
-</body>
-</html>
+            card.innerHTML = `<div class="swipe-indicator indicator-like">♥</div><div class="swipe-indicator indicator-dislike">
