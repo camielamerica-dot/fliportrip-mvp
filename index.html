@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FlipOrTrip | v0.52 MVP</title>
+    <title>FlipOrTrip | v0.53</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
@@ -12,46 +12,37 @@
         body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; position: fixed; width: 100%; }
         .hidden { display: none !important; }
         
-        /* Logo & Glow */
         .logo-container { position: relative; margin-bottom: 2vh; }
         .logo-glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 120px; height: 120px; background: var(--mint); filter: blur(50px); opacity: 0.15; z-index: 0; }
         .logo-img { width: 140px; position: relative; z-index: 1; }
 
-        /* UI */
         .btn { background: var(--mint); color: var(--obsidian); padding: 16px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; width: 260px; margin-bottom: 10px; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
         .btn-wa { background: #25D366; color: white; }
         .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; }
-        .input-box { background: var(--card-bg); border: 1px solid rgba(0,255,194,0.3); padding: 12px; border-radius: 12px; color: white; text-align: center; margin-bottom: 10px; width: 100%; box-sizing: border-box; font-size: 14px; outline: none; }
+        .input-box { background: var(--card-bg); border: 1px solid rgba(0,255,194,0.3); padding: 12px; border-radius: 12px; color: white; text-align: center; margin-bottom: 10px; width: 100%; box-sizing: border-box; font-size: 14px; outline: none; display: block; }
         .select-box { background: var(--card-bg); border: 1px solid rgba(0,255,194,0.3); padding: 12px; border-radius: 12px; color: white; width: 100%; margin-bottom: 10px; font-size: 14px; outline: none; }
         .label { font-size: 9px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 4px; display: block; text-align: left; }
 
-        /* Header */
         #room-header { position: fixed; top: 0; width: 100%; height: 85px; display: flex; flex-direction: column; justify-content: center; align-items: center; background: var(--obsidian); z-index: 1000; border-bottom: 1px solid rgba(0,255,194,0.2); }
-        .header-slogan { color: var(--mint); font-size: 8px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
-        .header-info-row { display: flex; gap: 12px; align-items: center; }
-        .header-tag { font-size: 10px; background: rgba(0,255,194,0.1); border: 1px solid var(--mint); padding: 5px 12px; border-radius: 20px; font-weight: 800; }
-
-        /* Swipe UI */
+        
         #swipe-screen { position: relative; width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center; touch-action: none; }
         .card { width: 85vw; max-width: 320px; height: 58vh; background: var(--card-bg); border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); position: absolute; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .card-img { height: 50%; background-size: cover; background-position: center; pointer-events: none; }
-        .card-info { padding: 15px; text-align: left; pointer-events: none; }
-        .card-info h2 { margin: 0; font-size: 18px; }
+        .card-info { padding: 15px; text-align: left; }
+        .card-info h2 { font-size: 18px; margin: 0; }
         .card-info p { font-size: 13px; opacity: 0.7; margin: 8px 0; line-height: 1.4; }
-
-        /* Modals */
+        
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.97); backdrop-filter: blur(10px); display: none; align-items: center; justify-content: center; z-index: 99999; padding: 20px; box-sizing: border-box; }
         .modal-card { background: var(--card-bg); padding: 25px; border-radius: 25px; border: 1px solid var(--mint); width: 100%; max-width: 320px; text-align: center; max-height: 90vh; overflow-y: auto; }
         
-        .stat-bar-container { background: rgba(255,255,255,0.05); border-radius: 10px; margin-bottom: 8px; padding: 10px; }
-        .stat-info { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 5px; }
-        .stat-bar-bg { background: rgba(255,255,255,0.1); height: 5px; border-radius: 3px; }
-        .stat-bar-fill { background: var(--mint); height: 100%; border-radius: 3px; transition: width 0.5s; }
-
         .swipe-indicator { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 80px; opacity: 0; z-index: 10; pointer-events: none; }
         .indicator-like { color: var(--mint); background: radial-gradient(circle, rgba(0,255,194,0.15) 0%, transparent 70%); }
         .indicator-dislike { color: var(--red); background: radial-gradient(circle, rgba(255,75,75,0.15) 0%, transparent 70%); }
 
+        .stat-bar-container { background: rgba(255,255,255,0.05); border-radius: 10px; margin-bottom: 8px; padding: 10px; }
+        .stat-info { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 5px; }
+        .stat-bar-bg { background: rgba(255,255,255,0.1); height: 5px; border-radius: 3px; }
+        .stat-bar-fill { background: var(--mint); height: 100%; border-radius: 3px; transition: width 0.5s; }
         .footer-link { font-size: 11px; opacity: 0.5; margin-top: 15px; cursor: pointer; text-decoration: underline; }
     </style>
 
@@ -59,12 +50,14 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, increment, collection, getDocs, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0",
+        const firebaseConfig = {
+            apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0",
             authDomain: "fliportrip-valkenburg.firebaseapp.com",
             projectId: "fliportrip-valkenburg",
             storageBucket: "fliportrip-valkenburg.firebasestorage.app",
             messagingSenderId: "1050989330669",
-            appId: "1:1050989330669:web:6649f61cbec8ee3b3f8ce4" };
+            appId: "1:1050989330669:web:6649f61cbec8ee3b3f8ce4"
+        };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
@@ -72,32 +65,31 @@
         const SERVICE_ID = "service_pceg3i8"; 
         const TEMPLATE_ID = "template_tr613kg"; 
 
-        let timerInterval;
-
         window.goHome = () => location.reload();
 
-        // 1. KAMER MAKEN
         window.createRoom = async () => {
-            const setupData = {
+            const setup = {
                 hostName: document.getElementById('host-name').value,
                 hostEmail: document.getElementById('host-email').value.toLowerCase(),
                 targetParticipants: parseInt(document.getElementById('target-p').value),
                 tripType: document.getElementById('trip-type').value,
                 budget: document.getElementById('trip-budget').value,
-                maxTravel: document.getElementById('trip-distance').value,
+                tripDuration: document.getElementById('trip-duration').value,
                 deadline: Date.now() + (parseInt(document.getElementById('deadline-input').value) * 60000),
-                participants: [], votes: {}, finishedCount: 0, mailSent: false 
+                participants: [], votes: {}, finishedCount: 0, mailSent: false
             };
-            if(!setupData.hostName || !setupData.hostEmail) return alert("Vul alles in!");
+            if(!setup.hostName || !setup.hostEmail) return alert("Vul a.u.b. je naam en email in.");
+            
             const code = Math.floor(1000 + Math.random() * 9000).toString();
-            await setDoc(doc(db, "rooms", code), setupData);
-            window.currentRoom = code;
-            document.getElementById('setup-screen').classList.add('hidden');
-            document.getElementById('share-screen').classList.remove('hidden');
-            document.getElementById('display-code').innerText = code;
+            try {
+                await setDoc(doc(db, "rooms", code), setup);
+                window.currentRoom = code;
+                document.getElementById('setup-screen').classList.add('hidden');
+                document.getElementById('share-screen').classList.remove('hidden');
+                document.getElementById('display-code').innerText = code;
+            } catch(e) { alert("Fout bij aanmaken: " + e.message); }
         };
 
-        // 2. DEELNEMEN
         window.confirmJoin = async () => {
             const code = document.getElementById('join-code-input').value.trim();
             const userData = {
@@ -107,7 +99,8 @@
             };
             if(!code || !userData.name) return alert("Vul code en naam in!");
             const ds = await getDoc(doc(db, "rooms", code));
-            if(!ds.exists()) return alert("Code niet gevonden!");
+            if(!ds.exists()) return alert("Kamer niet gevonden!");
+            
             window.currentRoom = code;
             localStorage.setItem('flip_profile', JSON.stringify(userData));
             await updateDoc(doc(db, "rooms", code), { participants: arrayUnion(userData) });
@@ -115,24 +108,22 @@
             window.startSwiping();
         };
 
-        // 3. START SWIPING
         window.startSwiping = async () => {
             document.querySelectorAll('.screen-content').forEach(s => s.classList.add('hidden'));
             document.getElementById('room-header').classList.remove('hidden');
             document.getElementById('swipe-screen').classList.remove('hidden');
             document.getElementById('active-code-display').innerText = window.currentRoom;
-            
             const qs = await getDocs(collection(db, "activities"));
             window.acts = qs.docs.map(d => ({ id: d.id, ...d.data() }));
             window.actIdx = 0;
             renderCard();
         };
 
- function renderCard() {
+        function renderCard() {
             const container = document.getElementById('swipe-screen');
             container.innerHTML = "";
             if(window.actIdx >= window.acts.length) {
-                container.innerHTML = "<div style='text-align:center'><h2 style='color:var(--mint)'>GEFLIPT!</h2><p>Uitslag volgt via de host.</p><button class='btn btn-outline' onclick='goHome()'>MENU</button></div>";
+                container.innerHTML = "<div style='text-align:center'><h2 style='color:var(--mint)'>GEFLIPT!</h2><p>De uitslag wordt berekend.</p><button class='btn btn-outline' onclick='goHome()'>MENU</button></div>";
                 updateDoc(doc(db, "rooms", window.currentRoom), { finishedCount: increment(1) });
                 return;
             }
@@ -144,11 +135,10 @@
             
             const h = new Hammer(card);
             const lI = card.querySelector('.indicator-like'), dI = card.querySelector('.indicator-dislike');
-
             h.on('pan', e => {
                 card.style.transform = `translateX(${e.deltaX}px) rotate(${e.deltaX/20}deg)`;
-                if (e.deltaX > 0) { lI.style.opacity = Math.min(e.deltaX / 100, 0.8); dI.style.opacity = 0; } 
-                else { dI.style.opacity = Math.min(Math.abs(e.deltaX) / 100, 0.8); lI.style.opacity = 0; }
+                if (e.deltaX > 0) { lI.style.opacity = Math.min(e.deltaX/100, 0.8); dI.style.opacity = 0; }
+                else { dI.style.opacity = Math.min(Math.abs(e.deltaX)/100, 0.8); lI.style.opacity = 0; }
             });
 
             h.on('panend', async e => {
@@ -157,7 +147,6 @@
                         const up = {}; up[`votes.${window.acts[window.actIdx].id}`] = increment(1);
                         await updateDoc(doc(db, "rooms", window.currentRoom), up);
                         
-                        // DASHBOARD A ANALYTICS
                         const prof = JSON.parse(localStorage.getItem('flip_profile') || '{}');
                         const rd = (await getDoc(doc(db, "rooms", window.currentRoom))).data();
                         await addDoc(collection(db, "global_analytics"), {
@@ -171,10 +160,10 @@
             });
         }
 
-        // 4. STATISTIEKEN & MAIL
         window.showLiveStats = () => {
             document.getElementById('stats-modal').style.display = 'flex';
             onSnapshot(doc(db, "rooms", window.currentRoom), async (ds) => {
+                if(!ds.exists()) return;
                 const d = ds.data(), total = d.finishedCount || 0;
                 document.getElementById('live-progress').innerText = `${total} / ${d.targetParticipants} klaar`;
                 const qs = await getDocs(collection(db, "activities"));
@@ -182,21 +171,24 @@
                 
                 let html = "";
                 acts.forEach((a, i) => {
-                    const v = d.votes[a.id] || 0, p = total > 0 ? Math.round((v / total) * 100) : 0;
+                    const v = d.votes[a.id] || 0, p = total > 0 ? Math.round((v/total)*100) : 0;
                     html += `<div class="stat-bar-container" style="opacity:${i==0?1:0.6}"><div class="stat-info"><span>${i==0?'🏆':''} ${a.title}</span><span>${p}%</span></div><div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${p}%"></div></div></div>`;
                 });
 
                 if(total >= d.targetParticipants && acts.length > 0) {
                     const winner = acts[0].title;
                     if(!d.mailSent) {
-                        emailjs.send(SERVICE_ID, TEMPLATE_ID, { to_name: d.hostName, to_email: d.hostEmail, winner: winner, room_code: window.currentRoom });
-                        await updateDoc(doc(db, "rooms", window.currentRoom), { mailSent: true });
+                        emailjs.send(SERVICE_ID, TEMPLATE_ID, { 
+                            to_name: d.hostName, 
+                            to_email: d.hostEmail, 
+                            winner: winner, 
+                            room_code: window.currentRoom 
+                        }).then(() => updateDoc(doc(db, "rooms", window.currentRoom), { mailSent: true }));
                     }
                     html += `<div style="background:rgba(0,255,194,0.1); padding:15px; border-radius:15px; margin-top:20px; text-align:left; border:1px solid var(--mint);">
-                        <h4 style="margin:0; color:var(--mint);">✨ JULLIE PERFECTE DAG</h4>
-                        <p style="font-size:12px; margin:10px 0;"><b>Plan:</b> ${winner}</p>
-                        <p style="font-size:11px; opacity:0.8;">De host heeft de details in de mail. Tip: Reserveer alvast een tafel bij de Grendelpoort!</p>
-                        <button class="btn" style="width:100%; font-size:11px; margin-top:10px;">Nu Reserveren →</button>
+                        <h4 style="margin:0; color:var(--mint);">✨ JULLIE UITSLAG</h4>
+                        <p style="font-size:12px; margin:10px 0;"><b>Winnaar:</b> ${winner}</p>
+                        <p style="font-size:11px; opacity:0.8;">De host heeft een mail ontvangen met de resultaten en tips voor de omgeving!</p>
                     </div>`;
                 }
                 document.getElementById('live-leaderboard').innerHTML = html;
@@ -208,7 +200,7 @@
             const ds = await getDoc(doc(db, "rooms", code));
             if(ds.exists() && ds.data().hostEmail === email) {
                 window.currentRoom = code; document.getElementById('host-login-modal').style.display = 'none'; window.showLiveStats();
-            } else alert("Onjuist!");
+            } else alert("Gegevens onjuist.");
         };
     </script>
 </head>
@@ -222,18 +214,14 @@
     </div>
 
     <div id="setup-screen" class="hidden screen-content" style="text-align:center; width: 90%; max-height: 90vh; overflow-y: auto; padding: 20px;">
-        <h3 style="color:var(--mint)">Configureer Trip</h3>
-        <span class="label">Naam</span><input type="text" id="host-name" class="input-box">
+        <h3 style="color:var(--mint)">Nieuwe Trip</h3>
+        <span class="label">Host Naam</span><input type="text" id="host-name" class="input-box">
         <span class="label">Email</span><input type="email" id="host-email" class="input-box">
         <div style="display:flex; gap:10px;"><div style="flex:1;"><span class="label">Personen</span><input type="number" id="target-p" class="input-box" value="4"></div>
-        <div style="flex:1;"><span class="label">Deadline (min)</span><input type="number" id="deadline-input" class="input-box" value="60"></div></div>
+        <div style="flex:1;"><span class="label">Minuten</span><input type="number" id="deadline-input" class="input-box" value="60"></div></div>
         <span class="label">Type Trip</span><select id="trip-type" class="select-box"><option value="actief">Actief</option><option value="relax">Relax</option><option value="party">Party</option></select>
-<span class="label">Soort Trip</span>
-<select id="trip-duration" class="select-box">
-    <option value="dagje-uit">Een dagje uit</option>
-    <option value="meerdaags">Meerdaagse inspiratie</option>
-    <option value="activiteit">Alleen een activiteit</option>
-</select>        <span class="label">Budget</span><select id="trip-budget" class="select-box"><option value="budget">Budget</option><option value="luxury">Luxury</option></select>
+        <span class="label">Soort Trip</span><select id="trip-duration" class="select-box"><option value="dagje-uit">Dagje uit</option><option value="meerdaags">Meerdaagse inspiratie</option><option value="activiteit">Alleen activiteit</option></select>
+        <span class="label">Budget</span><select id="trip-budget" class="select-box"><option value="budget">Budget</option><option value="luxury">Luxury</option></select>
         <button class="btn" onclick="createRoom()">Trip Maken</button>
     </div>
 
@@ -251,9 +239,9 @@
     <div id="room-header" class="hidden"><div class="header-tag">ROOM: <span id="active-code-display" onclick="window.showLiveStats()"></span> 📊</div></div>
     <div id="swipe-screen" class="hidden"></div>
     <div id="share-screen" class="hidden screen-content" style="text-align:center;">
-        <h3>Code: <span id="display-code" style="color:var(--mint)"></span></h3>
-        <button class="btn btn-wa" onclick="window.open('https://api.whatsapp.com/send?text=Code: '+window.currentRoom)">Deel WhatsApp</button>
-        <button class="btn btn-outline" onclick="window.startSwiping()">Start Nu</button>
+        <h3>Kamer Code: <span id="display-code" style="color:var(--mint)"></span></h3>
+        <button class="btn btn-wa" onclick="window.open('https://api.whatsapp.com/send?text=Doe mee met flippen! Code: '+window.currentRoom)">Deel WhatsApp</button>
+        <button class="btn btn-outline" onclick="window.startSwiping()">Zelf Starten</button>
     </div>
 
     <div id="stats-modal" class="modal-overlay">
