@@ -156,11 +156,18 @@
         function renderCard() {
             const container = document.getElementById('swipe-screen');
             container.innerHTML = "";
-            if(window.actIdx >= window.acts.length) {
-                container.innerHTML = "<div style='text-align:center'><h2 style='color:var(--mint)'>GEFLIPT!</h2><p>Uitslag volgt via de host.</p><button class='btn btn-outline' onclick='goHome()'>MENU</button></div>";
-                updateDoc(doc(db, "rooms", window.currentRoom), { finishedCount: increment(1) });
-                checkAndSendFinalMail(); // Check of mail gestuurd moet worden
-                return;
+           if(window.actIdx >= window.acts.length) {
+    container.innerHTML = "<div style='text-align:center'><h2 style='color:var(--mint)'>GEFLIPT!</h2><p>Uitslag volgt via de host.</p><button class='btn btn-outline' onclick='goHome()'>MENU</button></div>";
+    
+    // Update alleen de teller
+    updateDoc(doc(db, "rooms", window.currentRoom), { 
+        finishedCount: increment(1) 
+    }).then(() => {
+        // Pas NA de update controleren we of de mail gestuurd moet worden
+        checkAndSendFinalMail(); 
+    });
+    return;
+}
             }
             const a = window.acts[window.actIdx];
             const card = document.createElement('div');
@@ -238,18 +245,29 @@ window.showLiveStats = async () => {
     });
 };
 
-     async function checkAndSendFinalMail() {
+    async function checkAndSendFinalMail() {
     const rRef = doc(db, "rooms", window.currentRoom);
+    
+    // We halen de allernieuwste data op uit de database om dubbelcheck te doen
     const snap = await getDoc(rRef);
+    if (!snap.exists()) return;
     const d = snap.data();
 
-    if (!d || d.mailSent) return; // Stop als mail al is gestuurd
+    // STOP CONDITIES:
+    // 1. Mail is al verstuurd
+    if (d.mailSent === true) return;
 
-    const isDeadlineVoorbij = Date.now() >= d.deadline;
+    // 2. Is het moment echt daar? 
+    // (Iedereen klaar OF deadline voorbij)
     const iedereenKlaar = d.finishedCount >= d.targetParticipants;
+    const deadlineVoorbij = Date.now() >= d.deadline;
 
-    // Alleen sturen als aan één van de twee voorwaarden is voldaan
-    if (isDeadlineVoorbij || iedereenKlaar) {
+    if (iedereenKlaar || deadlineVoorbij) {
+        // DIRECT de mailSent op true zetten in Firebase (Locks de kamer)
+        // Dit voorkomt dat andere gebruikers die 1 seconde later klaar zijn ook sturen
+        await updateDoc(rRef, { mailSent: true });
+
+        // Nu pas de data voor de mail verzamelen
         const aqs = await getDocs(collection(db, "activities"));
         const actNames = {};
         aqs.forEach(doc => actNames[doc.id] = doc.data().title);
@@ -263,21 +281,20 @@ window.showLiveStats = async () => {
                 return `${i+1}. ${actNames[id]} (${count} stemmen)`;
             }).join("\n");
 
-            // We zetten de vlag in de database EERST op true om dubbele mails bij gelijktijdig finishen te voorkomen
-            await updateDoc(rRef, { mailSent: true });
-
             emailjs.send(SERVICE_ID, TEMPLATE_ID, {
                 to_name: d.hostName,
                 to_email: d.hostEmail,
                 room_code: window.currentRoom,
                 top_matches: top3String
             }).then(() => {
-                console.log("Eindrapportage verzonden naar host.");
+                console.log("Success: Eindrapportage verzonden.");
             }).catch(err => {
-                // Als verzenden mislukt, zetten we de vlag terug zodat het opnieuw geprobeerd kan worden
-                updateDoc(rRef, { mailSent: false });
+                console.error("EmailJS Error:", err);
+                // Bij fout eventueel mailSent weer op false zetten
             });
         }
+    } else {
+        console.log("Nog niet iedereen is klaar, we wachten nog met de mail.");
     }
 }
     </script>
