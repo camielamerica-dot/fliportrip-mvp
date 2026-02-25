@@ -16,19 +16,16 @@
         .screen { display: none; height: 100vh; padding: 25px; box-sizing: border-box; flex-direction: column; }
         .screen.active { display: flex; }
 
-        /* UI Elements */
         .logo { width: 140px; margin: 40px auto; display: block; }
         .card-bg { background: var(--card-bg); padding: 25px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.05); }
         .btn-main { background: var(--mint); color: var(--obsidian); border: none; padding: 20px; border-radius: 50px; font-weight: 800; width: 100%; cursor: pointer; text-transform: uppercase; font-size: 14px; margin-top: 15px; }
         input { background: #0B0E14; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 18px; border-radius: 20px; width: 100%; box-sizing: border-box; margin-bottom: 12px; font-family: inherit; text-align: center; font-size: 16px; }
 
-        /* Swipe Deck */
         .deck { position: relative; flex: 1; margin: 20px 0; perspective: 1000px; }
         .swipe-card { position: absolute; width: 100%; height: 100%; border-radius: 35px; overflow: hidden; background: var(--card-bg); box-shadow: 0 15px 40px rgba(0,0,0,0.6); transform-origin: 50% 100%; touch-action: none; }
         .swipe-card img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
         .card-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 35px; background: linear-gradient(transparent, rgba(0,0,0,1)); }
         
-        /* Overlays */
         .match-overlay { position: fixed; inset: 0; background: rgba(0,255,194,0.95); z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; color: var(--obsidian); text-align: center; padding: 40px; }
 
         .controls { display: flex; justify-content: center; gap: 25px; padding-bottom: 30px; }
@@ -152,10 +149,11 @@
 
         async function handleAction(a, dir) {
             const card = document.querySelector('.swipe-card');
+            if(!card) return;
             card.style.transition = '0.5s';
             card.style.transform = dir === 'right' ? 'translateX(200%) rotate(30deg)' : 'translateX(-200%) rotate(-30deg)';
             
-            // ANALYTICS VOOR DASHBOARD (Nieuw in v0.48+)
+            // ANALYTICS VOOR DASHBOARD (Geruisloos)
             addDoc(collection(db, "global_analytics"), {
                 activityTitle: a.title,
                 action: dir === 'right' ? 'like' : 'dislike',
