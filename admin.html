@@ -2,31 +2,30 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>FlipOrTrip | Enterprise CMS v5.0</title>
+    <title>FlipOrTrip | Business Suite v5.2</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBGms1-wiv_5tq1ehzhhJOjM905WnFMexo&libraries=places"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     <style>
         :root { --mint: #00FFC2; --obsidian: #0B0E14; --card: #161B22; --text: #8899A6; --red: #FF4B4B; }
         body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
-        
         .sidebar { width: 280px; background: var(--card); padding: 25px; border-right: 1px solid rgba(0,255,194,0.1); display: flex; flex-direction: column; gap: 10px; }
         .nav-tag { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 800; color: var(--text); border: 1px solid transparent; }
         .nav-tag.active { background: rgba(0,255,194,0.1); color: var(--mint); border-color: var(--mint); }
-        
         .main { flex: 1; padding: 40px; overflow-y: auto; }
         .tab { display: none; }
         .tab.active { display: block; }
-
         .card { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; }
-        input, select, textarea { background: #0B0E14; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 12px; border-radius: 10px; width: 100%; margin-bottom: 10px; }
-        
+        input, select, textarea { background: #0B0E14; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 12px; border-radius: 10px; width: 100%; margin-bottom: 10px; font-family: inherit; }
         .btn-mint { background: var(--mint); color: #000; border: none; padding: 12px; border-radius: 50px; font-weight: 800; cursor: pointer; width: 100%; text-transform: uppercase; margin-top: 5px; }
         .btn-outline { background: transparent; border: 1px solid var(--text); color: var(--text); padding: 8px; border-radius: 10px; cursor: pointer; font-size: 11px; }
-
         .item-card { display: flex; align-items: center; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 15px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.05); }
         .thumb { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; margin-right: 15px; background: #000; }
-        
         #login-gate { position: fixed; inset: 0; background: var(--obsidian); z-index: 100000; display: flex; align-items: center; justify-content: center; }
+        .pac-container { background-color: var(--card); border-radius: 10px; border: 1px solid var(--mint); font-family: inherit; }
+        .pac-item { color: white; border-top: 1px solid rgba(255,255,255,0.1); padding: 8px; }
+        .pac-item:hover { background-color: rgba(0,255,194,0.05); }
+        .pac-item-query { color: var(--mint); }
     </style>
 </head>
 <body>
@@ -41,13 +40,10 @@
 
 <div class="sidebar">
     <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="130" style="margin-bottom:30px;">
-    
     <div class="nav-tag active" onclick="switchTab('dash')">📊 Analytics Dashboard</div>
     <div class="nav-tag" onclick="switchTab('cat')">🎡 Catalogus Beheer</div>
     <div class="nav-tag" onclick="switchTab('settings')">⚙️ Systeem Instellingen</div>
-    
     <hr style="opacity: 0.1; width: 100%; margin: 10px 0;">
-    
     <label style="font-size: 10px; color: var(--mint); font-weight: 800;">FILTER WEERGAVE</label>
     <select id="global-dest-filter" onchange="renderAll()"></select>
 </div>
@@ -55,7 +51,7 @@
 <div class="main">
     <div id="tab-dash" class="tab active">
         <h2>Dashboard</h2>
-        <div id="dash-content">Kies een bestemming om data te zien.</div>
+        <div id="dash-content">Selecteer een bestemming in de sidebar.</div>
     </div>
 
     <div id="tab-cat" class="tab">
@@ -67,40 +63,36 @@
                     <input type="text" id="i-title" placeholder="Naam activiteit">
                     <select id="i-dest"></select>
                     <select id="i-cat"></select>
-                    <input type="text" id="i-loc" placeholder="Adres / Locatie">
-                    <textarea id="i-desc" placeholder="Korte beschrijving voor op de kaart" rows="3"></textarea>
-                    <input type="text" id="i-img" placeholder="Afbeelding URL" oninput="document.getElementById('p-img').src=this.value">
-                    <img id="p-img" src="" style="width:100%; border-radius:10px; margin-bottom:10px; min-height:100px; background:#000;">
+                    <input type="text" id="i-loc" placeholder="Zoek adres via Google...">
+                    <textarea id="i-desc" placeholder="Beschrijving voor kaart" rows="3"></textarea>
+                    <input type="text" id="i-img" placeholder="Afbeelding URL">
                     <button class="btn-mint" id="btn-save" onclick="saveItem()">Item Opslaan</button>
                     <button class="btn-outline" style="width:100%; margin-top:10px;" onclick="resetForm()">Annuleren</button>
                 </div>
-
                 <div class="card" style="border-style: dashed; border-color: var(--mint);">
                     <h3>Bulk Import (CSV)</h3>
-                    <p style="font-size: 11px; opacity: 0.7;">Upload een CSV met kolommen: <br><b>title; city; category; location; description; image</b></p>
-                    <input type="file" id="csv-file" accept=".csv" style="font-size: 11px;">
-                    <button class="btn-mint" style="background:#fff" onclick="handleCSV()">Upload Bestand</button>
+                    <input type="file" id="csv-file" accept=".csv">
+                    <button class="btn-mint" style="background:#fff" onclick="handleCSV()">Upload CSV</button>
                 </div>
             </div>
-
             <div id="cat-list"></div>
         </div>
     </div>
 
     <div id="tab-settings" class="tab">
-        <h2>Systeem Instellingen</h2>
+        <h2>Instellingen</h2>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
             <div class="card">
                 <h3>Bestemmingen</h3>
-                <div id="settings-dest-list" style="margin-bottom:15px;"></div>
-                <input type="text" id="new-dest-name" placeholder="Nieuwe stad (bijv. Amsterdam)">
-                <button class="btn-mint" onclick="addSetting('destinations', 'new-dest-name')">Stad Toevoegen</button>
+                <div id="settings-dest-list"></div>
+                <input type="text" id="new-dest-name" placeholder="Nieuwe stad">
+                <button class="btn-mint" onclick="addSetting('destinations', 'new-dest-name')">Toevoegen</button>
             </div>
             <div class="card">
                 <h3>Categorieën</h3>
-                <div id="settings-cat-list" style="margin-bottom:15px;"></div>
-                <input type="text" id="new-cat-name" placeholder="Nieuwe categorie (bijv. Wellness)">
-                <button class="btn-mint" onclick="addSetting('categories', 'new-cat-name')">Categorie Toevoegen</button>
+                <div id="settings-cat-list"></div>
+                <input type="text" id="new-cat-name" placeholder="Nieuwe categorie">
+                <button class="btn-mint" onclick="addSetting('categories', 'new-cat-name')">Toevoegen</button>
             </div>
         </div>
     </div>
@@ -108,7 +100,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const config = { apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0", authDomain: "fliportrip-valkenburg.firebaseapp.com", projectId: "fliportrip-valkenburg" };
     const app = initializeApp(config);
@@ -119,7 +111,7 @@
     window.doAuth = () => { if(document.getElementById('pw').value === 'Flip2026') { document.getElementById('login-gate').style.display='none'; init(); } };
 
     function init() {
-        // Luister naar instellingen
+        initAutocomplete();
         onSnapshot(collection(db, "settings"), s => {
             const data = s.docs.map(d => ({id: d.id, ...d.data()}));
             destinations = data.filter(x => x.type === 'destinations');
@@ -127,25 +119,32 @@
             updateDropdowns();
             renderSettings();
         });
-
-        // Luister naar activiteiten
         onSnapshot(collection(db, "activities"), s => {
             activities = s.docs.map(d => ({id:d.id, ...d.data()}));
             renderAll();
         });
     }
 
-    window.switchTab = (t) => {
-        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-        document.querySelectorAll('.nav-tag').forEach(x => x.classList.remove('active'));
-        event.target.classList.add('active');
-        document.getElementById('tab-'+t).classList.add('active');
-    };
+    function initAutocomplete() {
+        const input = document.getElementById('i-loc');
+        const autocomplete = new google.maps.places.Autocomplete(input);
+        autocomplete.addListener('place_changed', () => {
+            const place = autocomplete.getPlace();
+            if (!place.geometry) return;
+            const cityComp = place.address_components.find(c => c.types.includes("locality"));
+            if (cityComp) {
+                const cityName = cityComp.long_name;
+                const select = document.getElementById('i-dest');
+                for (let i = 0; i < select.options.length; i++) {
+                    if (select.options[i].value === cityName) { select.selectedIndex = i; break; }
+                }
+            }
+        });
+    }
 
     function updateDropdowns() {
         const destHtml = destinations.map(d => `<option value="${d.name}">${d.name}</option>`).join('');
         const catHtml = categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
-        
         document.getElementById('global-dest-filter').innerHTML = destHtml;
         document.getElementById('i-dest').innerHTML = destHtml;
         document.getElementById('i-cat').innerHTML = catHtml;
@@ -154,20 +153,15 @@
     window.renderAll = () => {
         const currentDest = document.getElementById('global-dest-filter').value;
         const filtered = activities.filter(a => a.city === currentDest);
-        
         document.getElementById('cat-list').innerHTML = filtered.map(i => `
             <div class="item-card">
                 <img src="${i.image}" class="thumb">
-                <div style="flex:1">
-                    <strong>${i.title}</strong><br>
-                    <small style="color:var(--mint)">${i.category}</small> | <small>${i.location}</small>
-                </div>
-                <button class="btn-outline" onclick="editItem('${i.id}')" style="margin-right:5px">BEWERKEN</button>
-                <button class="btn-outline" onclick="deleteItem('${i.id}')" style="color:var(--red); border-color:var(--red)">WIS</button>
+                <div style="flex:1"><strong>${i.title}</strong><br><small>${i.location}</small></div>
+                <button class="btn-outline" onclick="editItem('${i.id}')">EDIT</button>
+                <button class="btn-outline" onclick="deleteItem('${i.id}')" style="color:red">WIS</button>
             </div>`).join('');
     };
 
-    // --- CRUD FUNCTIES ---
     window.saveItem = async () => {
         const id = document.getElementById('edit-id').value;
         const data = {
@@ -178,9 +172,7 @@
             desc: document.getElementById('i-desc').value,
             image: document.getElementById('i-img').value
         };
-
-        if(id) await updateDoc(doc(db, "activities", id), data);
-        else await addDoc(collection(db, "activities"), data);
+        id ? await updateDoc(doc(db, "activities", id), data) : await addDoc(collection(db, "activities"), data);
         resetForm();
     };
 
@@ -193,39 +185,29 @@
         document.getElementById('i-loc').value = i.location;
         document.getElementById('i-desc').value = i.desc || '';
         document.getElementById('i-img').value = i.image;
-        document.getElementById('p-img').src = i.image;
-        document.getElementById('btn-save').innerText = "Update Activiteit";
-        document.getElementById('form-title').innerText = "Activiteit Bewerken";
+        document.getElementById('btn-save').innerText = "Update";
     };
 
     window.resetForm = () => {
         document.getElementById('edit-id').value = '';
         document.querySelectorAll('#tab-cat input, #tab-cat textarea').forEach(x => x.value = '');
-        document.getElementById('p-img').src = '';
         document.getElementById('btn-save').innerText = "Item Opslaan";
-        document.getElementById('form-title').innerText = "Nieuwe Activiteit";
     };
 
-    window.deleteItem = async (id) => { if(confirm('Zeker weten?')) await deleteDoc(doc(db, "activities", id)); };
-
-    // --- SETTINGS FUNCTIES ---
+    window.deleteItem = async (id) => { if(confirm('Wissen?')) await deleteDoc(doc(db, "activities", id)); };
     window.addSetting = async (type, inputId) => {
         const val = document.getElementById(inputId).value;
         if(val) await addDoc(collection(db, "settings"), { type, name: val });
         document.getElementById(inputId).value = '';
     };
-
     function renderSettings() {
-        document.getElementById('settings-dest-list').innerHTML = destinations.map(d => `<div class="item-card">${d.name} <button onclick="deleteSetting('${d.id}')" style="margin-left:auto; background:none; border:none; color:red; cursor:pointer;">✕</button></div>`).join('');
-        document.getElementById('settings-cat-list').innerHTML = categories.map(c => `<div class="item-card">${c.name} <button onclick="deleteSetting('${c.id}')" style="margin-left:auto; background:none; border:none; color:red; cursor:pointer;">✕</button></div>`).join('');
+        document.getElementById('settings-dest-list').innerHTML = destinations.map(d => `<div class="item-card">${d.name} <button onclick="deleteSetting('${d.id}')">✕</button></div>`).join('');
+        document.getElementById('settings-cat-list').innerHTML = categories.map(c => `<div class="item-card">${c.name} <button onclick="deleteSetting('${c.id}')">✕</button></div>`).join('');
     }
     window.deleteSetting = async (id) => { await deleteDoc(doc(db, "settings", id)); };
-
-    // --- CSV IMPORT ---
+    
     window.handleCSV = () => {
         const file = document.getElementById('csv-file').files[0];
-        if(!file) return alert("Kies eerst een bestand");
-        
         const reader = new FileReader();
         reader.onload = async (e) => {
             const rows = e.target.result.split('\n');
@@ -233,18 +215,19 @@
                 const cols = rows[i].split(';');
                 if(cols.length >= 5) {
                     await addDoc(collection(db, "activities"), {
-                        title: cols[0].trim(),
-                        city: cols[1].trim(),
-                        category: cols[2].trim(),
-                        location: cols[3].trim(),
-                        desc: cols[4].trim(),
-                        image: cols[5] ? cols[5].trim() : ""
+                        title: cols[0].trim(), city: cols[1].trim(), category: cols[2].trim(),
+                        location: cols[3].trim(), desc: cols[4].trim(), image: cols[5] ? cols[5].trim() : ""
                     });
                 }
             }
-            alert("Import succesvol!");
+            alert("Klaar!");
         };
         reader.readAsText(file);
+    };
+
+    window.switchTab = (t) => {
+        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        document.getElementById('tab-'+t).classList.add('active');
     };
 </script>
 </body>
