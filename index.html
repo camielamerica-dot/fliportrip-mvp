@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FlipOrTrip | v0.52 Full Analytics</title>
+    <title>FlipOrTrip | Multi-Destination</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
@@ -38,11 +38,9 @@
         .card-info h2 { margin: 0; font-size: 18px; }
         .card-info p { font-size: 13px; opacity: 0.7; margin: 8px 0; line-height: 1.4; }
 
-        /* Modals */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.97); backdrop-filter: blur(10px); display: none; align-items: center; justify-content: center; z-index: 99999; padding: 20px; box-sizing: border-box; }
         .modal-card { background: var(--card-bg); padding: 25px; border-radius: 25px; border: 1px solid var(--mint); width: 100%; max-width: 320px; text-align: center; }
         
-        /* Stats */
         .stat-bar-container { background: rgba(255,255,255,0.05); border-radius: 10px; margin-bottom: 8px; padding: 10px; }
         .stat-info { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 5px; }
         .stat-bar-bg { background: rgba(255,255,255,0.1); height: 5px; border-radius: 3px; }
@@ -56,7 +54,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, increment, collection, getDocs, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, increment, collection, getDocs, onSnapshot, addDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { 
             apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0",
@@ -77,6 +75,7 @@
         window.currentRoom = null;
         window.userAge = null;
         window.userGender = null;
+        window.roomDestination = "Valkenburg"; // Default
 
         window.goHome = () => location.reload();
 
@@ -84,6 +83,7 @@
             try {
                 const name = document.getElementById('host-name').value;
                 const email = document.getElementById('host-email').value.toLowerCase();
+                const dest = document.getElementById('host-dest').value; // NIEUW
                 const target = document.getElementById('target-p').value;
                 const groupType = document.getElementById('group-type').value;
                 const min = document.getElementById('deadline-input').value || 60;
@@ -93,12 +93,13 @@
                 const deadline = Date.now() + (parseInt(min) * 60000); 
 
                 await setDoc(doc(db, "rooms", code), { 
-                    hostName: name, hostEmail: email, targetParticipants: parseInt(target), 
+                    hostName: name, hostEmail: email, destination: dest, targetParticipants: parseInt(target), 
                     groupType, deadline, participants: [name], votes: {}, finishedCount: 0, 
                     mailSent: false, createdAt: new Date()
                 });
                 
                 window.currentRoom = code;
+                window.roomDestination = dest;
                 document.getElementById('setup-screen').classList.add('hidden');
                 document.getElementById('share-screen').classList.remove('hidden');
                 document.getElementById('display-code').innerText = code;
@@ -106,23 +107,8 @@
         };
 
         window.shareWA = () => {
-            const msg = `Samen flippen voor onze trip! 🌴 Code: *${window.currentRoom}*\nDoe mee op: ${window.location.origin}`;
+            const msg = `Samen flippen voor onze trip naar ${window.roomDestination}! 🌴 Code: *${window.currentRoom}*\nDoe mee op: ${window.location.origin}`;
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
-        };
-
-        window.verifyHost = async () => {
-            const code = document.getElementById('login-code').value.trim();
-            const email = document.getElementById('login-email').value.trim().toLowerCase();
-            const ds = await getDoc(doc(db, "rooms", code));
-            if(ds.exists() && ds.data().hostEmail.toLowerCase() === email) {
-                window.currentRoom = code;
-                document.getElementById('host-login-modal').style.display = 'none';
-                window.showLiveStats();
-            } else { alert("Gegevens komen niet overeen."); }
-        };
-
-        window.triggerProfileCheck = () => {
-            document.getElementById('profile-modal').style.display = 'flex';
         };
 
         window.confirmJoin = async () => {
@@ -133,6 +119,7 @@
             if(!ds.exists()) return alert("Code niet gevonden!");
             
             window.currentRoom = code;
+            window.roomDestination = ds.data().destination || "Valkenburg"; // Haal bestemming op
             document.getElementById('join-modal').style.display = 'none';
             window.triggerProfileCheck();
         };
@@ -166,8 +153,17 @@
                 if(diff <= 0) { clearInterval(timerInterval); checkAndSendFinalMail(); }
             }, 1000);
 
-            const qs = await getDocs(collection(db, "activities"));
+            // FILTER: Alleen activiteiten van de gekozen stad
+            const q = query(collection(db, "activities"), where("city", "==", window.roomDestination));
+            const qs = await getDocs(q);
+            
             window.acts = qs.docs.map(d => ({ id: d.id, ...d.data() }));
+            
+            if(window.acts.length === 0) {
+                alert("Geen activiteiten gevonden voor deze bestemming!");
+                return goHome();
+            }
+            
             window.actIdx = 0;
             renderCard();
         };
@@ -180,7 +176,7 @@
             const container = document.getElementById('swipe-screen');
             container.innerHTML = "";
             if(window.actIdx >= window.acts.length) {
-                container.innerHTML = `<div style='text-align:center; padding: 20px;'><h1 style='color:var(--mint); font-size: 32px;'>Lekker bezig! 🔥</h1><p style='line-height:1.5; opacity:0.8;'>Je hebt alle activiteiten beoordeeld.</p><div style="background:rgba(255,255,255,0.05); padding:20px; border-radius:20px; margin: 20px 0;"><p style="font-size:13px;">We wachten nu op de rest van de groep. De host ontvangt de <b>Top 3</b> zodra iedereen klaar is!</p></div><button class='btn btn-outline' onclick='goHome()'>TERUG NAAR MENU</button></div>`;
+                container.innerHTML = `<div style='text-align:center; padding: 20px;'><h1 style='color:var(--mint); font-size: 32px;'>Lekker bezig! 🔥</h1><p style='line-height:1.5; opacity:0.8;'>Je hebt alle activiteiten in ${window.roomDestination} beoordeeld.</p><button class='btn btn-outline' onclick='goHome()'>TERUG NAAR MENU</button></div>`;
                 updateDoc(doc(db, "rooms", window.currentRoom), { finishedCount: increment(1) }).then(() => {
                     checkAndSendFinalMail(); 
                 });
@@ -189,7 +185,7 @@
             const a = window.acts[window.actIdx];
             const card = document.createElement('div');
             card.className = 'card';
-            card.innerHTML = `<div class="swipe-indicator indicator-like">♥</div><div class="swipe-indicator indicator-dislike">✕</div><div class="card-img" style="background-image:url('${a.image}')"></div><div class="card-info"><h2>${a.title}</h2><p>${a.desc}</p></div>`;
+            card.innerHTML = `<div class="swipe-indicator indicator-like">♥</div><div class="swipe-indicator indicator-dislike">✕</div><div class="card-img" style="background-image:url('${a.image}')"></div><div class="card-info"><h2>${a.title}</h2><p>${a.location || ''}</p></div>`;
             container.appendChild(card);
             
             const h = new Hammer(card);
@@ -209,6 +205,7 @@
                         ageGroup: window.userAge,
                         gender: window.userGender,
                         roomCode: window.currentRoom,
+                        destination: window.roomDestination,
                         timestamp: new Date() 
                     });
                     if(action === 'like') {
@@ -220,44 +217,43 @@
             });
         }
 
-        async function checkAndSendFinalMail() {
-            const rRef = doc(db, "rooms", window.currentRoom);
-            const snap = await getDoc(rRef);
-            if(!snap.exists()) return;
-            const d = snap.data();
-            if (d.mailSent) return;
-            if (d.finishedCount >= d.targetParticipants || Date.now() >= d.deadline) {
-                await updateDoc(rRef, { mailSent: true }); 
-                const aqs = await getDocs(collection(db, "activities"));
-                const actNames = {};
-                aqs.forEach(doc => actNames[doc.id] = doc.data().title);
-                const sortedVotes = Object.entries(d.votes || {}).sort((a,b) => b[1] - a[1]).slice(0, 3);
-                if (sortedVotes.length > 0) {
-                    const top3 = sortedVotes.map(([id, count], i) => `${i+1}. ${actNames[id]} (${count} stemmen)`).join("\n");
-                    emailjs.send(SERVICE_ID, TEMPLATE_ID, { to_name: d.hostName, to_email: d.hostEmail, room_code: window.currentRoom, top_matches: top3 });
-                }
-            }
-        }
+        // Host Login & Live Stats (Niet veranderd qua logica, werkt op room code)
+        window.verifyHost = async () => {
+            const code = document.getElementById('login-code').value.trim();
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
+            const ds = await getDoc(doc(db, "rooms", code));
+            if(ds.exists() && ds.data().hostEmail.toLowerCase() === email) {
+                window.currentRoom = code;
+                window.roomDestination = ds.data().destination;
+                document.getElementById('host-login-modal').style.display = 'none';
+                window.showLiveStats();
+            } else { alert("Gegevens komen niet overeen."); }
+        };
 
         window.showLiveStats = async () => {
             document.getElementById('stats-modal').style.display = 'flex';
-            const aqs = await getDocs(collection(db, "activities"));
-            const actNames = {};
-            aqs.forEach(doc => actNames[doc.id] = doc.data().title);
-            onSnapshot(doc(db, "rooms", window.currentRoom), (ds) => {
+            onSnapshot(doc(db, "rooms", window.currentRoom), async (ds) => {
                 const d = ds.data();
                 if(!d) return;
                 const total = d.finishedCount || 0;
-                document.getElementById('live-progress').innerText = `${total} / ${d.targetParticipants} personen klaar`;
+                document.getElementById('live-progress').innerText = `${total} / ${d.targetParticipants} personen klaar in ${d.destination}`;
+                
+                // Haal actuele namen op (kan geoptimaliseerd, maar voor nu functioneel)
+                const aqs = await getDocs(query(collection(db, "activities"), where("city", "==", d.destination)));
+                const actNames = {};
+                aqs.forEach(doc => actNames[doc.id] = doc.data().title);
+
                 let html = "";
                 const sorted = Object.entries(d.votes || {}).sort((a,b) => b[1] - a[1]);
                 sorted.forEach(([id, count]) => {
                     const p = total > 0 ? Math.round((count / total) * 100) : 0;
-                    html += `<div class="stat-bar-container"><div class="stat-info"><span>${actNames[id]}</span><span>${count} stemmen</span></div><div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${p}%"></div></div></div>`;
+                    if(actNames[id]) html += `<div class="stat-bar-container"><div class="stat-info"><span>${actNames[id]}</span><span>${count} stemmen</span></div><div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${p}%"></div></div></div>`;
                 });
                 document.getElementById('live-leaderboard').innerHTML = html || "Wachten op stemmen...";
             });
         };
+
+        window.triggerProfileCheck = () => { document.getElementById('profile-modal').style.display = 'flex'; };
     </script>
 </head>
 <body>
@@ -272,7 +268,14 @@
     <div id="setup-screen" class="hidden screen-content" style="text-align:center; width: 100%;">
         <h3 style="color:var(--mint); margin-bottom: 20px;">Nieuwe Trip</h3>
         <div style="width:280px; margin: 0 auto;">
-            <span class="label">Naam</span><input type="text" id="host-name" class="input-box">
+            <span class="label">Bestemming</span>
+            <select id="host-dest" class="select-box">
+                <option value="Valkenburg">Valkenburg</option>
+                <option value="Maastricht">Maastricht</option>
+                <option value="Heerlen">Heerlen</option>
+                <option value="Aken">Aken</option>
+            </select>
+            <span class="label">Naam Host</span><input type="text" id="host-name" class="input-box">
             <span class="label">E-mail</span><input type="email" id="host-email" class="input-box">
             <span class="label">Wat voor uitje?</span>
             <select id="group-type" class="select-box">
@@ -284,7 +287,7 @@
             </select>
             <span class="label">Aantal personen</span><input type="number" id="target-p" class="input-box" value="4">
             <span class="label">Deadline (minuten)</span><input type="number" id="deadline-input" class="input-box" value="60">
-            <button class="btn" onclick="createRoom()">Trip Maken</button>
+            <button class="btn" onclick="createRoom()">Kamer aanmaken</button>
             <p onclick="goHome()" class="footer-link">Terug</p>
         </div>
     </div>
@@ -292,26 +295,14 @@
     <div id="profile-modal" class="modal-overlay">
         <div class="modal-card">
             <h3 style="color:var(--mint)">Even voorstellen...</h3>
-            <p style="font-size:12px; opacity:0.7; margin-bottom:20px;">Dit helpt ons de beste matches te analyseren.</p>
-            
-            <span class="label">Ik ben een:</span>
+            <span class="label">Geslacht</span>
             <select id="gender-select" class="select-box">
-                <option value="" disabled selected>Kies geslacht...</option>
-                <option value="man">Man</option>
-                <option value="vrouw">Vrouw</option>
-                <option value="anders">Anders / Neutraal</option>
+                <option value="man">Man</option><option value="vrouw">Vrouw</option><option value="anders">Anders</option>
             </select>
-
-            <span class="label">Mijn leeftijd:</span>
+            <span class="label">Leeftijd</span>
             <select id="age-select" class="select-box">
-                <option value="" disabled selected>Kies leeftijd...</option>
-                <option value="<18">Jonger dan 18</option>
-                <option value="18-25">18 - 25 jaar</option>
-                <option value="26-35">26 - 35 jaar</option>
-                <option value="36-50">36 - 50 jaar</option>
-                <option value="50+">Ouder dan 50</option>
+                <option value="18-25">18 - 25</option><option value="26-35">26 - 35</option><option value="36-50">36 - 50</option><option value="50+">50+</option>
             </select>
-            
             <button class="btn" onclick="submitProfile()">Start Flippen</button>
         </div>
     </div>
@@ -338,7 +329,6 @@
             <div style="text-align:left; font-size:13px; line-height:1.6; margin: 20px 0;">
                 <p>♥ <b>Rechts:</b> Dit lijkt me vet!</p>
                 <p>✕ <b>Links:</b> Deze sla ik over.</p>
-                <p>📍 <b>Match:</b> Vinden jullie hetzelfde leuk? Match!</p>
             </div>
             <button class="btn" onclick="closeInstructions()">Snap ik!</button>
         </div>
