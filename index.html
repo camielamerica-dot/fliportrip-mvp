@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FlipOrTrip | Business Suite v6.6</title>
+    <title>FlipOrTrip | Business Suite v6.7</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
     
@@ -12,35 +12,37 @@
         body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; padding: 0; height: 100vh; overflow: hidden; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .hidden { display: none !important; }
         
-        /* Layout */
-        .screen-content { width: 100%; max-width: 340px; display: flex; flex-direction: column; align-items: center; padding: 20px; box-sizing: border-box; }
+        /* Layout Fixes */
+        .screen-content { width: 100%; max-width: 360px; display: flex; flex-direction: column; align-items: center; padding: 20px; box-sizing: border-box; flex-grow: 1; justify-content: center; }
         
-        /* UI Elements */
-        .btn { background: var(--mint); color: var(--obsidian); padding: 16px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; width: 100%; margin-bottom: 12px; font-size: 13px; text-transform: uppercase; text-align: center; text-decoration: none; }
+        .btn { background: var(--mint); color: var(--obsidian); padding: 16px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; width: 100%; margin-bottom: 12px; font-size: 13px; text-transform: uppercase; text-align: center; text-decoration: none; display: block; }
         .input-box, .select-box { background: var(--card-bg); border: 1px solid rgba(0,255,194,0.3); padding: 14px; border-radius: 15px; color: white; margin-bottom: 12px; width: 100%; box-sizing: border-box; font-size: 16px; outline: none; text-align: center; }
         .label { font-size: 10px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 6px; width: 100%; text-align: left; }
 
-        /* Chips Fix */
+        /* Chips */
         .chip-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; width: 100%; justify-content: center; }
-        .chip { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 10px 18px; border-radius: 20px; font-size: 12px; cursor: pointer; transition: 0.2s; }
-        .chip.active { background: var(--mint) !important; color: var(--obsidian) !important; font-weight: 800; border-color: var(--mint); }
+        .chip { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 10px 18px; border-radius: 20px; font-size: 12px; cursor: pointer; }
+        .chip.active { background: var(--mint); color: var(--obsidian); font-weight: 800; }
 
-        /* Card System */
-        #card-container { position: relative; width: 100%; height: 65vh; display: flex; align-items: center; justify-content: center; margin-top: 100px; }
-        .card { width: 300px; height: 450px; background: var(--card-bg); border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); position: absolute; overflow: hidden; transition: transform 0.2s; }
-        .card-img { height: 55%; background-size: cover; background-position: center; pointer-events: none; }
+        /* Header & Timer */
+        #room-header { position: fixed; top: 0; width: 100%; height: 100px; background: var(--obsidian); border-bottom: 1px solid rgba(0,255,194,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; }
+        #deadline-timer { color: var(--red); font-size: 11px; font-weight: 800; margin-top: 5px; }
+
+        /* Card System Fix */
+        #card-container { position: relative; width: 320px; height: 450px; z-index: 100; margin-top: 40px; }
+        .card { width: 100%; height: 100%; background: var(--card-bg); border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); position: absolute; overflow: hidden; transform-origin: center bottom; touch-action: none; }
+        .card-img { height: 60%; background-size: cover; background-position: center; pointer-events: none; }
         
-        .overlay-label { position: absolute; top: 30px; padding: 10px 20px; border-radius: 10px; font-weight: 800; font-size: 24px; opacity: 0; z-index: 20; pointer-events: none; border: 4px solid; }
+        .overlay-label { position: absolute; top: 40px; padding: 10px 20px; border-radius: 10px; font-weight: 800; font-size: 24px; opacity: 0; z-index: 1000; pointer-events: none; border: 4px solid; }
         .label-yes { right: 20px; color: var(--mint); border-color: var(--mint); transform: rotate(15deg); }
         .label-no { left: 20px; color: var(--red); border-color: var(--red); transform: rotate(-15deg); }
 
-        .action-btns { position: fixed; bottom: 40px; display: flex; gap: 40px; z-index: 100; }
-        .circle-btn { width: 70px; height: 70px; border-radius: 50%; border: none; font-size: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
+        .action-btns { position: fixed; bottom: 30px; display: flex; gap: 30px; z-index: 2000; width: 100%; justify-content: center; }
+        .circle-btn { width: 65px; height: 65px; border-radius: 50%; border: none; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
 
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(15px); display: none; align-items: center; justify-content: center; z-index: 99999; padding: 20px; }
+        /* Modals */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.96); backdrop-filter: blur(15px); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 20px; }
         .modal-card { background: var(--card-bg); padding: 30px; border-radius: 30px; border: 1px solid var(--mint); width: 100%; max-width: 320px; text-align: center; }
-        
-        #room-header { position: fixed; top: 0; width: 100%; height: 90px; background: var(--obsidian); border-bottom: 1px solid rgba(0,255,194,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
     </style>
 
     <script type="module">
@@ -53,6 +55,7 @@
 
         window.userInterests = [];
         window.currentRoom = null;
+        window.roomData = null;
 
         window.toggleInterest = (el, interest) => {
             el.classList.toggle('active');
@@ -68,15 +71,18 @@
 
         window.createRoom = async () => {
             const code = Math.floor(1000 + Math.random() * 9000).toString();
+            const deadlineTime = Date.now() + (parseInt(document.getElementById('deadline-input').value) * 60000);
+            
             await setDoc(doc(db, "rooms", code), { 
                 hostName: document.getElementById('host-name').value,
                 destination: document.getElementById('host-dest').value,
-                deadline: Date.now() + (parseInt(document.getElementById('deadline-input').value) * 60000),
+                deadline: deadlineTime,
                 groupInterests: window.userInterests,
                 votes: {}
             });
             window.currentRoom = code;
             document.getElementById('display-code').innerText = code;
+            document.getElementById('wa-share').href = `https://wa.me/?text=Help mee beslissen voor onze trip! Gebruik code ${code} op FlipOrTrip.`;
             showScreen('share-screen');
         };
 
@@ -93,14 +99,23 @@
 
         window.startSwiping = async () => {
             const age = document.getElementById('u-age').value;
-            if(!age || age < 1) return alert("Vul a.u.b. je leeftijd in.");
+            if(!age) return alert("Vul leeftijd in.");
             
             document.getElementById('profile-modal').style.display = 'none';
             showScreen('swipe-screen');
             document.getElementById('room-header').classList.remove('hidden');
-            document.getElementById('active-code').innerText = window.currentRoom;
+            document.getElementById('active-code-display').innerText = window.currentRoom;
             
-            const q = query(collection(db, "activities"), where("city", "==", window.roomData.destination));
+            // Start Timer
+            const end = window.roomData ? window.roomData.deadline : Date.now() + 3600000;
+            setInterval(() => {
+                const diff = end - Date.now();
+                if(diff <= 0) return document.getElementById('deadline-timer').innerText = "TIJD IS OM";
+                const m = Math.floor(diff/60000), s = Math.floor((diff%60000)/1000);
+                document.getElementById('deadline-timer').innerText = `DEADLINE OVER: ${m}:${s<10?'0':''}${s}`;
+            }, 1000);
+
+            const q = query(collection(db, "activities"), where("city", "==", window.roomData ? window.roomData.destination : "Rome"));
             const qs = await getDocs(q);
             window.acts = qs.docs.map(d => ({id: d.id, ...d.data()}));
             window.actIdx = 0; renderCard();
@@ -123,7 +138,7 @@
             const container = document.getElementById('card-container');
             container.innerHTML = "";
             if(window.actIdx >= window.acts.length) {
-                container.innerHTML = "<h2>Klaar! 🎉</h2>";
+                container.innerHTML = "<div style='text-align:center'><h2>Top! 🎉</h2><p>Je hebt alle kaarten gehad.</p></div>";
                 document.getElementById('action-btns').classList.add('hidden');
                 return;
             }
@@ -134,7 +149,7 @@
                 <div class="overlay-label label-yes">TRIP</div>
                 <div class="overlay-label label-no">FLIP</div>
                 <div class="card-img" style="background-image:url('${a.image}')"></div>
-                <div style="padding:20px;"><h3>${a.title}</h3><p style="font-size:12px;opacity:0.7">${a.desc}</p></div>`;
+                <div style="padding:20px;"><h3>${a.title}</h3><p style="font-size:12px;opacity:0.8">${a.desc}</p></div>`;
             container.appendChild(card);
             
             const h = new Hammer(card);
@@ -147,8 +162,8 @@
                 else if(e.deltaX < -40) { lNo.style.opacity = Math.abs(e.deltaX)/150; lYes.style.opacity = 0; }
             });
             h.on('panend', e => {
-                if(e.deltaX > 120) handleVote('yes');
-                else if(e.deltaX < -120) handleVote('no');
+                if(e.deltaX > 140) handleVote('yes');
+                else if(e.deltaX < -140) handleVote('no');
                 else { card.style.transform = ''; lYes.style.opacity = 0; lNo.style.opacity = 0; }
             });
         }
@@ -158,44 +173,38 @@
 
     <div id="start-screen" class="screen-content">
         <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="160" style="margin-bottom:40px;">
-        <button class="btn" onclick="showScreen('setup-screen')">Trip Maken</button>
-        <button class="btn" style="background:white; color:black;" onclick="document.getElementById('join-modal').style.display='flex'">Code Invoeren</button>
-        <p onclick="document.getElementById('host-login-modal').style.display='flex'" style="font-size:11px; color:var(--text); margin-top:20px; text-decoration:underline; cursor:pointer;">Host Dashboard</p>
+        <button class="btn" onclick="showScreen('setup-screen')">Nieuwe Trip Maken</button>
+        <button class="btn" style="background:white; color:black;" onclick="document.getElementById('join-modal').style.display='flex'">Join met Code</button>
     </div>
 
     <div id="setup-screen" class="hidden screen-content">
         <span class="label">Bestemming</span>
         <select id="host-dest" class="select-box"><option>Rome</option><option>Valkenburg</option></select>
-        
-        <span class="label">Groepsinteresses</span>
+        <span class="label">Interesses</span>
         <div class="chip-container">
             <div class="chip" onclick="toggleInterest(this, 'Cultuur')">🏛️ Cultuur</div>
             <div class="chip" onclick="toggleInterest(this, 'Food')">🍝 Food</div>
             <div class="chip" onclick="toggleInterest(this, 'Actief')">⚡ Actief</div>
         </div>
-
         <input type="text" id="host-name" class="input-box" placeholder="Je Naam">
         <input type="email" id="host-email" class="input-box" placeholder="Je E-mail">
-        
-        <div style="display:flex; gap:10px; width:100%;">
-            <input type="number" id="target-p" class="input-box" placeholder="Aantal pers." value="4">
-            <input type="number" id="deadline-input" class="input-box" placeholder="Minuten" value="60">
-        </div>
-
-        <button class="btn" onclick="createRoom()">Start Trip</button>
-        <p onclick="showScreen('start-screen')" style="cursor:pointer; font-size:12px;">Terug</p>
+        <span class="label">Tijd (min)</span>
+        <input type="number" id="deadline-input" class="input-box" value="60">
+        <button class="btn" onclick="createRoom()">Trip Starten</button>
     </div>
 
     <div id="share-screen" class="hidden screen-content">
-        <p>Deel de code met je groep:</p>
+        <p>Deel deze code met je vrienden:</p>
         <h1 id="display-code" style="color:var(--mint); font-size:70px; margin:20px 0;"></h1>
-        <button class="btn" onclick="document.getElementById('profile-modal').style.display='flex'">Zelf beginnen</button>
+        <a id="wa-share" class="btn" style="background:#25D366; color:white;">Deel via WhatsApp</a>
+        <button class="btn" style="background:white; color:black;" onclick="document.getElementById('profile-modal').style.display='flex'">Ik begin alvast</button>
     </div>
 
     <div id="swipe-screen" class="hidden screen-content">
         <div id="room-header">
             <div style="font-size:8px; color:var(--mint); letter-spacing:2px;">STOP DECIDING. START DOING.</div>
-            <div style="font-weight:800; font-size:18px; margin-top:5px;">ROOM: <span id="active-code" style="color:var(--mint)"></span></div>
+            <div style="font-weight:800; font-size:16px; margin-top:5px;">CODE: <span id="active-code-display" style="color:var(--mint)"></span></div>
+            <div id="deadline-timer">DEADLINE OVER: 60:00</div>
         </div>
         <div id="card-container"></div>
         <div class="action-btns" id="action-btns">
@@ -206,31 +215,19 @@
 
     <div id="join-modal" class="modal-overlay">
         <div class="modal-card">
-            <h3>Code?</h3>
+            <h3>Voer code in</h3>
             <input type="number" id="join-code-input" class="input-box">
-            <button class="btn" onclick="confirmJoin()">Join</button>
-            <p onclick="document.getElementById('join-modal').style.display='none'">Sluiten</p>
+            <button class="btn" onclick="confirmJoin()">Deelnemen</button>
+            <p onclick="document.getElementById('join-modal').style.display='none'" style="cursor:pointer; font-size:12px;">Sluiten</p>
         </div>
     </div>
 
     <div id="profile-modal" class="modal-overlay">
         <div class="modal-card">
             <h3 style="color:var(--mint)">Wie ben je?</h3>
-            <span class="label">Geslacht</span>
             <select id="u-gender" class="select-box"><option>Man</option><option>Vrouw</option></select>
-            <span class="label">Leeftijd</span>
-            <input type="number" id="u-age" class="input-box" placeholder="Bijv. 25">
+            <input type="number" id="u-age" class="input-box" placeholder="Leeftijd">
             <button class="btn" onclick="startSwiping()">Start Swipen</button>
-        </div>
-    </div>
-
-    <div id="host-login-modal" class="modal-overlay">
-        <div class="modal-card">
-            <h3>Host Login</h3>
-            <input type="number" class="input-box" placeholder="Room Code">
-            <input type="email" class="input-box" placeholder="E-mail">
-            <button class="btn">Inloggen</button>
-            <p onclick="document.getElementById('host-login-modal').style.display='none'">Sluiten</p>
         </div>
     </div>
 
