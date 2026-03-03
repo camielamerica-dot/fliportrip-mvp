@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FlipOrTrip | Business Suite v6.3</title>
+    <title>FlipOrTrip | Business Suite v6.4</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
     
@@ -12,30 +12,26 @@
         body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; padding: 0; height: 100vh; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         .hidden { display: none !important; }
         
-        /* Buttons & Inputs */
         .btn { background: var(--mint); color: var(--obsidian); padding: 16px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; width: 100%; max-width: 280px; margin-bottom: 10px; font-size: 13px; text-transform: uppercase; text-decoration: none; display: inline-block; }
         .btn-outline { background: transparent; border: 1px solid var(--text); color: var(--text); padding: 10px; border-radius: 50px; font-size: 11px; cursor: pointer; margin-top: 10px; width: 150px; }
         .input-box, .select-box { background: var(--card-bg); border: 1px solid rgba(0,255,194,0.3); padding: 14px; border-radius: 15px; color: white; margin-bottom: 12px; width: 100%; box-sizing: border-box; font-size: 16px; outline: none; }
         .label { font-size: 9px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 4px; display: block; text-align: left; }
 
-        /* Chips */
-        .chip-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; justify-content: center; }
-        .chip { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 20px; font-size: 11px; cursor: pointer; }
-        .chip.active { background: var(--mint); color: var(--obsidian); font-weight: 800; }
-
-        /* Room Header */
-        #room-header { position: fixed; top: 0; width: 100%; height: 90px; background: var(--obsidian); border-bottom: 1px solid rgba(0,255,194,0.2); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        #timer-display { font-size: 12px; color: var(--red); font-weight: 800; margin-top: 4px; }
-
-        /* Swipe System */
-        #swipe-screen { position: relative; width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .card { width: 85vw; max-width: 320px; height: 65vh; background: var(--card-bg); border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); position: absolute; overflow: hidden; transform-origin: center bottom; transition: transform 0.2s; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        /* Card Animaties & Overlay */
+        .card { width: 85vw; max-width: 320px; height: 60vh; background: var(--card-bg); border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); position: absolute; overflow: hidden; transition: transform 0.3s ease, background-color 0.3s ease; }
         .card-img { height: 50%; background-size: cover; background-position: center; pointer-events: none; }
-        
-        .swipe-instruction { position: absolute; top: 100px; width: 100%; display: flex; justify-content: space-between; padding: 0 25px; box-sizing: border-box; z-index: 50; }
-        .inst { border: 2px solid; padding: 5px 12px; border-radius: 10px; font-weight: 800; font-size: 12px; opacity: 0.8; }
-        .inst-left { border-color: var(--red); color: var(--red); }
-        .inst-right { border-color: var(--mint); color: var(--mint); }
+        .card.swipe-right { background-color: rgba(0, 255, 194, 0.2) !important; border: 2px solid var(--mint); }
+        .card.swipe-left { background-color: rgba(255, 75, 75, 0.2) !important; border: 2px solid var(--red); }
+
+        /* Buttons onder de kaart */
+        .action-btns { position: absolute; bottom: 8vh; display: flex; gap: 30px; z-index: 100; }
+        .circle-btn { width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; border: none; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        .btn-no { background: white; color: var(--red); }
+        .btn-yes { background: var(--mint); color: var(--obsidian); }
+
+        /* Instructies */
+        .swipe-hint { position: absolute; top: 110px; width: 100%; display: flex; justify-content: space-between; padding: 0 25px; box-sizing: border-box; z-index: 50; }
+        .hint { border: 2px solid; padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 11px; }
 
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(10px); display: none; align-items: center; justify-content: center; z-index: 99999; padding: 20px; }
         .modal-card { background: var(--card-bg); padding: 25px; border-radius: 25px; border: 1px solid var(--mint); width: 100%; max-width: 320px; text-align: center; }
@@ -52,20 +48,6 @@
         window.userInterests = [];
         window.currentRoom = null;
 
-        async function initApp() {
-            const s = await getDocs(query(collection(db, "settings"), where("type", "==", "destinations")));
-            const sel = document.getElementById('host-dest');
-            s.forEach(d => sel.innerHTML += `<option value="${d.data().name}">${d.data().name}</option>`);
-        }
-        initApp();
-
-        window.toggleInterest = (el, interest) => {
-            el.classList.toggle('active');
-            const idx = window.userInterests.indexOf(interest);
-            if(idx > -1) window.userInterests.splice(idx, 1);
-            else window.userInterests.push(interest);
-        };
-
         window.showScreen = (id) => {
             document.querySelectorAll('.screen-content').forEach(s => s.classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
@@ -74,25 +56,29 @@
         window.createRoom = async () => {
             const name = document.getElementById('host-name').value;
             const email = document.getElementById('host-email').value;
-            if(!name || !email) return alert("Vul a.u.b. je naam en e-mail in.");
+            if(!name || !email) return alert("Naam en E-mail verplicht!");
             
             const code = Math.floor(1000 + Math.random() * 9000).toString();
-            const deadline = Date.now() + (parseInt(document.getElementById('deadline-input').value) * 60000);
-
             await setDoc(doc(db, "rooms", code), { 
-                hostName: name, hostEmail: email,
+                hostName: name, hostEmail: email.toLowerCase(),
                 destination: document.getElementById('host-dest').value,
-                tripType: document.getElementById('trip-type').value,
-                targetParticipants: parseInt(document.getElementById('target-p').value),
-                deadline: deadline,
+                deadline: Date.now() + (parseInt(document.getElementById('deadline-input').value) * 60000),
                 groupInterests: window.userInterests,
                 votes: {}, finishedCount: 0
             });
-
             window.currentRoom = code;
             document.getElementById('display-code').innerText = code;
-            document.getElementById('wa-btn').href = `https://wa.me/?text=${encodeURIComponent('Help mee beslissen! Gebruik code '+code+' op FlipOrTrip.')}`;
             showScreen('share-screen');
+        };
+
+        window.hostLogin = async () => {
+            const code = prompt("Voer de Room Code in:");
+            const email = prompt("Voer je Host E-mail in:").toLowerCase();
+            const ds = await getDoc(doc(db, "rooms", code));
+            if(ds.exists() && ds.data().hostEmail === email) {
+                alert("Login succesvol! Resultaten worden geladen...");
+                // Hier zou je de uitslag-pagina kunnen laden
+            } else { alert("Onjuiste gegevens."); }
         };
 
         window.confirmJoin = async () => {
@@ -106,59 +92,58 @@
             } else { alert("Code niet gevonden."); }
         };
 
+        window.handleVote = async (choice) => {
+            const card = document.querySelector('.card');
+            if(!card) return;
+            const a = window.acts[window.actIdx];
+            
+            if(choice === 'yes') {
+                card.classList.add('swipe-right');
+                card.style.transform = 'translateX(1000px) rotate(30deg)';
+                await updateDoc(doc(db, "rooms", window.currentRoom), { [`votes.${a.id}`]: increment(1) });
+            } else {
+                card.classList.add('swipe-left');
+                card.style.transform = 'translateX(-1000px) rotate(-30deg)';
+            }
+            
+            setTimeout(() => { window.actIdx++; renderCard(); }, 300);
+        };
+
         window.startSwiping = async () => {
             showScreen('swipe-screen');
             document.getElementById('room-header').classList.remove('hidden');
             document.getElementById('active-code').innerText = window.currentRoom;
-            
-            // Timer starten
-            const endTime = window.roomData ? window.roomData.deadline : Date.now() + 3600000;
-            setInterval(() => {
-                const diff = endTime - Date.now();
-                if(diff < 0) return document.getElementById('timer-display').innerText = "TIJD VERSTREKEN";
-                const m = Math.floor(diff/60000), s = Math.floor((diff%60000)/1000);
-                document.getElementById('timer-display').innerText = `TIJD OVER: ${m}:${s<10?'0':''}${s}`;
-            }, 1000);
-
-            const q = query(collection(db, "activities"), where("city", "==", window.roomData ? window.roomData.destination : "Rome"));
+            const q = query(collection(db, "activities"), where("city", "==", window.roomData.destination));
             const qs = await getDocs(q);
-            window.acts = qs.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => {
-                let scoreA = window.userInterests.includes(a.category) ? 1 : 0;
-                let scoreB = window.userInterests.includes(b.category) ? 1 : 0;
-                return scoreB - scoreA;
-            });
+            window.acts = qs.docs.map(d => ({id: d.id, ...d.data()}));
             window.actIdx = 0; renderCard();
         };
 
         function renderCard() {
-            const container = document.getElementById('swipe-screen');
+            const container = document.getElementById('card-container');
             container.innerHTML = "";
             if(window.actIdx >= window.acts.length) {
-                container.innerHTML = "<div style='text-align:center'><h2>Top! 🎉</h2><p>Je hebt alles geflipt. De host krijgt de uitslag.</p></div>";
-                updateDoc(doc(db, "rooms", window.currentRoom), { finishedCount: increment(1) });
+                container.innerHTML = "<h2>Klaar! 🔥</h2>";
+                document.getElementById('action-btns').style.display = 'none';
                 return;
             }
             const a = window.acts[window.actIdx];
             const card = document.createElement('div');
             card.className = 'card';
-            card.innerHTML = `<div class="card-img" style="background-image:url('${a.image}')"></div><div style="padding:20px;"><h3>${a.title}</h3><p style="font-size:12px;opacity:0.7">${a.desc}</p></div>`;
+            card.innerHTML = `<div class="card-img" style="background-image:url('${a.image}')"></div><div style="padding:20px;"><h3>${a.title}</h3><p>${a.desc}</p></div>`;
             container.appendChild(card);
             
             const h = new Hammer(card);
-            h.on('pan', e => { 
-                card.style.transform = `translateX(${e.deltaX}px) rotate(${e.deltaX/15}deg)`;
-                card.style.transition = 'none';
+            h.on('pan', e => {
+                card.style.transform = `translateX(${e.deltaX}px) rotate(${e.deltaX/20}deg)`;
+                if(e.deltaX > 50) card.classList.add('swipe-right');
+                else if(e.deltaX < -50) card.classList.add('swipe-left');
+                else { card.classList.remove('swipe-right', 'swipe-left'); }
             });
-            h.on('panend', async e => {
-                card.style.transition = 'transform 0.3s';
-                if(e.deltaX > 120) {
-                    card.style.transform = 'translateX(1000px) rotate(30deg)';
-                    await updateDoc(doc(db, "rooms", window.currentRoom), { [`votes.${a.id}`]: increment(1) });
-                    setTimeout(() => { window.actIdx++; renderCard(); }, 200);
-                } else if (e.deltaX < -120) {
-                    card.style.transform = 'translateX(-1000px) rotate(-30deg)';
-                    setTimeout(() => { window.actIdx++; renderCard(); }, 200);
-                } else { card.style.transform = ''; }
+            h.on('panend', e => {
+                if(e.deltaX > 120) handleVote('yes');
+                else if(e.deltaX < -120) handleVote('no');
+                else { card.style.transform = ''; card.classList.remove('swipe-right', 'swipe-left'); }
             });
         }
     </script>
@@ -166,83 +151,59 @@
 <body>
 
     <div id="start-screen" class="screen-content" style="text-align:center;">
-        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="140" style="margin-bottom:40px;">
-        <button class="btn" onclick="showScreen('setup-screen')">Trip Maken</button>
-        <button class="btn" style="background:white" onclick="document.getElementById('join-modal').style.display='flex'">Code Invoeren</button>
+        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="140" style="margin-bottom:30px;">
+        <button class="btn" onclick="showScreen('setup-screen')">Nieuwe Trip</button>
+        <button class="btn" style="background:white" onclick="document.getElementById('join-modal').style.display='flex'">Join met Code</button>
+        <p onclick="hostLogin()" style="font-size:11px; color:var(--text); margin-top:20px; cursor:pointer;">Beheerder Login</p>
     </div>
 
     <div id="setup-screen" class="hidden screen-content" style="padding:20px; text-align:center; width:320px;">
-        <span class="label">Kies Stad</span>
-        <select id="host-dest" class="select-box"></select>
-        
-        <span class="label">Groepsinteresses</span>
-        <div class="chip-container">
-            <div class="chip" onclick="toggleInterest(this, 'Cultuur')">🏛️ Cultuur</div>
-            <div class="chip" onclick="toggleInterest(this, 'Food')">🍝 Food</div>
-            <div class="chip" onclick="toggleInterest(this, 'Actief')">⚡ Actief</div>
-        </div>
-
-        <input type="text" id="host-name" class="input-box" placeholder="Je Naam">
-        <input type="email" id="host-email" class="input-box" placeholder="Je E-mail">
-        
-        <div style="display:flex; gap:10px;">
-            <select id="trip-type" class="select-box" style="flex:2">
-                <option value="Vrienden">Vriendenuitje</option>
-                <option value="Team">Teamuitje</option>
-                <option value="Vrijgezellen">Vrijgezellen</option>
-            </select>
-            <input type="number" id="target-p" class="input-box" style="flex:1" value="4">
-        </div>
-        <span class="label">Tijd om te reageren (minuten)</span>
+        <span class="label">Trip Instellingen</span>
+        <select id="host-dest" class="select-box"><option value="Rome">Rome</option></select>
+        <input type="text" id="host-name" class="input-box" placeholder="Jouw Naam">
+        <input type="email" id="host-email" class="input-box" placeholder="E-mail (voor de uitslag)">
+        <span class="label">Deadline (minuten)</span>
         <input type="number" id="deadline-input" class="input-box" value="60">
-
-        <button class="btn" onclick="createRoom()">Start de Trip</button>
+        <button class="btn" onclick="createRoom()">Trip Aanmaken</button>
         <button class="btn-outline" onclick="showScreen('start-screen')">Terug</button>
     </div>
 
     <div id="share-screen" class="hidden screen-content" style="text-align:center; padding:20px;">
-        <p>Deel deze code met de groep:</p>
-        <h1 id="display-code" style="color:var(--mint); font-size:60px; margin:20px 0;"></h1>
-        <a id="wa-btn" class="btn" style="background:#25D366; color:white;">Deel via WhatsApp</a>
-        <button class="btn" style="background:white" onclick="startSwiping()">Ik ga alvast beginnen</button>
-    </div>
-
-    <div id="room-header" class="hidden">
-        <div style="font-size:8px; color:var(--mint); letter-spacing:2px;">STOP DECIDING. START DOING.</div>
-        <div style="font-weight:800; margin-top:5px;">CODE: <span id="active-code" style="color:var(--mint)"></span></div>
-        <div id="timer-display">TIJD OVER: 60:00</div>
+        <h1>CODE: <span id="display-code" style="color:var(--mint)"></span></h1>
+        <a id="wa-btn" class="btn" style="background:#25D366; color:white;">WhatsApp Groep</a>
+        <button class="btn" onclick="startSwiping()">Zelf Starten</button>
     </div>
 
     <div id="swipe-screen" class="hidden screen-content">
-        <div class="swipe-instruction">
-            <div class="inst inst-left">FLIP (NEE)</div>
-            <div class="inst inst-right">TRIP (JA)</div>
+        <div id="room-header">
+            <div style="font-size:8px; color:var(--mint);">STOP DECIDING. START DOING.</div>
+            <div style="font-weight:800;" id="active-code"></div>
+        </div>
+        <div class="swipe-hint">
+            <div class="hint" style="color:var(--red); border-color:var(--red)">FLIP (NEE)</div>
+            <div class="hint" style="color:var(--mint); border-color:var(--mint)">TRIP (JA)</div>
+        </div>
+        <div id="card-container"></div>
+        <div class="action-btns" id="action-btns">
+            <button class="circle-btn btn-no" onclick="handleVote('no')">✕</button>
+            <button class="circle-btn btn-yes" onclick="handleVote('yes')">❤</button>
         </div>
     </div>
 
     <div id="join-modal" class="modal-overlay">
         <div class="modal-card">
             <h3>Code Invoeren</h3>
-            <input type="number" id="join-code-input" class="input-box" placeholder="4 cijfers">
-            <button class="btn" onclick="confirmJoin()">Deelnemen</button>
-            <p onclick="document.getElementById('join-modal').style.display='none'" style="cursor:pointer; font-size:12px; margin-top:10px;">Terug</p>
+            <input type="number" id="join-code-input" class="input-box">
+            <button class="btn" onclick="confirmJoin()">Starten</button>
         </div>
     </div>
 
     <div id="profile-modal" class="modal-overlay">
         <div class="modal-card">
-            <h3 style="color:var(--mint)">Wie ben je?</h3>
-            <div style="display:flex; gap:10px; margin-bottom:10px;">
-                <select id="u-gender" class="select-box"><option>Man</option><option>Vrouw</option></select>
-                <input type="number" id="u-age" class="input-box" placeholder="Lft.">
-            </div>
-            <span class="label">Jouw persoonlijke vibe?</span>
-            <div class="chip-container">
-                <div class="chip" onclick="toggleInterest(this, 'Cultuur')">🏛️ Cultuur</div>
-                <div class="chip" onclick="toggleInterest(this, 'Food')">🍝 Food</div>
-                <div class="chip" onclick="toggleInterest(this, 'Actief')">⚡ Actief</div>
-            </div>
-            <button class="btn" onclick="startSwiping()">Start Flippen</button>
+            <h3>Wie ben je?</h3>
+            <select class="select-box"><option>Man</option><option>Vrouw</option></select>
+            <input type="number" class="input-box" placeholder="Leeftijd">
+            <button class="btn" onclick="startSwiping()">Start Swipen</button>
         </div>
     </div>
 
