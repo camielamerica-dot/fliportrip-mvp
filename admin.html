@@ -2,30 +2,26 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>FlipOrTrip | Business Suite v5.2</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>FlipOrTrip | Business Suite v6.0 (Smart Match)</title>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBGms1-wiv_5tq1ehzhhJOjM905WnFMexo&libraries=places"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
     <style>
         :root { --mint: #00FFC2; --obsidian: #0B0E14; --card: #161B22; --text: #8899A6; --red: #FF4B4B; }
         body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         .sidebar { width: 280px; background: var(--card); padding: 25px; border-right: 1px solid rgba(0,255,194,0.1); display: flex; flex-direction: column; gap: 10px; }
-        .nav-tag { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 800; color: var(--text); border: 1px solid transparent; }
-        .nav-tag.active { background: rgba(0,255,194,0.1); color: var(--mint); border-color: var(--mint); }
+        .nav-tag { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 800; color: var(--text); border: 1px solid transparent; text-align: left; border: none; width: 100%; }
+        .nav-tag.active { background: rgba(0,255,194,0.1); color: var(--mint); border: 1px solid var(--mint); }
         .main { flex: 1; padding: 40px; overflow-y: auto; }
         .tab { display: none; }
         .tab.active { display: block; }
         .card { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; }
         input, select, textarea { background: #0B0E14; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 12px; border-radius: 10px; width: 100%; margin-bottom: 10px; font-family: inherit; }
-        .btn-mint { background: var(--mint); color: #000; border: none; padding: 12px; border-radius: 50px; font-weight: 800; cursor: pointer; width: 100%; text-transform: uppercase; margin-top: 5px; }
-        .btn-outline { background: transparent; border: 1px solid var(--text); color: var(--text); padding: 8px; border-radius: 10px; cursor: pointer; font-size: 11px; }
+        .btn-mint { background: var(--mint); color: #000; border: none; padding: 12px; border-radius: 50px; font-weight: 800; cursor: pointer; width: 100%; text-transform: uppercase; }
         .item-card { display: flex; align-items: center; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 15px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.05); }
         .thumb { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; margin-right: 15px; background: #000; }
         #login-gate { position: fixed; inset: 0; background: var(--obsidian); z-index: 100000; display: flex; align-items: center; justify-content: center; }
-        .pac-container { background-color: var(--card); border-radius: 10px; border: 1px solid var(--mint); font-family: inherit; }
-        .pac-item { color: white; border-top: 1px solid rgba(255,255,255,0.1); padding: 8px; }
-        .pac-item:hover { background-color: rgba(0,255,194,0.05); }
-        .pac-item-query { color: var(--mint); }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; }
+        .stat-card { background: rgba(0,255,194,0.05); border: 1px solid var(--mint); padding: 20px; border-radius: 15px; text-align: center; }
     </style>
 </head>
 <body>
@@ -40,39 +36,45 @@
 
 <div class="sidebar">
     <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="130" style="margin-bottom:30px;">
-    <div class="nav-tag active" onclick="switchTab('dash')">📊 Analytics Dashboard</div>
-    <div class="nav-tag" onclick="switchTab('cat')">🎡 Catalogus Beheer</div>
-    <div class="nav-tag" onclick="switchTab('settings')">⚙️ Systeem Instellingen</div>
-    <hr style="opacity: 0.1; width: 100%; margin: 10px 0;">
-    <label style="font-size: 10px; color: var(--mint); font-weight: 800;">FILTER WEERGAVE</label>
-    <select id="global-dest-filter" onchange="renderAll()"></select>
+    <button class="nav-tag active" id="btn-dash" onclick="switchTab('dash')">📊 Live Trip Monitor</button>
+    <button class="nav-tag" id="btn-cat" onclick="switchTab('cat')">🎡 Catalogus Beheer</button>
+    <button class="nav-tag" id="btn-settings" onclick="switchTab('settings')">⚙️ Instellingen</button>
 </div>
 
 <div class="main">
     <div id="tab-dash" class="tab active">
-        <h2>Dashboard</h2>
-        <div id="dash-content">Selecteer een bestemming in de sidebar.</div>
+        <h2>Live Trip Monitor</h2>
+        <div style="display: grid; grid-template-columns: 300px 1fr; gap: 20px;">
+            <div id="room-list" class="card" style="max-height: 70vh; overflow-y: auto;">
+                <p style="font-size: 12px; color: var(--text);">Actieve sessies verschijnen hier...</p>
+            </div>
+            <div id="dash-details">
+                <div class="card">
+                    <h3>Selecteer een sessie links</h3>
+                    <p>Hier verschijnen de Smart Match resultaten en groepsinteresses.</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="tab-cat" class="tab">
         <div style="display:grid; grid-template-columns: 380px 1fr; gap:30px;">
             <div>
                 <div class="card">
-                    <h3 id="form-title" style="margin-top:0">Nieuwe Activiteit</h3>
+                    <h3>Nieuwe Activiteit</h3>
                     <input type="hidden" id="edit-id">
-                    <input type="text" id="i-title" placeholder="Naam activiteit">
+                    <input type="text" id="i-title" placeholder="Naam">
                     <select id="i-dest"></select>
                     <select id="i-cat"></select>
-                    <input type="text" id="i-loc" placeholder="Zoek adres via Google...">
-                    <textarea id="i-desc" placeholder="Beschrijving voor kaart" rows="3"></textarea>
+                    <input type="text" id="i-loc" placeholder="Adres (Google Autocomplete)">
+                    <textarea id="i-desc" placeholder="Beschrijving"></textarea>
                     <input type="text" id="i-img" placeholder="Afbeelding URL">
-                    <button class="btn-mint" id="btn-save" onclick="saveItem()">Item Opslaan</button>
-                    <button class="btn-outline" style="width:100%; margin-top:10px;" onclick="resetForm()">Annuleren</button>
+                    <button class="btn-mint" onclick="saveItem()">Opslaan</button>
                 </div>
-                <div class="card" style="border-style: dashed; border-color: var(--mint);">
-                    <h3>Bulk Import (CSV)</h3>
+                <div class="card" style="border: 1px dashed var(--mint);">
+                    <h3>Bulk Import</h3>
                     <input type="file" id="csv-file" accept=".csv">
-                    <button class="btn-mint" style="background:#fff" onclick="handleCSV()">Upload CSV</button>
+                    <button class="btn-mint" style="background:#fff" onclick="handleCSV()">Start Import</button>
                 </div>
             </div>
             <div id="cat-list"></div>
@@ -80,19 +82,19 @@
     </div>
 
     <div id="tab-settings" class="tab">
-        <h2>Instellingen</h2>
+        <h2>Systeem Instellingen</h2>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
             <div class="card">
                 <h3>Bestemmingen</h3>
-                <div id="settings-dest-list"></div>
-                <input type="text" id="new-dest-name" placeholder="Nieuwe stad">
-                <button class="btn-mint" onclick="addSetting('destinations', 'new-dest-name')">Toevoegen</button>
+                <div id="set-dest"></div>
+                <input type="text" id="new-dest" placeholder="Nieuwe stad">
+                <button class="btn-mint" onclick="addSetting('destinations', 'new-dest')">Toevoegen</button>
             </div>
             <div class="card">
                 <h3>Categorieën</h3>
-                <div id="settings-cat-list"></div>
-                <input type="text" id="new-cat-name" placeholder="Nieuwe categorie">
-                <button class="btn-mint" onclick="addSetting('categories', 'new-cat-name')">Toevoegen</button>
+                <div id="set-cat"></div>
+                <input type="text" id="new-cat" placeholder="Nieuwe categorie">
+                <button class="btn-mint" onclick="addSetting('categories', 'new-cat')">Toevoegen</button>
             </div>
         </div>
     </div>
@@ -100,7 +102,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, getDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const config = { apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0", authDomain: "fliportrip-valkenburg.firebaseapp.com", projectId: "fliportrip-valkenburg" };
     const app = initializeApp(config);
@@ -112,58 +114,104 @@
 
     function init() {
         initAutocomplete();
+        // Luister naar settings
         onSnapshot(collection(db, "settings"), s => {
             const data = s.docs.map(d => ({id: d.id, ...d.data()}));
             destinations = data.filter(x => x.type === 'destinations');
             categories = data.filter(x => x.type === 'categories');
-            updateDropdowns();
-            renderSettings();
+            updateUI();
         });
+        // Luister naar activiteiten
         onSnapshot(collection(db, "activities"), s => {
             activities = s.docs.map(d => ({id:d.id, ...d.data()}));
-            renderAll();
+            renderCatalog();
+        });
+        // Luister naar actieve rooms voor het dashboard
+        onSnapshot(collection(db, "rooms"), s => {
+            renderRoomList(s.docs.map(d => ({id: d.id, ...d.data()})));
         });
     }
 
-    function initAutocomplete() {
-        const input = document.getElementById('i-loc');
-        const autocomplete = new google.maps.places.Autocomplete(input);
-        autocomplete.addListener('place_changed', () => {
-            const place = autocomplete.getPlace();
-            if (!place.geometry) return;
-            const cityComp = place.address_components.find(c => c.types.includes("locality"));
-            if (cityComp) {
-                const cityName = cityComp.long_name;
-                const select = document.getElementById('i-dest');
-                for (let i = 0; i < select.options.length; i++) {
-                    if (select.options[i].value === cityName) { select.selectedIndex = i; break; }
-                }
-            }
-        });
+    function renderRoomList(rooms) {
+        document.getElementById('room-list').innerHTML = rooms.map(r => `
+            <div class="item-card" style="cursor:pointer" onclick="renderDashboard('${r.id}')">
+                <div style="flex:1"><strong>Code: ${r.id}</strong><br><small>${r.destination} (${r.hostName})</small></div>
+                <div style="color:var(--mint); font-weight:800;">></div>
+            </div>
+        `).join('');
     }
 
-    function updateDropdowns() {
-        const destHtml = destinations.map(d => `<option value="${d.name}">${d.name}</option>`).join('');
-        const catHtml = categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
-        document.getElementById('global-dest-filter').innerHTML = destHtml;
-        document.getElementById('i-dest').innerHTML = destHtml;
-        document.getElementById('i-cat').innerHTML = catHtml;
-    }
+    window.renderDashboard = async (roomId) => {
+        const docRef = doc(db, "rooms", roomId);
+        const snap = await getDoc(docRef);
+        const room = snap.data();
+        const votes = room.votes || {};
 
-    window.renderAll = () => {
-        const currentDest = document.getElementById('global-dest-filter').value;
-        const filtered = activities.filter(a => a.city === currentDest);
-        document.getElementById('cat-list').innerHTML = filtered.map(i => `
-            <div class="item-card">
-                <img src="${i.image}" class="thumb">
-                <div style="flex:1"><strong>${i.title}</strong><br><small>${i.location}</small></div>
-                <button class="btn-outline" onclick="editItem('${i.id}')">EDIT</button>
-                <button class="btn-outline" onclick="deleteItem('${i.id}')" style="color:red">WIS</button>
-            </div>`).join('');
+        // Bereken Smart Match Scores
+        let results = Object.keys(votes).map(actId => {
+            const act = activities.find(a => a.id === actId);
+            if(!act) return null;
+            // Bonus score als categorie matcht met groeps DNA
+            let bonus = (room.groupInterests || []).includes(act.category) ? 10 : 0;
+            return {
+                title: act.title,
+                cat: act.category,
+                count: votes[actId],
+                score: (votes[actId] * 2) + bonus
+            };
+        }).filter(x => x !== null).sort((a,b) => b.score - a.score);
+
+        document.getElementById('dash-details').innerHTML = `
+            <div class="card" style="border-left: 5px solid var(--mint);">
+                <h2 style="margin:0">Kamer ${roomId}</h2>
+                <p>Host: ${room.hostName} | Stad: ${room.destination}</p>
+                <div style="display:flex; gap:10px;">
+                    ${(room.groupInterests || []).map(i => `<span style="background:var(--mint); color:black; padding:2px 10px; border-radius:10px; font-size:10px; font-weight:800;">${i.toUpperCase()}</span>`).join('')}
+                </div>
+            </div>
+            <div class="card">
+                <h3>Top Matches</h3>
+                ${results.length > 0 ? results.slice(0, 10).map((r, index) => `
+                    <div class="item-card">
+                        <div style="width:30px; font-weight:800; color:var(--mint)">#${index+1}</div>
+                        <div style="flex:1"><strong>${r.title}</strong><br><small>${r.cat}</small></div>
+                        <div style="text-align:right"><span style="color:var(--mint)">${r.count} stemmen</span></div>
+                    </div>
+                `).join('') : '<p>Nog geen stemmen uitgebracht.</p>'}
+            </div>
+        `;
     };
 
+    // --- STANDAARD FUNCTIES (v5.2 + CSV FIX) ---
+
+    function initAutocomplete() {
+        const autocomplete = new google.maps.places.Autocomplete(document.getElementById('i-loc'));
+        autocomplete.addListener('place_changed', () => {
+            const place = autocomplete.getPlace();
+            const city = place.address_components.find(c => c.types.includes("locality"))?.long_name;
+            if (city) document.getElementById('i-dest').value = city;
+        });
+    }
+
+    function updateUI() {
+        const dOpt = destinations.map(d => `<option value="${d.name}">${d.name}</option>`).join('');
+        const cOpt = categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+        document.getElementById('i-dest').innerHTML = dOpt;
+        document.getElementById('i-cat').innerHTML = cOpt;
+        document.getElementById('set-dest').innerHTML = destinations.map(d => `<div class="item-card">${d.name} <button onclick="deleteSetting('${d.id}')">✕</button></div>`).join('');
+        document.getElementById('set-cat').innerHTML = categories.map(c => `<div class="item-card">${c.name} <button onclick="deleteSetting('${c.id}')">✕</button></div>`).join('');
+    }
+
+    function renderCatalog() {
+        document.getElementById('cat-list').innerHTML = activities.map(i => `
+            <div class="item-card">
+                <img src="${i.image}" class="thumb">
+                <div style="flex:1"><strong>${i.title}</strong><br><small>${i.city} | ${i.category}</small></div>
+                <button class="btn-outline" onclick="deleteItem('${i.id}')">WIS</button>
+            </div>`).join('');
+    }
+
     window.saveItem = async () => {
-        const id = document.getElementById('edit-id').value;
         const data = {
             title: document.getElementById('i-title').value,
             city: document.getElementById('i-dest').value,
@@ -172,96 +220,48 @@
             desc: document.getElementById('i-desc').value,
             image: document.getElementById('i-img').value
         };
-        id ? await updateDoc(doc(db, "activities", id), data) : await addDoc(collection(db, "activities"), data);
-        resetForm();
+        await addDoc(collection(db, "activities"), data);
+        alert("Opgeslagen!");
     };
 
-    window.editItem = (id) => {
-        const i = activities.find(x => x.id === id);
-        document.getElementById('edit-id').value = i.id;
-        document.getElementById('i-title').value = i.title;
-        document.getElementById('i-dest').value = i.city;
-        document.getElementById('i-cat').value = i.category;
-        document.getElementById('i-loc').value = i.location;
-        document.getElementById('i-desc').value = i.desc || '';
-        document.getElementById('i-img').value = i.image;
-        document.getElementById('btn-save').innerText = "Update";
-    };
-
-    window.resetForm = () => {
-        document.getElementById('edit-id').value = '';
-        document.querySelectorAll('#tab-cat input, #tab-cat textarea').forEach(x => x.value = '');
-        document.getElementById('btn-save').innerText = "Item Opslaan";
-    };
-
-    window.deleteItem = async (id) => { if(confirm('Wissen?')) await deleteDoc(doc(db, "activities", id)); };
     window.addSetting = async (type, inputId) => {
-        const val = document.getElementById(inputId).value;
-        if(val) await addDoc(collection(db, "settings"), { type, name: val });
-        document.getElementById(inputId).value = '';
+        const name = document.getElementById(inputId).value;
+        if(name) await addDoc(collection(db, "settings"), { type, name });
+        document.getElementById(inputId).value = "";
     };
-    function renderSettings() {
-        document.getElementById('settings-dest-list').innerHTML = destinations.map(d => `<div class="item-card">${d.name} <button onclick="deleteSetting('${d.id}')">✕</button></div>`).join('');
-        document.getElementById('settings-cat-list').innerHTML = categories.map(c => `<div class="item-card">${c.name} <button onclick="deleteSetting('${c.id}')">✕</button></div>`).join('');
-    }
+
     window.deleteSetting = async (id) => { await deleteDoc(doc(db, "settings", id)); };
-    
-   window.handleCSV = async () => {
-    const file = document.getElementById('csv-file').files[0];
-    if (!file) return alert("Selecteer eerst een bestand.");
+    window.deleteItem = async (id) => { if(confirm("Zeker weten?")) await deleteDoc(doc(db, "activities", id)); };
 
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-        const content = e.target.result;
-        const rows = content.split('\n').filter(row => row.trim() !== '');
-        
-        // Slimme scheidingsteken detectie
-        const header = rows[0];
-        const delimiter = header.includes(';') ? ';' : ',';
-        
-        const { writeBatch, doc, collection } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
-        const batch = writeBatch(db);
-        let count = 0;
-
-        // Start bij i=1 om de header over te slaan
-        for (let i = 1; i < rows.length; i++) {
-            const cols = rows[i].split(delimiter);
+    window.handleCSV = async () => {
+        const file = document.getElementById('csv-file').files[0];
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const rows = e.target.result.split('\n').filter(r => r.trim() !== '');
+            const delimiter = rows[0].includes(';') ? ';' : ',';
+            const { writeBatch, collection } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+            const batch = writeBatch(db);
             
-            // Controleer of de rij wel data bevat (Titel, Bestemming, Categorie zijn verplicht)
-            if (cols.length >= 3) {
-                const newDocRef = doc(collection(db, "activities"));
-                batch.set(newDocRef, {
-                    title: cols[0]?.trim(),
-                    city: cols[1]?.trim(), // 'Rome' in jouw bestand
-                    category: cols[2]?.trim(),
-                    location: cols[3]?.trim(),
-                    desc: cols[4]?.trim(),
-                    image: cols[5] ? cols[5].trim() : ""
-                });
-                count++;
+            for(let i = 1; i < rows.length; i++) {
+                const c = rows[i].split(delimiter);
+                if(c.length >= 3) {
+                    batch.set(doc(collection(db, "activities")), {
+                        title: c[0]?.trim(), city: c[1]?.trim(), category: c[2]?.trim(),
+                        location: c[3]?.trim(), desc: c[4]?.trim(), image: c[5]?.trim() || ""
+                    });
+                }
             }
-        }
-
-        if (count === 0) {
-            alert("Fout: Geen geldige data gevonden. Gebruik een CSV met kolommen: Titel, Bestemming, Categorie, Locatie, Omschrijving, Foto URL");
-            return;
-        }
-
-        try {
             await batch.commit();
-            alert(`Succes! ${count} activiteiten toegevoegd aan de database.`);
-            document.getElementById('csv-file').value = '';
-            renderAll(); // Ververs direct de lijst
-        } catch (error) {
-            console.error(error);
-            alert("Firebase fout: " + error.message);
-        }
+            alert("CSV Geïmporteerd!");
+        };
+        reader.readAsText(file);
     };
-    reader.readAsText(file);
-};
+
     window.switchTab = (t) => {
         document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        document.querySelectorAll('.nav-tag').forEach(x => x.classList.remove('active'));
         document.getElementById('tab-'+t).classList.add('active');
+        document.getElementById('btn-'+t).classList.add('active');
     };
 </script>
 </body>
