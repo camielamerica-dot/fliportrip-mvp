@@ -206,45 +206,55 @@
     }
     window.deleteSetting = async (id) => { await deleteDoc(doc(db, "settings", id)); };
     
-    window.handleCSV = async () => {
+   window.handleCSV = async () => {
     const file = document.getElementById('csv-file').files[0];
     if (!file) return alert("Selecteer eerst een bestand.");
 
     const reader = new FileReader();
     reader.onload = async (e) => {
-        const rows = e.target.result.split('\n').filter(row => row.trim() !== '');
+        const content = e.target.result;
+        const rows = content.split('\n').filter(row => row.trim() !== '');
         
-        // We gebruiken een 'Write Batch' van Firebase (max 500 items per keer)
-        // Importeer 'writeBatch' bovenaan bij je andere Firebase imports!
+        // Slimme scheidingsteken detectie
+        const header = rows[0];
+        const delimiter = header.includes(';') ? ';' : ',';
+        
         const { writeBatch, doc, collection } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
         const batch = writeBatch(db);
+        let count = 0;
 
-        console.log(`Start import van ${rows.length - 1} rijen...`);
-
-        // Sla de eerste rij (headers) over
+        // Start bij i=1 om de header over te slaan
         for (let i = 1; i < rows.length; i++) {
-            const cols = rows[i].split(';');
+            const cols = rows[i].split(delimiter);
             
-            if (cols.length >= 5) {
+            // Controleer of de rij wel data bevat (Titel, Bestemming, Categorie zijn verplicht)
+            if (cols.length >= 3) {
                 const newDocRef = doc(collection(db, "activities"));
                 batch.set(newDocRef, {
-                    title: cols[0]?.trim() || "Naamloos",
-                    city: cols[1]?.trim() || "Onbekend",
-                    category: cols[2]?.trim() || "Algemeen",
-                    location: cols[3]?.trim() || "",
-                    desc: cols[4]?.trim() || "",
-                    image: cols[5] ? cols[5].trim() : "https://via.placeholder.com/400x300?text=Geen+Foto"
+                    title: cols[0]?.trim(),
+                    city: cols[1]?.trim(), // 'Rome' in jouw bestand
+                    category: cols[2]?.trim(),
+                    location: cols[3]?.trim(),
+                    desc: cols[4]?.trim(),
+                    image: cols[5] ? cols[5].trim() : ""
                 });
+                count++;
             }
+        }
+
+        if (count === 0) {
+            alert("Fout: Geen geldige data gevonden. Gebruik een CSV met kolommen: Titel, Bestemming, Categorie, Locatie, Omschrijving, Foto URL");
+            return;
         }
 
         try {
             await batch.commit();
-            alert("CSV succesvol geïmporteerd! De lijst wordt nu bijgewerkt.");
-            document.getElementById('csv-file').value = ''; // Reset input
+            alert(`Succes! ${count} activiteiten toegevoegd aan de database.`);
+            document.getElementById('csv-file').value = '';
+            renderAll(); // Ververs direct de lijst
         } catch (error) {
-            console.error("Fout bij uploaden:", error);
-            alert("Er ging iets mis bij het opslaan. Check de console.");
+            console.error(error);
+            alert("Firebase fout: " + error.message);
         }
     };
     reader.readAsText(file);
