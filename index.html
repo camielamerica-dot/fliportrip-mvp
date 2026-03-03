@@ -17,8 +17,6 @@
         .logo-glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 120px; height: 120px; background: var(--mint); filter: blur(50px); opacity: 0.15; z-index: 0; }
         .logo-img { width: 140px; position: relative; z-index: 1; }
         .btn { background: var(--mint); color: var(--obsidian); padding: 16px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; width: 260px; margin-bottom: 10px; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
-        .btn-wa { background: #25D366; color: white; }
-        .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; }
         .input-box, .select-box { background: var(--card-bg); border: 1px solid rgba(0,255,194,0.3); padding: 14px; border-radius: 15px; color: white; text-align: center; margin-bottom: 12px; width: 100%; box-sizing: border-box; font-size: 16px; outline: none; }
         .label { font-size: 9px; color: var(--mint); text-transform: uppercase; font-weight: 800; margin-bottom: 4px; display: block; text-align: left; }
         #room-header { position: fixed; top: 0; width: 100%; height: 85px; display: flex; flex-direction: column; justify-content: center; align-items: center; background: var(--obsidian); z-index: 1000; border-bottom: 1px solid rgba(0,255,194,0.2); }
@@ -30,12 +28,11 @@
         .maps-link { color: var(--mint); font-size: 11px; text-decoration: none; display: block; margin-top: 5px; font-weight: 800; }
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.97); backdrop-filter: blur(10px); display: none; align-items: center; justify-content: center; z-index: 99999; padding: 20px; }
         .modal-card { background: var(--card-bg); padding: 25px; border-radius: 25px; border: 1px solid var(--mint); width: 100%; max-width: 320px; text-align: center; }
-        .swipe-indicator { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 80px; opacity: 0; z-index: 10; pointer-events: none; }
     </style>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, collection, getDocs, onSnapshot, addDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, collection, getDocs, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { 
             apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0",
@@ -44,14 +41,25 @@
         };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        emailjs.init("wcDPsz6TupAyvv3G0");
 
-        let timerInterval;
-        window.currentRoom = null;
-        window.roomDestination = "Valkenburg";
+        let destinations = [];
 
-        // De logica voor Create, Join en Swiping is identiek aan je vorige code, 
-        // maar nu met de destination-veld integratie en maps-link in renderCard.
+        // 1. HAAL BESTEMMINGEN OP UIT ADMIN SETTINGS
+        async function loadDestinations() {
+            const q = query(collection(db, "settings"), where("type", "==", "destinations"));
+            const snapshot = await getDocs(q);
+            const select = document.getElementById('host-dest');
+            select.innerHTML = ""; // Clear existing
+            
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                const opt = document.createElement('option');
+                opt.value = d.name;
+                opt.innerText = d.name;
+                select.appendChild(opt);
+            });
+        }
+        loadDestinations();
 
         window.createRoom = async () => {
             const name = document.getElementById('host-name').value;
@@ -59,6 +67,8 @@
             const dest = document.getElementById('host-dest').value;
             const code = Math.floor(1000 + Math.random() * 9000).toString();
             
+            if(!name || !email) return alert("Vul alles in!");
+
             await setDoc(doc(db, "rooms", code), { 
                 hostName: name, hostEmail: email, destination: dest, 
                 targetParticipants: parseInt(document.getElementById('target-p').value),
@@ -78,37 +88,42 @@
                 window.currentRoom = code; window.roomDestination = ds.data().destination;
                 document.getElementById('join-modal').style.display = 'none';
                 document.getElementById('profile-modal').style.display = 'flex';
-            }
+            } else { alert("Code niet gevonden"); }
         };
 
         window.startSwiping = async () => {
             document.querySelectorAll('.screen-content').forEach(s => s.classList.add('hidden'));
             document.getElementById('room-header').classList.remove('hidden');
             document.getElementById('swipe-screen').classList.remove('hidden');
+            document.getElementById('active-code-display').innerText = window.currentRoom;
+
             const q = query(collection(db, "activities"), where("city", "==", window.roomDestination));
             const qs = await getDocs(q);
             window.acts = qs.docs.map(d => ({ id: d.id, ...d.data() }));
-            window.actIdx = 0; renderCard();
+            
+            if(window.acts.length === 0) {
+                document.getElementById('swipe-screen').innerHTML = "<h2>Geen activiteiten gevonden voor deze stad.</h2>";
+            } else {
+                window.actIdx = 0; renderCard();
+            }
         };
 
         function renderCard() {
             const container = document.getElementById('swipe-screen');
             container.innerHTML = "";
             if(window.actIdx >= window.acts.length) {
-                container.innerHTML = "<h2 style='color:var(--mint)'>Klaar! 🔥</h2>";
+                container.innerHTML = "<h2 style='color:var(--mint)'>Klaar! 🔥 <br><small style='font-size:12px; color:white;'>Wacht op de rest...</small></h2>";
                 return;
             }
             const a = window.acts[window.actIdx];
             const card = document.createElement('div');
             card.className = 'card';
-            // MAPS LINK toegevoegd aan de card-info
             card.innerHTML = `
-                <div class="swipe-indicator"></div>
                 <div class="card-img" style="background-image:url('${a.image}')"></div>
                 <div class="card-info">
                     <h2 style="margin:0;font-size:18px;">${a.title}</h2>
-                    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.location)}" target="_blank" class="maps-link">📍 Bekijk op kaart</a>
-                    <p style="font-size:12px;opacity:0.7;">${a.desc || ''}</p>
+                    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.location)}" target="_blank" class="maps-link">📍 Bekijk locatie</a>
+                    <p style="font-size:12px;opacity:0.7;margin-top:10px;">${a.desc || ''}</p>
                 </div>`;
             container.appendChild(card);
             
@@ -116,8 +131,7 @@
             h.on('pan', e => { card.style.transform = `translateX(${e.deltaX}px) rotate(${e.deltaX/20}deg)`; });
             h.on('panend', async e => {
                 if(Math.abs(e.deltaX) > 100) {
-                    const action = e.deltaX > 0 ? 'like' : 'dislike';
-                    if(action === 'like') {
+                    if(e.deltaX > 0) {
                         const up = {}; up[`votes.${a.id}`] = increment(1);
                         await updateDoc(doc(db, "rooms", window.currentRoom), up);
                     }
@@ -125,8 +139,11 @@
                 } else { card.style.transform = ''; }
             });
         }
-        window.goHome = () => location.reload();
-        window.submitProfile = () => { document.getElementById('profile-modal').style.display = 'none'; window.startSwiping(); };
+
+        window.submitProfile = () => { 
+            document.getElementById('profile-modal').style.display = 'none'; 
+            window.startSwiping(); 
+        };
     </script>
 </head>
 <body>
@@ -138,16 +155,17 @@
 
     <div id="setup-screen" class="hidden screen-content" style="text-align:center;">
         <div style="width:280px; margin: 0 auto;">
-            <span class="label">Bestemming</span>
+            <span class="label">Kies Bestemming</span>
             <select id="host-dest" class="select-box">
-                <option value="Valkenburg">Valkenburg</option>
-                <option value="Maastricht">Maastricht</option>
+                <option>Laden...</option>
             </select>
-            <input type="text" id="host-name" class="input-box" placeholder="Naam">
-            <input type="email" id="host-email" class="input-box" placeholder="E-mail">
+            <input type="text" id="host-name" class="input-box" placeholder="Je Naam">
+            <input type="email" id="host-email" class="input-box" placeholder="Je E-mail">
+            <span class="label">Aantal Personen</span>
             <input type="number" id="target-p" class="input-box" value="4">
+            <span class="label">Tijd (minuten)</span>
             <input type="number" id="deadline-input" class="input-box" value="60">
-            <button class="btn" onclick="createRoom()">Start</button>
+            <button class="btn" onclick="createRoom()">Start Trip</button>
         </div>
     </div>
 
@@ -155,26 +173,30 @@
 
     <div id="join-modal" class="modal-overlay">
         <div class="modal-card">
-            <input type="number" id="join-code-input" class="input-box" placeholder="Code">
-            <button class="btn" onclick="confirmJoin()">Join</button>
+            <h3>Voer de kamer-code in</h3>
+            <input type="number" id="join-code-input" class="input-box" placeholder="4-cijferige code">
+            <button class="btn" onclick="confirmJoin()">Deelnemen</button>
+            <button class="btn-outline" style="border:none; color:var(--red); cursor:pointer;" onclick="document.getElementById('join-modal').style.display='none'">Annuleren</button>
         </div>
     </div>
 
     <div id="profile-modal" class="modal-overlay">
         <div class="modal-card">
-            <h3>Klaar voor de start?</h3>
+            <h3 style="color:var(--mint)">Kamer gevonden!</h3>
+            <p>Klik op de knop om te beginnen met het beoordelen van activiteiten.</p>
             <button class="btn" onclick="submitProfile()">Start Flippen</button>
         </div>
     </div>
 
     <div id="share-screen" class="hidden screen-content" style="text-align:center;">
-        <h1 id="display-code" style="color:var(--mint); font-size:60px;"></h1>
+        <p>Deel deze code met je vrienden:</p>
+        <h1 id="display-code" style="color:var(--mint); font-size:60px; margin: 10px 0;"></h1>
         <button class="btn" onclick="startSwiping()">Start nu zelf</button>
     </div>
 
     <div id="room-header" class="hidden">
         <div class="header-slogan">STOP DECIDING. START DOING.</div>
-        <div class="header-tag">ROOM: <span id="active-code-display"></span></div>
+        <div style="font-size: 10px; font-weight: 800; color: white;">CODE: <span id="active-code-display" style="color:var(--mint)"></span></div>
     </div>
 </body>
 </html>
