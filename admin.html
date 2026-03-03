@@ -206,25 +206,49 @@
     }
     window.deleteSetting = async (id) => { await deleteDoc(doc(db, "settings", id)); };
     
-    window.handleCSV = () => {
-        const file = document.getElementById('csv-file').files[0];
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const rows = e.target.result.split('\n');
-            for(let i = 1; i < rows.length; i++) {
-                const cols = rows[i].split(';');
-                if(cols.length >= 5) {
-                    await addDoc(collection(db, "activities"), {
-                        title: cols[0].trim(), city: cols[1].trim(), category: cols[2].trim(),
-                        location: cols[3].trim(), desc: cols[4].trim(), image: cols[5] ? cols[5].trim() : ""
-                    });
-                }
-            }
-            alert("Klaar!");
-        };
-        reader.readAsText(file);
-    };
+    window.handleCSV = async () => {
+    const file = document.getElementById('csv-file').files[0];
+    if (!file) return alert("Selecteer eerst een bestand.");
 
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const rows = e.target.result.split('\n').filter(row => row.trim() !== '');
+        
+        // We gebruiken een 'Write Batch' van Firebase (max 500 items per keer)
+        // Importeer 'writeBatch' bovenaan bij je andere Firebase imports!
+        const { writeBatch, doc, collection } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        const batch = writeBatch(db);
+
+        console.log(`Start import van ${rows.length - 1} rijen...`);
+
+        // Sla de eerste rij (headers) over
+        for (let i = 1; i < rows.length; i++) {
+            const cols = rows[i].split(';');
+            
+            if (cols.length >= 5) {
+                const newDocRef = doc(collection(db, "activities"));
+                batch.set(newDocRef, {
+                    title: cols[0]?.trim() || "Naamloos",
+                    city: cols[1]?.trim() || "Onbekend",
+                    category: cols[2]?.trim() || "Algemeen",
+                    location: cols[3]?.trim() || "",
+                    desc: cols[4]?.trim() || "",
+                    image: cols[5] ? cols[5].trim() : "https://via.placeholder.com/400x300?text=Geen+Foto"
+                });
+            }
+        }
+
+        try {
+            await batch.commit();
+            alert("CSV succesvol geïmporteerd! De lijst wordt nu bijgewerkt.");
+            document.getElementById('csv-file').value = ''; // Reset input
+        } catch (error) {
+            console.error("Fout bij uploaden:", error);
+            alert("Er ging iets mis bij het opslaan. Check de console.");
+        }
+    };
+    reader.readAsText(file);
+};
     window.switchTab = (t) => {
         document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
         document.getElementById('tab-'+t).classList.add('active');
