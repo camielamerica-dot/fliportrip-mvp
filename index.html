@@ -313,12 +313,21 @@ window.goHome = () => {
     </div>
 
     <div id="join-modal" class="modal-overlay">
-        <div class="modal-card">
-            <h3>Deelnemen</h3>
-            <input type="number" id="join-code-input" class="input-box" placeholder="Code">
-            <button class="btn" onclick="confirmJoin()">Join</button>
-        </div>
+    <div class="modal-card">
+        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="80" style="margin-bottom: 20px; opacity: 0.8;">
+        
+        <h3 style="color:var(--mint); margin-top: 0;">Deelnemen</h3>
+        <p style="font-size: 12px; opacity: 0.7; margin-bottom: 20px;">Voer de 4-cijferige code in van de host.</p>
+        
+        <input type="number" id="join-code-input" class="input-box" placeholder="0000" style="font-size: 24px; letter-spacing: 8px; padding: 15px;">
+        
+        <button class="btn" onclick="confirmJoin()">Join Trip</button>
+        
+        <p onclick="closeJoinModal()" style="cursor:pointer; font-size: 13px; text-decoration: underline; margin-top: 15px; opacity: 0.6;">
+            Annuleren en terug
+        </p>
     </div>
+</div>
 
     <div id="profile-modal" class="modal-overlay">
         <div class="modal-card">
