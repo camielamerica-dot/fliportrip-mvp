@@ -325,15 +325,15 @@ window.goHome = () => {
 <body>
 <div id="global-back-btn" class="back-nav hidden" onclick="goHome()">« Terug</div>
     <div id="start-screen" class="screen-content">
-    <div class="logo-container" style="margin-bottom: 30px;">
-        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="160" class="logo-img">
+    <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="180" style="margin-bottom: 40px;">
+
+    <div style="display: flex; gap: 20px; margin-bottom: 40px;">
+        <button class="btn-round" style="background: var(--mint); color: var(--obsidian); font-weight: 800;" onclick="showScreen('setup-screen')">TRIP<br>MAKEN</button>
+        <button class="btn-round" style="background: transparent; border: 2px solid white; color: white; font-weight: 800;" onclick="document.getElementById('join-modal').style.display='flex'">JOIN<br>MET CODE</button>
     </div>
 
-    <button class="btn" onclick="showScreen('setup-screen')">Trip Maken</button>
-    <button class="btn btn-outline" style="margin-bottom: 40px;" onclick="document.getElementById('join-modal').style.display='flex'">Join met Code</button>
-
-    <div style="width: 100%; text-align: left; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-        <p style="font-size: 10px; color: var(--mint); font-weight: 800; letter-spacing: 1px; margin-bottom: 15px; text-transform: uppercase;">Menu & Info</p>
+    <div class="menu-container">
+        <p style="font-size: 10px; color: var(--mint); font-weight: 800; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 5px;">Menu & Info</p>
         
         <div class="menu-item" onclick="document.getElementById('host-login-modal').style.display='flex'">
             <span>🔑 Host Log-in</span>
