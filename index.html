@@ -112,6 +112,54 @@
     border: none;
     cursor: pointer;
 }
+        .menu-trigger {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 3000;
+    background: var(--card-bg);
+    border: 1px solid var(--mint);
+    color: var(--mint);
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+/* Het feitelijke drop-down menu */
+.dropdown-menu {
+    position: fixed;
+    top: 75px;
+    right: 20px;
+    width: 240px;
+    background: var(--card-bg);
+    border: 1px solid rgba(0,255,194,0.3);
+    border-radius: 20px;
+    display: none; /* Standaard verborgen */
+    flex-direction: column;
+    z-index: 3000;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.dropdown-item {
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    color: white;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.dropdown-item:hover { background: rgba(0,255,194,0.1); }
+.dropdown-item:last-child { border-bottom: none; }
+.dropdown-item small { display: block; font-weight: 300; opacity: 0.6; font-size: 10px; }
     </style>
 
     <script type="module">
@@ -188,7 +236,18 @@ window.goHome = () => {
                 window.showLiveStats();
             } else { alert("Inloggegevens onjuist."); }
         };
+window.toggleMenu = () => {
+    const menu = document.getElementById('main-dropdown');
+    const isVisible = menu.style.display === 'flex';
+    menu.style.display = isVisible ? 'none' : 'flex';
+};
 
+// Sluit menu als je ergens anders klikt
+window.onclick = function(event) {
+    if (!event.target.matches('.menu-trigger')) {
+        document.getElementById('main-dropdown').style.display = 'none';
+    }
+}
         window.confirmJoin = async () => {
             const code = document.getElementById('join-code-input').value;
             const ds = await getDoc(doc(db, "rooms", code));
@@ -323,7 +382,23 @@ window.goHome = () => {
     </script>
 </head>
 <body>
-<div id="global-back-btn" class="back-nav hidden" onclick="goHome()">« Terug</div>
+<div class="menu-trigger" onclick="toggleMenu()">☰</div>
+
+<div id="main-dropdown" class="dropdown-menu">
+    <div class="dropdown-item" onclick="toggleMenu(); document.getElementById('host-login-modal').style.display='flex'">
+        🔑 Host Log-in <small>Bekijk live resultaten</small>
+    </div>
+    <div class="dropdown-item" onclick="toggleMenu(); showScreen('info-how-it-works')">
+        📖 Hoe werkt het? <small>Uitleg in 3 stappen</small>
+    </div>
+    <div class="dropdown-item" onclick="toggleMenu(); showScreen('info-problem-solver')">
+        💡 Waarom deze app? <small>Geen keuzestress meer</small>
+    </div>
+    <div class="dropdown-item" onclick="toggleMenu(); showScreen('info-benefits')">
+        ✅ Wat levert het op? <small>De voordelen op een rij</small>
+    </div>
+</div>
+    <div id="global-back-btn" class="back-nav hidden" onclick="goHome()">« Terug</div>
     <div id="start-screen" class="screen-content">
     <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="180" style="margin-bottom: 40px;">
 
