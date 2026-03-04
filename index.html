@@ -507,8 +507,23 @@ window.shareWA = () => {
     <div id="profile-modal" class="modal-overlay">
         <div class="modal-card">
             <h3 style="color:var(--mint)">Profiel</h3>
-            <input type="number" id="u-age" class="input-box" placeholder="Leeftijd">
-            <button class="btn" onclick="startSwiping()">Start Swipen</button>
+            <span class="label">Mijn leeftijd:</span>
+            <select id="age-select" class="select-box">
+                <option value="" disabled selected>Kies leeftijd...</option>
+                <option value="<18">Jonger dan 18</option>
+                <option value="18-25">18 - 25 jaar</option>
+                <option value="26-35">26 - 35 jaar</option>
+                <option value="36-50">36 - 50 jaar</option>
+                <option value="50+">Ouder dan 50</option>
+            </select>
+            <select id="gender-select" class="select-box">
+                <option value="" disabled selected>Kies geslacht...</option>
+                <option value="man">Man</option>
+                <option value="vrouw">Vrouw</option>
+                <option value="anders">Anders / Neutraal</option>
+            </select>
+
+            <button class="btn" onclick="startSwiping()">Start flippen</button>
         </div>
     </div>
 
