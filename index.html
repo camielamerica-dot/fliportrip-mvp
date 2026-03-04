@@ -369,7 +369,11 @@ window.onclick = function(event) {
                 }).then(() => console.log("Mail verstuurd!"));
             }
         }
-
+window.shareWA = () => {
+            const msg = `Samen flippen voor onze trip! 🌴 Code: *${window.currentRoom}*\nDoe mee op: ${window.location.origin}`;
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
+        };
+        
         window.showLiveStats = () => {
             document.getElementById('stats-modal').style.display = 'flex';
             onSnapshot(doc(db, "rooms", window.currentRoom), async (ds) => {
@@ -461,8 +465,9 @@ window.onclick = function(event) {
     </div>
 
     <div id="share-screen" class="hidden screen-content">
-        <h3>Kamer Code:</h3>
+        <h3>Trip Code:</h3>
         <h1 id="display-code" style="color:var(--mint); font-size:60px; margin:10px 0;"></h1>
+        <button class="btn btn-wa" onclick="shareWA()">Deel via WhatsApp met de deelnemers</button>
         <button class="btn" onclick="document.getElementById('profile-modal').style.display='flex'">Zelf beginnen</button>
     </div>
 
