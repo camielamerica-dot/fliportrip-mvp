@@ -37,6 +37,23 @@
         /* Modals */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(15px); display: none; align-items: center; justify-content: center; z-index: 9999; }
         .modal-card { background: var(--card-bg); padding: 30px; border-radius: 30px; border: 1px solid var(--mint); width: 320px; text-align: center; }
+
+        .back-nav {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 2000; /* Zorgt dat hij boven alles zweeft */
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(0,255,194,0.3);
+    color: var(--mint);
+    padding: 8px 15px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+}
     </style>
 
     <script type="module">
@@ -56,9 +73,26 @@
         window.roomData = null;
 
         window.showScreen = (id) => {
-            document.querySelectorAll('.screen-content').forEach(s => s.classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
-        };
+    // Verberg alle schermen
+    document.querySelectorAll('.screen-content').forEach(s => s.classList.add('hidden'));
+    
+    // Toon het gekozen scherm
+    document.getElementById(id).classList.remove('hidden');
+
+    // Toon de terugknop alleen als we NIET op het start-scherm zijn
+    const backBtn = document.getElementById('global-back-btn');
+    if (id === 'start-screen') {
+        backBtn.classList.add('hidden');
+    } else {
+        backBtn.classList.remove('hidden');
+    }
+};
+
+// Functie om echt terug naar af te gaan
+window.goHome = () => {
+    // Stop eventuele timers of lopende zaken indien nodig
+    location.reload(); 
+};
 
         window.createRoom = async () => {
             const email = document.getElementById('host-email').value;
@@ -231,7 +265,7 @@
     </script>
 </head>
 <body>
-
+<div id="global-back-btn" class="back-nav hidden" onclick="goHome()">« Terug</div>
     <div id="start-screen" class="screen-content">
         <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="140" style="margin-bottom:30px;">
         <button class="btn" onclick="showScreen('setup-screen')">Trip Maken</button>
@@ -240,16 +274,16 @@
     </div>
 
     <div id="setup-screen" class="hidden screen-content">
-        <span class="label">Trip Setup</span>
-        <select id="host-dest" class="select-box"><option>Rome</option><option>Valkenburg</option></select>
-        <select id="trip-type" class="select-box"><option>Vriendenuitje</option><option>Teamuitje</option><option>Vrijgezellen</option></select>
-        <input type="text" id="host-name" class="input-box" placeholder="Je Naam">
-        <input type="email" id="host-email" class="input-box" placeholder="Je E-mail">
+        <span class="label">Trip Setup</span><br>
+        <span class="label">Bestemming</span><select id="host-dest" class="select-box"><option>Rome</option><option>Valkenburg</option></select>
+        <span class="label">Type trip</span><select id="trip-type" class="select-box"><option>Vriendenuitje</option><option>Teamuitje</option><option>Vrijgezellen</option></select>
+        <span class="label">Je naam</span><input type="text" id="host-name" class="input-box" placeholder="Je Naam">
+        <span class="label">Je e-mail voor de uitslag</span><input type="email" id="host-email" class="input-box" placeholder="Je E-mail">
         <div style="display:flex; gap:10px;">
-            <input type="number" id="target-p" class="input-box" placeholder="Personen" value="4">
-            <input type="number" id="deadline-input" class="input-box" placeholder="Minuten" value="60">
+            <span class="label">Aantal deelnemers</span><input type="number" id="target-p" class="input-box" placeholder="Personen" value="4">
+            <span class="label">Deadline invullen keuzes</span><input type="number" id="deadline-input" class="input-box" placeholder="Minuten" value="60">
         </div>
-        <button class="btn" onclick="createRoom()">Start Trip</button>
+        <button class="btn" onclick="createRoom()">Trip aanmaken</button>
     </div>
 
     <div id="share-screen" class="hidden screen-content">
