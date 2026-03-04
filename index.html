@@ -15,7 +15,7 @@
         .hidden { display: none !important; }
         
         /* UI Components */
-        .screen-content { width: 100%; max-width: 360px; display: flex; flex-direction: column; align-items: center; padding: 20px; box-sizing: border-box; text-align: center; }
+        .screen-content { width: 100%; max-width: 360px; display: flex; flex-direction: start; align-items: center; padding: 20px; box-sizing: border-box; text-align: center; }
         .btn { background: var(--mint); color: var(--obsidian); padding: 16px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; width: 100%; margin-bottom: 12px; font-size: 13px; text-transform: uppercase; text-align: center; text-decoration: none; display: block; }
         .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; }
         .input-box, .select-box { background: var(--card-bg); border: 1px solid rgba(0,255,194,0.3); padding: 14px; border-radius: 15px; color: white; margin-bottom: 12px; width: 100%; box-sizing: border-box; font-size: 15px; outline: none; text-align: center; }
@@ -53,6 +53,35 @@
     text-transform: uppercase;
     cursor: pointer;
     backdrop-filter: blur(5px);
+}
+
+        .menu-item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 15px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.2s ease;
+}
+
+.menu-item:active {
+    background: rgba(0, 255, 194, 0.1);
+    transform: scale(0.98);
+}
+
+.menu-item span {
+    font-size: 14px;
+    font-weight: 800;
+    color: white;
+}
+
+.menu-item small {
+    font-size: 11px;
+    color: var(--text);
+    margin-top: 2px;
 }
     </style>
 
@@ -267,11 +296,32 @@ window.goHome = () => {
 <body>
 <div id="global-back-btn" class="back-nav hidden" onclick="goHome()">« Terug</div>
     <div id="start-screen" class="screen-content">
-        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="140" style="margin-bottom:30px;">
-        <button class="btn" onclick="showScreen('setup-screen')">Trip Maken</button>
-        <button class="btn btn-outline" onclick="document.getElementById('join-modal').style.display='flex'">Join met Code</button>
-        <p onclick="document.getElementById('host-login-modal').style.display='flex'" style="cursor:pointer; font-size:11px; text-decoration:underline; margin-top:20px; opacity:0.6;">Host Login</p>
+    <div class="logo-container" style="margin-bottom: 30px;">
+        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="160" class="logo-img">
     </div>
+
+    <button class="btn" onclick="showScreen('setup-screen')">Trip Maken</button>
+    <button class="btn btn-outline" style="margin-bottom: 40px;" onclick="document.getElementById('join-modal').style.display='flex'">Join met Code</button>
+
+    <div style="width: 100%; text-align: left; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+        <p style="font-size: 10px; color: var(--mint); font-weight: 800; letter-spacing: 1px; margin-bottom: 15px; text-transform: uppercase;">Menu & Info</p>
+        
+        <div class="menu-item" onclick="document.getElementById('host-login-modal').style.display='flex'">
+            <span>🔑 Host Log-in</span>
+            <small>Bekijk live resultaten</small>
+        </div>
+
+        <div class="menu-item" onclick="showScreen('info-how-it-works')">
+            <span>📖 Hoe werkt het?</span>
+            <small>In 3 stappen naar een match</small>
+        </div>
+
+        <div class="menu-item" onclick="showScreen('info-problem-solver')">
+            <span>💡 Waarom FlipOrTrip?</span>
+            <small>Geen keuzestress meer</small>
+        </div>
+    </div>
+</div>
 
     <div id="setup-screen" class="hidden screen-content">
         <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" 
@@ -345,6 +395,21 @@ window.goHome = () => {
             <button class="btn btn-outline" style="margin-top:20px;" onclick="document.getElementById('stats-modal').style.display='none'">Sluiten</button>
         </div>
     </div>
+<div id="info-how-it-works" class="hidden screen-content" style="text-align: left;">
+    <h2 style="color:var(--mint)">Hoe werkt het?</h2>
+    <p style="font-size:14px; line-height:1.6; opacity:0.8;">
+        1. <b>Maak een Trip:</b> De host kiest een stad en zet een deadline.<br><br>
+        2. <b>Swipe & Flip:</b> Iedereen krijgt dezelfde activiteiten te zien en swipet naar rechts (leuk) of links (niet leuk).<br><br>
+        3. <b>De Match:</b> De app berekent welke 3 activiteiten de hoogste score hebben bij de hele groep.
+    </p>
+</div>
 
+<div id="info-problem-solver" class="hidden screen-content" style="text-align: left;">
+    <h2 style="color:var(--mint)">De oplossing</h2>
+    <p style="font-size:14px; line-height:1.6; opacity:0.8;">
+        <b>Het Probleem:</b> Groepsdiscussies over "wat gaan we doen?" duren uren in WhatsApp-groepen. Vaak beslist de luidste stem.<br><br>
+        <b>Onze Oplossing:</b> Democratisch, snel en visueel. FlipOrTrip haalt de keuzestress weg en zorgt dat de activiteit écht door de meerderheid gedragen wordt.
+    </p>
+</div>
 </body>
 </html>
