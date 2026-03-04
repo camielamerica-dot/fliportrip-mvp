@@ -98,19 +98,37 @@
     color: var(--text);
     margin-top: 2px;
 }
-        .btn-round {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    font-size: 12px;
-    line-height: 1.2;
-    padding: 10px;
+    .btn-main {
+    width: 100%;
+    max-width: 280px;
+    padding: 18px;
+    border-radius: 15px; /* Subtiel afgerond, niet volledig rond */
+    font-weight: 800;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     border: none;
     cursor: pointer;
+    margin-bottom: 15px;
+    transition: all 0.2s ease;
+    display: block;
+}
+
+.btn-primary {
+    background: var(--mint);
+    color: var(--obsidian);
+    box-shadow: 0 4px 15px rgba(0, 255, 194, 0.2);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-main:active {
+    transform: scale(0.96);
+    opacity: 0.9;
 }
         .menu-trigger {
     position: fixed;
@@ -400,32 +418,24 @@ window.onclick = function(event) {
 </div>
     <div id="global-back-btn" class="back-nav hidden" onclick="goHome()">« Terug</div>
     <div id="start-screen" class="screen-content">
-    <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="180" style="margin-bottom: 40px;">
+    <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" 
+         width="180" style="margin-bottom: 50px;">
 
-    <div style="display: flex; gap: 20px; margin-bottom: 40px;">
-        <button class="btn-round" style="background: var(--mint); color: var(--obsidian); font-weight: 800;" onclick="showScreen('setup-screen')">TRIP<br>MAKEN</button>
-        <button class="btn-round" style="background: transparent; border: 2px solid white; color: white; font-weight: 800;" onclick="document.getElementById('join-modal').style.display='flex'">JOIN<br>MET CODE</button>
-    </div>
-
-    <div class="menu-container">
-        <p style="font-size: 10px; color: var(--mint); font-weight: 800; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 5px;">Menu & Info</p>
+    <div style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+        <button class="btn-main btn-primary" onclick="showScreen('setup-screen')">
+            Nieuwe Trip Maken
+        </button>
         
-        <div class="menu-item" onclick="document.getElementById('host-login-modal').style.display='flex'">
-            <span>🔑 Host Log-in</span>
-            <small>Bekijk live resultaten</small>
-        </div>
-
-        <div class="menu-item" onclick="showScreen('info-how-it-works')">
-            <span>📖 Hoe werkt het?</span>
-            <small>In 3 stappen naar een match</small>
-        </div>
-
-        <div class="menu-item" onclick="showScreen('info-problem-solver')">
-            <span>💡 Waarom FlipOrTrip?</span>
-            <small>Geen keuzestress meer</small>
-        </div>
+        <button class="btn-main btn-secondary" onclick="document.getElementById('join-modal').style.display='flex'">
+            Deelnemen met Code
+        </button>
     </div>
+    
+    <p style="font-size: 11px; color: var(--text); margin-top: 20px; opacity: 0.5;">
+        v7.2 Business Edition
+    </p>
 </div>
+
 
     <div id="setup-screen" class="hidden screen-content">
         <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" 
