@@ -412,7 +412,7 @@ window.onclick = function(event) {
     <div class="dropdown-item" onclick="toggleMenu(); showScreen('info-problem-solver')">
         💡 Waarom deze app? <small>Geen keuzestress meer</small>
     </div>
-    <div class="dropdown-item" onclick="toggleMenu(); showScreen('info-benefits')">
+    <div class="dropdown-item" onclick="toggleMenu(); showScreen('info-problem-solver')">
         ✅ Wat levert het op? <small>De voordelen op een rij</small>
     </div>
 </div>
@@ -487,9 +487,8 @@ window.onclick = function(event) {
         
         <button class="btn" onclick="confirmJoin()">Join Trip</button>
         
-        <p onclick="closeJoinModal()" style="cursor:pointer; font-size: 13px; text-decoration: underline; margin-top: 15px; opacity: 0.6;">
-            Annuleren en terug
-        </p>
+        <p onclick="document.getElementById('host-login-modal').style.display='none'" style="font-size:12px;">Nnuleren en terug</p>
+       
     </div>
 </div>
 
