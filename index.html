@@ -11,18 +11,23 @@
     
    <style>
     :root { 
-        --mint: #00FFC2; 
-        --mint-glow: rgba(0, 255, 194, 0.15);
-        --obsidian: #080A0F; 
-        --card-bg: rgba(22, 27, 34, 0.7); 
-        --red: #FF4B4B; 
-        --text-main: #FFFFFF;
-        --text-dim: #94A3B8; 
+        /* Fris & Uitnodigend Palet */
+        --accent: #FF5F6D; /* Warm Koraal/Sunset */
+        --accent-soft: rgba(255, 95, 109, 0.1);
+        --mint: #00D1B2; /* Helder groen voor positieve acties */
+        --bg-main: #F8F9FA; 
+        --card-white: #FFFFFF;
+        --text-dark: #2D3436; 
+        --text-grey: #636E72;
+        --shadow-soft: 0 10px 30px rgba(0,0,0,0.04);
+        --shadow-strong: 0 15px 45px rgba(0,0,0,0.08);
     }
 
     body { 
-        background: radial-gradient(circle at top right, #1a1f2b, #080A0F); 
-        color: var(--text-main); 
+        background-color: var(--bg-main);
+        background-image: radial-gradient(at 0% 0%, rgba(0, 209, 178, 0.05) 0px, transparent 50%), 
+                          radial-gradient(at 100% 100%, rgba(255, 95, 109, 0.05) 0px, transparent 50%);
+        color: var(--text-dark); 
         font-family: 'Plus Jakarta Sans', sans-serif; 
         margin: 0; 
         padding: 0; 
@@ -36,34 +41,30 @@
 
     .hidden { display: none !important; }
 
-    /* Glassmorphism Schermen */
+    /* Schone, Lichte Containers */
     .screen-content { 
         width: 100%; 
         max-width: 380px; 
         display: flex; 
         flex-direction: column; 
         align-items: center; 
-        padding: 30px; 
+        padding: 35px 25px; 
         box-sizing: border-box; 
-        margin: 0 auto;
-        background: var(--card-bg);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: var(--card-white);
         border-radius: 40px;
-        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+        box-shadow: var(--shadow-strong);
+        border: 1px solid rgba(255,255,255,0.8);
     }
 
-    /* 2026 Buttons: Strakker & Tactile */
+    /* Knoppen: Fris & 'Tactile' */
     .btn-main {
         width: 100%;
-        max-width: 290px;
+        max-width: 280px;
         padding: 18px;
         border-radius: 20px;
         font-weight: 800;
-        font-size: 14px;
-        text-transform: uppercase;
-        letter-spacing: 1.5px;
+        font-size: 15px;
+        letter-spacing: 0.5px;
         border: none;
         cursor: pointer;
         margin-bottom: 12px;
@@ -73,101 +74,97 @@
     }
 
     .btn-primary {
-        background: var(--mint);
-        color: #000;
-        box-shadow: 0 8px 25px var(--mint-glow);
+        background: var(--accent);
+        color: white;
+        box-shadow: 0 8px 20px rgba(255, 95, 109, 0.25);
     }
 
     .btn-secondary {
-        background: rgba(255, 255, 255, 0.05);
-        color: white;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: #F1F3F5;
+        color: var(--text-dark);
+        border: 1px solid rgba(0,0,0,0.02);
     }
 
     .btn-main:active { transform: scale(0.96); }
 
-    /* Hip & Clean Inputs */
+    /* Vriendelijke Inputs */
     .input-box, .select-box { 
-        background: rgba(0, 0, 0, 0.3); 
-        border: 1px solid rgba(255, 255, 255, 0.1); 
+        background: #F8F9FA; 
+        border: 2px solid transparent; 
         padding: 16px; 
         border-radius: 18px; 
-        color: white; 
-        margin-bottom: 12px; 
+        color: var(--text-dark); 
+        margin-bottom: 15px; 
         width: 100%; 
         box-sizing: border-box; 
         font-size: 16px; 
         outline: none; 
-        transition: border 0.3s ease;
+        transition: all 0.2s ease;
     }
     
-    .input-box:focus { border-color: var(--mint); }
+    .input-box:focus { border-color: var(--accent-soft); background: white; }
 
     .label { 
         font-size: 11px; 
-        color: var(--mint); 
+        color: var(--text-grey); 
         text-transform: uppercase; 
         font-weight: 800; 
-        margin-bottom: 8px; 
+        margin-bottom: 6px; 
         width: 100%; 
         text-align: left; 
-        letter-spacing: 1px;
-        opacity: 0.9;
+        letter-spacing: 0.5px;
     }
 
-    /* Card Swipe - Meer Diepte */
-    #card-container { position: relative; width: 330px; height: 500px; margin-top: 20px; z-index: 100; }
+    /* Card Swipe - Lifestyle Look */
+    #card-container { position: relative; width: 330px; height: 490px; margin-top: 10px; }
     .card { 
         width: 100%; height: 100%; 
-        background: #1C2128; 
+        background: white; 
         border-radius: 35px; 
-        border: 1px solid rgba(255, 255, 255, 0.1); 
         position: absolute; 
         overflow: hidden; 
-        box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        box-shadow: var(--shadow-strong);
+        border: 1px solid rgba(0,0,0,0.03);
     }
     .card-img { height: 60%; background-size: cover; background-position: center; }
 
-    /* Navigation & Menu Buttons */
+    /* Navigatie & Menu: Zacht Wit */
     .menu-trigger {
         position: fixed; top: 25px; right: 25px; z-index: 3000;
-        background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
-        color: var(--mint); width: 50px; height: 50px; border-radius: 50%;
+        background: white; color: var(--accent); width: 50px; height: 50px; border-radius: 18px;
         display: flex; align-items: center; justify-content: center;
-        backdrop-filter: blur(10px); cursor: pointer;
+        box-shadow: var(--shadow-soft); cursor: pointer; border: none;
     }
 
     .back-nav {
         position: fixed; top: 25px; left: 25px; z-index: 2000;
-        background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
-        color: var(--text-dim); padding: 10px 18px; border-radius: 15px;
+        background: white; color: var(--text-grey); padding: 10px 18px; border-radius: 14px;
         font-size: 11px; font-weight: 800; text-transform: uppercase;
-        backdrop-filter: blur(10px); cursor: pointer;
+        box-shadow: var(--shadow-soft); cursor: pointer; border: none;
     }
 
-    /* Dropdown Menu Modern */
+    /* Dropdown Menu: Clean & White */
     .dropdown-menu {
         position: fixed; top: 85px; right: 25px; width: 250px;
-        background: rgba(13, 17, 23, 0.95); backdrop-filter: blur(20px);
-        border-radius: 25px; border: 1px solid rgba(255,255,255,0.1);
-        display: none; flex-direction: column; z-index: 3000; overflow: hidden;
+        background: white; border-radius: 25px; display: none; 
+        flex-direction: column; z-index: 3000; overflow: hidden;
+        box-shadow: var(--shadow-strong); border: 1px solid rgba(0,0,0,0.02);
     }
 
     .dropdown-item {
-        padding: 18px 25px; border-bottom: 1px solid rgba(255,255,255,0.05);
-        color: white; font-size: 14px; font-weight: 700; cursor: pointer;
+        padding: 18px 25px; border-bottom: 1px solid #F1F3F5;
+        color: var(--text-dark); font-size: 14px; font-weight: 700; cursor: pointer;
     }
-    .dropdown-item:hover { background: rgba(0, 255, 194, 0.1); }
-    .dropdown-item small { display: block; color: var(--text-dim); font-size: 11px; margin-top: 2px; font-weight: 400; }
+    .dropdown-item:hover { background: var(--accent-soft); color: var(--accent); }
+    .dropdown-item small { display: block; color: var(--text-grey); font-size: 11px; margin-top: 2px; font-weight: 400; }
 
-    /* Modals Update */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(20px); display: none; align-items: center; justify-content: center; z-index: 9999; }
-    .modal-card { background: #161B22; padding: 40px 30px; border-radius: 40px; border: 1px solid var(--mint); width: 320px; text-align: center; }
+    /* Modals & Stats Update */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(45, 52, 54, 0.2); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 9999; }
+    .modal-card { background: white; padding: 40px 30px; border-radius: 40px; width: 320px; text-align: center; box-shadow: var(--shadow-strong); }
 
-    /* Stats Update */
-    .stat-bar-container { background: rgba(255,255,255,0.03); border-radius: 20px; margin-bottom: 12px; padding: 16px; border: 1px solid rgba(255,255,255,0.05); }
-    .stat-bar-bg { background: rgba(255,255,255,0.08); height: 6px; border-radius: 10px; margin-top: 8px; }
-    .stat-bar-fill { background: var(--mint); box-shadow: 0 0 10px var(--mint-glow); border-radius: 10px; }
+    .stat-bar-container { background: #F8F9FA; border-radius: 20px; margin-bottom: 12px; padding: 16px; }
+    .stat-bar-bg { background: #E9ECEF; height: 8px; border-radius: 10px; margin-top: 8px; }
+    .stat-bar-fill { background: linear-gradient(90deg, var(--mint), #36ead2); border-radius: 10px; }
 </style>
 
     <script type="module">
