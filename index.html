@@ -42,8 +42,9 @@
 
     /* Schone, Lichte Containers */
     .screen-content {
-        width: 90%;
+        width: calc(100% - 40px);
         max-width: 400px;
+        margin: 20px auto;
         background: var(--glass);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
@@ -57,6 +58,7 @@
     text-align: center;
     padding: 40px 30px;
         gap: 20px;
+        box-sizing: border-box;
     }
 
     /* Knoppen: Fris & 'Tactile' */
@@ -498,7 +500,7 @@ window.shareWA = () => {
         <input type="number" id="join-code-input" class="input-box" placeholder="0000" style="font-size: 24px; letter-spacing: 8px; padding: 15px;">
         
         <button class="btn-main" onclick="confirmJoin()">Join Trip</button>
-        <button class="btn-secondary" onclick="goHome()">Annuleren en terug</button>
+        <button class="btn-main btn-secondary" onclick="goHome()">Annuleren en terug</button>
         
        
     </div>
@@ -542,7 +544,7 @@ window.shareWA = () => {
         2. <b>Swipe & Flip:</b> Iedereen krijgt dezelfde activiteiten te zien en swipet naar rechts (leuk) of links (niet leuk).<br><br>
         3. <b>De Match:</b> De app berekent welke 3 activiteiten de hoogste score hebben bij de hele groep.
     </p>
-    <button class="btn-secondary" onclick="goHome()">Aan de slag</button>
+    <button class="btn-main btn-secondary" onclick="goHome()">Aan de slag</button>
 </div>
 
 <div id="info-problem-solver" class="hidden screen-content" style="text-align: left;">
@@ -551,7 +553,7 @@ window.shareWA = () => {
         <b>Het Probleem:</b> Groepsdiscussies over "wat gaan we doen?" duren uren in WhatsApp-groepen. Vaak beslist de luidste stem.<br><br>
         <b>Onze Oplossing:</b> Democratisch, snel en visueel. FlipOrTrip haalt de keuzestress weg en zorgt dat de activiteit écht door de meerderheid gedragen wordt.
     </p>
-    <button class="btn-secondary" onclick="goHome()">Aan de slag</button>
+    <button class="btn-main btn-secondary" onclick="goHome()">Aan de slag</button>
 </div>
 </body>
 </html>
