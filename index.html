@@ -202,6 +202,7 @@
 }
 .label-trip { right: 20px; color: #00D1B2; border-color: #00D1B2; transform: rotate(15deg); }
 .label-flip { left: 20px; color: #FF4B4B; border-color: #FF4B4B; transform: rotate(-15deg); }
+</style>
 
    #instruction-modal .modal-card {
     background: var(--glass);
@@ -248,14 +249,7 @@
 
         window.showScreen = (id) => {
     // Verberg alle schermen
-    console.log("Switching to screen:", id);
-    const screen = document.getElementById(id);
-    if (!screen) {
-        console.error("Scherm niet gevonden:", id);
-        return;
-    }
     document.querySelectorAll('.screen-content').forEach(s => s.classList.add('hidden'));
-    screen.classList.remove('hidden');
 
     // Toon het gekozen scherm
     document.getElementById(id).classList.remove('hidden');
@@ -266,9 +260,6 @@
         backBtn.classList.add('hidden');
     } else {
         backBtn.classList.remove('hidden');
-    if (backBtn) {
-        if (id === 'start-screen') backBtn.classList.add('hidden');
-        else backBtn.classList.remove('hidden');
     }
 };
 
@@ -318,10 +309,6 @@ window.toggleMenu = () => {
     const menu = document.getElementById('main-dropdown');
     const isVisible = menu.style.display === 'flex';
     menu.style.display = isVisible ? 'none' : 'flex';
-    if (menu) {
-        const isVisible = menu.style.display === 'flex';
-        menu.style.display = isVisible ? 'none' : 'flex';
-    }
 };
 
 // Sluit menu als je ergens anders klikt
@@ -342,71 +329,35 @@ window.onclick = function(event) {
         };
 
        window.startSwiping = async () => {
+    // Correctie: we gebruiken nu 'age-select' ipv 'u-age'
     const ageValue = document.getElementById('age-select').value;
     const genderValue = document.getElementById('gender-select').value;
-       window.startSwiping = () => {
-    const ageSelect = document.getElementById('age-select');
-    const genderSelect = document.getElementById('gender-select');
 
+    if(!ageValue) {
+        return alert("Selecteer eerst je leeftijd!");
     // Controleer of beide velden zijn ingevuld
     if(!ageValue || !genderValue) {
         return alert("Selecteer eerst je leeftijd én geslacht om je profiel te voltooien!");
-    if (!ageSelect || !genderSelect) {
-        console.error("Leeftijd of Geslacht veld ontbreekt in HTML");
-        return;
     }
 
     // Stap 1: Sluit profiel en toon instructies
     document.getElementById('profile-modal').style.display = 'none';
     document.getElementById('instruction-modal').style.display = 'flex';
-    if (!ageSelect.value || !genderSelect.value) {
-        alert("Selecteer eerst je leeftijd en geslacht!");
-        return;
-    }
-
-    const profileModal = document.getElementById('profile-modal');
-    const instructionModal = document.getElementById('instruction-modal');
-
-    if (profileModal) profileModal.style.display = 'none';
-    if (instructionModal) {
-        instructionModal.style.display = 'flex';
-    } else {
-        // Als de instructie modal per ongeluk ontbreekt, ga direct door
-        window.closeInstructions();
-    }
 };
 
 window.closeInstructions = async () => {
     // Stap 2: Sluit instructies en start het echte werk
     document.getElementById('instruction-modal').style.display = 'none';
     showScreen('swipe-screen');
-    const instructionModal = document.getElementById('instruction-modal');
-    if (instructionModal) instructionModal.style.display = 'none';
     
-    window.showScreen('swipe-screen');
-
     // De rest van je bestaande logica voor het ophalen van kaarten
     document.getElementById('active-code').innerText = window.currentRoom;
-    const activeCodeDisplay = document.getElementById('active-code');
-    if (activeCodeDisplay) activeCodeDisplay.innerText = window.currentRoom || "0000";
-
-    // Haal stad op (van host of van roomData)
     const city = window.roomData ? window.roomData.destination : document.getElementById('host-dest').value;
     const q = query(collection(db, "activities"), where("city", "==", city));
     const qs = await getDocs(q);
     window.acts = qs.docs.map(d => ({id: d.id, ...d.data()}));
     window.actIdx = 0; 
     renderCard();
-    
-    try {
-        const q = query(collection(db, "activities"), where("city", "==", city));
-        const qs = await getDocs(q);
-        window.acts = qs.docs.map(d => ({id: d.id, ...d.data()}));
-        window.actIdx = 0; 
-        if (typeof renderCard === "function") renderCard();
-    } catch (e) {
-        console.error("Fout bij laden activiteiten:", e);
-    }
 };
 
     // Verberg de modal
@@ -685,7 +636,7 @@ window.shareWA = () => {
 <div id="instruction-modal" class="modal-overlay" style="display:none;">
     <div class="modal-card">
         <h3 style="color:var(--indigo); margin-top:0;">Zo werkt het:</h3>
-
+        
         <div style="text-align:left; margin: 25px 0;">
             <div class="instruction-item">
                 <span class="instruction-icon">👉</span>
