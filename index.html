@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>FlipOrTrip | Business Suite v7.2</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
-    
+
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
-    
+
    <style>
     :root {
         --lila: #E0BBE4;
@@ -42,6 +42,7 @@
 
     /* Schone, Lichte Containers */
     .screen-content {
+        width: 90%;
         width: calc(100% - 40px);
         max-width: 400px;
         margin: 20px auto;
@@ -90,7 +91,7 @@
     }
 
 .btn-main:active { transform: scale(0.96); }
-       
+
     /* Vriendelijke Inputs */
    .input-group {
         display: flex;
@@ -98,7 +99,7 @@
         width: 100%;
         text-align: left;
     }
-       
+
        .input-box, .select-box {
         width: 100%;
         background: white;
@@ -114,7 +115,7 @@
         gap: 15px;
         width: 100%;
     }
-       
+
     .input-box:focus {
     border-color: var(--lavendel);
     box-shadow: 0 0 0 4px rgba(162, 155, 254, 0.1);
@@ -144,54 +145,19 @@
     .card-img { height: 60%; background-size: cover; background-position: center; }
 
     /* Navigatie & Menu: Zacht Wit */
-    /* Container voor de knoppen bovenin */
-.nav-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 80px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px;
-    box-sizing: border-box;
-    z-index: 4000; /* Altijd bovenop alles */
-    pointer-events: none; /* Zorgt dat je door de balk heen kunt klikken naar de achtergrond */
-}
+    .menu-trigger {
+        position: fixed; top: 25px; right: 25px; z-index: 3000;
+        background: white; color: var(--accent); width: 50px; height: 50px; border-radius: 18px;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: var(--shadow-soft); cursor: pointer; border: none;
+    }
 
-.back-nav, .menu-trigger {
-    pointer-events: auto; /* Zorgt dat de knoppen zelf wel klikbaar zijn */
-    background: white;
-    border: 1px solid var(--grijs);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-}
-
-.back-nav {
-    padding: 10px 15px;
-    border-radius: 15px;
-    color: var(--indigo);
-    font-size: 11px;
-    font-weight: 800;
-    text-transform: uppercase;
-}
-
-.menu-trigger {
-    width: 45px;
-    height: 45px;
-    border-radius: 15px; /* Matchend met de back-nav */
-    color: var(--indigo);
-    font-size: 20px;
-}
-
-/* Zorg dat de kaart niet direct tegen de knoppen aan knalt */
-#setup-screen, #start-screen {
-    margin-top: 90px !important; 
-}
+    .back-nav {
+        position: fixed; top: 25px; left: 25px; z-index: 2000;
+        background: white; color: var(--text-grey); padding: 10px 18px; border-radius: 14px;
+        font-size: 11px; font-weight: 800; text-transform: uppercase;
+        box-shadow: var(--shadow-soft); cursor: pointer; border: none;
+    }
 
     /* Dropdown Menu: Clean & White */
     .dropdown-menu {
@@ -233,20 +199,21 @@
         window.currentRoom = null;
         window.roomData = null;
 
-        function showScreen(screenId) {
+        window.showScreen = (id) => {
     // Verberg alle schermen
     document.querySelectorAll('.screen-content').forEach(s => s.classList.add('hidden'));
-    // Toon het gekozen scherm
-    document.getElementById(screenId).classList.remove('hidden');
 
-    // Toon/verberg de terug-knop
-    const backBtn = document.getElementById('back-button');
-    if (screenId === 'start-screen') {
+    // Toon het gekozen scherm
+    document.getElementById(id).classList.remove('hidden');
+
+    // Toon de terugknop alleen als we NIET op het start-scherm zijn
+    const backBtn = document.getElementById('global-back-btn');
+    if (id === 'start-screen') {
         backBtn.classList.add('hidden');
     } else {
         backBtn.classList.remove('hidden');
     }
-}
+};
 
 // Functie om echt terug naar af te gaan
 window.goHome = () => {
@@ -258,10 +225,10 @@ window.goHome = () => {
             const email = document.getElementById('host-email').value;
             const name = document.getElementById('host-name').value;
             if(!email || !name) return alert("Naam en E-mail verplicht!");
-            
+
             const code = Math.floor(1000 + Math.random() * 9000).toString();
             const deadline = Date.now() + (parseInt(document.getElementById('deadline-input').value) * 60000);
-            
+
             const roomObj = { 
                 hostName: name,
                 hostEmail: email.toLowerCase(),
@@ -318,7 +285,7 @@ window.onclick = function(event) {
             document.getElementById('profile-modal').style.display = 'none';
             showScreen('swipe-screen');
             document.getElementById('active-code').innerText = window.currentRoom;
-            
+
             // Haal activiteiten op gebaseerd op de gekozen stad
             const city = window.roomData ? window.roomData.destination : document.getElementById('host-dest').value;
             const q = query(collection(db, "activities"), where("city", "==", city));
@@ -334,7 +301,7 @@ window.onclick = function(event) {
                 card.style.transform = 'translateX(1000px) rotate(30deg)';
                 await updateDoc(doc(db, "rooms", window.currentRoom), { [`votes.${window.acts[window.actIdx].id}`]: increment(1) });
             } else { card.style.transform = 'translateX(-1000px) rotate(-30deg)'; }
-            
+
             setTimeout(() => { 
                 window.actIdx++; 
                 renderCard(); 
@@ -344,7 +311,7 @@ window.onclick = function(event) {
         async function renderCard() {
             const container = document.getElementById('card-container');
             container.innerHTML = "";
-            
+
             if(window.actIdx >= window.acts.length) {
                 container.innerHTML = "<h2>Lekker bezig! 🔥</h2><p>We wachten op de rest van de groep voor de uitslag.</p>";
                 await updateDoc(doc(db, "rooms", window.currentRoom), { finishedCount: increment(1) });
@@ -364,7 +331,7 @@ window.onclick = function(event) {
                     <p style="font-size:12px; opacity:0.7;">${a.desc}</p>
                 </div>`;
             container.appendChild(card);
-            
+
             const h = new Hammer(card);
             h.on('pan', e => {
                 card.style.transition = 'none';
@@ -384,19 +351,19 @@ window.onclick = function(event) {
             const rRef = doc(db, "rooms", window.currentRoom);
             const snap = await getDoc(rRef);
             const d = snap.data();
-            
+
             if (d.mailSent) return;
             if (d.finishedCount >= d.targetParticipants || Date.now() >= d.deadline) {
                 await updateDoc(rRef, { mailSent: true });
-                
+
                 // Namen ophalen voor Top 3
                 const aqs = await getDocs(collection(db, "activities"));
                 const actNames = {};
                 aqs.forEach(doc => actNames[doc.id] = doc.data().title);
-                
+
                 const sortedVotes = Object.entries(d.votes || {}).sort((a,b) => b[1] - a[1]).slice(0, 3);
                 const top3 = sortedVotes.map(([id, count], i) => `${i+1}. ${actNames[id]} (${count} stemmen)`).join("\n");
-                
+
                 emailjs.send(SERVICE_ID, TEMPLATE_ID, { 
                     to_name: d.hostName, 
                     to_email: d.hostEmail, 
@@ -409,13 +376,13 @@ window.shareWA = () => {
             const msg = `Samen flippen voor onze trip! 🌴 Code: *${window.currentRoom}*\nDoe mee op: ${window.location.origin}`;
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
         };
-        
+
         window.showLiveStats = () => {
             document.getElementById('stats-modal').style.display = 'flex';
             onSnapshot(doc(db, "rooms", window.currentRoom), async (ds) => {
                 const d = ds.data();
                 if(!d) return;
-                
+
                 // We hebben activiteitennamen nodig
                 const aqs = await getDocs(collection(db, "activities"));
                 const actNames = {};
@@ -440,15 +407,7 @@ window.shareWA = () => {
     </script>
 </head>
 <body>
-<div class="nav-header">
-    <div id="back-button" class="back-nav hidden" onclick="goHome()">
-        ← Terug
-    </div>
-
-    <div class="menu-trigger" onclick="toggleMenu()">
-        ☰
-    </div>
-</div>
+<div class="menu-trigger" onclick="toggleMenu()">☰</div>
 
 <div id="main-dropdown" class="dropdown-menu">
     <div class="dropdown-item" onclick="toggleMenu(); document.getElementById('host-login-modal').style.display='flex'">
@@ -473,12 +432,12 @@ window.shareWA = () => {
         <button class="btn-main btn-primary" onclick="showScreen('setup-screen')">
             Nieuwe Trip Maken
         </button>
-        
+
         <button class="btn-main btn-secondary" onclick="document.getElementById('join-modal').style.display='flex'">
             Deelnemen met Code
         </button>
     </div>
-    
+
     <p style="font-size: 11px; color: var(--text); margin-top: 20px; opacity: 0.5;">
         v7.2 demo versie
     </p>
@@ -535,16 +494,17 @@ window.shareWA = () => {
     <div id="join-modal" class="modal-overlay">
     <div class="modal-card">
         <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/03/Flip2Trip-beeldmerk.png" width="80" style="margin-bottom: 20px; opacity: 0.8;">
-        
+
         <h3 style="color:var(--mint); margin-top: 0;">Deelnemen</h3>
         <p style="font-size: 12px; opacity: 0.7; margin-bottom: 20px;">Voer de 4-cijferige code in van de host.</p>
-        
+
         <input type="number" id="join-code-input" class="input-box" placeholder="0000" style="font-size: 24px; letter-spacing: 8px; padding: 15px;">
-        
+
         <button class="btn-main" onclick="confirmJoin()">Join Trip</button>
+        <button class="btn-secondary" onclick="goHome()">Annuleren en terug</button>
         <button class="btn-main btn-secondary" onclick="goHome()">Annuleren en terug</button>
-        
-       
+
+
     </div>
 </div>
 
@@ -586,6 +546,7 @@ window.shareWA = () => {
         2. <b>Swipe & Flip:</b> Iedereen krijgt dezelfde activiteiten te zien en swipet naar rechts (leuk) of links (niet leuk).<br><br>
         3. <b>De Match:</b> De app berekent welke 3 activiteiten de hoogste score hebben bij de hele groep.
     </p>
+    <button class="btn-secondary" onclick="goHome()">Aan de slag</button>
     <button class="btn-main btn-secondary" onclick="goHome()">Aan de slag</button>
 </div>
 
@@ -595,6 +556,7 @@ window.shareWA = () => {
         <b>Het Probleem:</b> Groepsdiscussies over "wat gaan we doen?" duren uren in WhatsApp-groepen. Vaak beslist de luidste stem.<br><br>
         <b>Onze Oplossing:</b> Democratisch, snel en visueel. FlipOrTrip haalt de keuzestress weg en zorgt dat de activiteit écht door de meerderheid gedragen wordt.
     </p>
+    <button class="btn-secondary" onclick="goHome()">Aan de slag</button>
     <button class="btn-main btn-secondary" onclick="goHome()">Aan de slag</button>
 </div>
 </body>
