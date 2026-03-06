@@ -230,6 +230,238 @@
 }
    </style>
 
+    <!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FlipOrTrip | Business Suite v7.2</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+
+   <style>
+    :root {
+        --lila: #E0BBE4;
+        --geel: #FFF380;
+        --lavendel: #A29BFE;
+        --indigo: #3F51B5;
+        --grijs: #ECECEC;
+        --glass: rgba(255, 255, 255, 0.85);
+    }
+
+    @keyframes aurora {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        /* Het Noorderlicht effect met jouw kleuren */
+        background: linear-gradient(-45deg, #ffffff, var(--lila), var(--geel), var(--lavendel));
+        background-size: 400% 400%;
+        animation: aurora 20s ease infinite;
+    }
+
+    .hidden { display: none !important; }
+
+    /* Schone, Lichte Containers */
+    .screen-content {
+        width: 90%;
+        width: calc(100% - 40px);
+        max-width: 400px;
+        margin: 20px auto;
+        background: var(--glass);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 40px;
+        padding: 40px 30px;
+        box-shadow: 0 20px 60px rgba(63, 81, 181, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        display: flex;
+        flex-direction: column; /* Dwingt alles onder elkaar */
+        align-items: center; /* Dit centreert alles horizontaal */
+    text-align: center;
+    padding: 40px 30px;
+        gap: 20px;
+        box-sizing: border-box;
+    }
+
+    /* Knoppen: Fris & 'Tactile' */
+    .btn-main {
+        width: 100%;
+        padding: 20px;
+        border-radius: 25px;
+        background: var(--indigo);
+        color: white;
+        font-weight: 800;
+        font-size: 15px;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 10px 25px rgba(63, 81, 181, 0.25);
+        transition: transform 0.2s;
+        margin-top: 10px;
+    }
+
+    .btn-primary {
+    background: var(--indigo);
+    color: white;
+    box-shadow: 0 10px 20px rgba(63, 81, 181, 0.2);
+}
+
+    .btn-secondary {
+        background: #F1F3F5;
+        color: var(--text-dark);
+        border: 1px solid rgba(0,0,0,0.02);
+    }
+
+.btn-main:active { transform: scale(0.96); }
+
+    /* Vriendelijke Inputs */
+   .input-group {
+        display: flex;
+        flex-direction: column;
+       margin-bottom: 15px;
+        width: 100%;
+        text-align: left;
+    }
+
+       .input-box, .select-box {
+        width: 100%;
+        background: white;
+        border: 1px solid var(--grijs);
+        padding: 16px;
+        border-radius: 20px;
+        font-size: 16px;
+        box-sizing: border-box; /* Cruciaal: voorkomt uitsteken */
+        color: #1a1a1a;
+    }
+   .row {
+    display: flex;
+    gap: 15px; /* Ruimte tussen de linker en rechter kolom */
+    width: 100%;
+    align-items: flex-end; /* Zorgt dat de velden onderaan uitlijnen als labels verschillen in lengte */
+}
+.row .input-group {
+    flex: 1; 
+    display: flex;
+    flex-direction: column; /* Label boven het veld */
+    text-align: left;
+}
+    .input-box:focus {
+    border-color: var(--lavendel);
+    box-shadow: 0 0 0 4px rgba(162, 155, 254, 0.1);
+}
+
+    .label {
+        font-size: 11px;
+        color: var(--indigo);
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+        padding-left: 5px;
+    }
+
+    /* Card Swipe - Lifestyle Look */
+    #card-container { position: relative; width: 330px; height: 490px; margin-top: 10px; }
+    .card { 
+        width: 100%; height: 100%; 
+        background: white; 
+        border-radius: 35px; 
+        position: absolute; 
+        overflow: hidden; 
+        box-shadow: var(--shadow-strong);
+        border: 1px solid rgba(0,0,0,0.03);
+    }
+    .card-img { height: 60%; background-size: cover; background-position: center; }
+
+    /* Navigatie & Menu: Zacht Wit */
+    .menu-trigger {
+        position: fixed; top: 25px; right: 25px; z-index: 3000;
+        background: white; color: var(--accent); width: 50px; height: 50px; border-radius: 18px;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: var(--shadow-soft); cursor: pointer; border: none;
+    }
+
+    .back-nav {
+        position: fixed; top: 25px; left: 25px; z-index: 2000;
+        background: white; color: var(--text-grey); padding: 10px 18px; border-radius: 14px;
+        font-size: 11px; font-weight: 800; text-transform: uppercase;
+        box-shadow: var(--shadow-soft); cursor: pointer; border: none;
+    }
+
+    /* Dropdown Menu: Clean & White */
+    .dropdown-menu {
+        position: fixed; top: 85px; right: 25px; width: 250px;
+        background: white; border-radius: 25px; display: none; 
+        flex-direction: column; z-index: 3000; overflow: hidden;
+        box-shadow: var(--shadow-strong); border: 1px solid rgba(0,0,0,0.02);
+    }
+
+    .dropdown-item {
+        padding: 18px 25px; border-bottom: 1px solid #F1F3F5;
+        color: var(--text-dark); font-size: 14px; font-weight: 700; cursor: pointer;
+    }
+    .dropdown-item:hover { background: var(--accent-soft); color: var(--accent); }
+    .dropdown-item small { display: block; color: var(--text-grey); font-size: 11px; margin-top: 2px; font-weight: 400; }
+
+    /* Modals & Stats Update */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(45, 52, 54, 0.2); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 9999; }
+    .modal-card { background: white; padding: 40px 30px; border-radius: 40px; width: 320px; text-align: center; box-shadow: var(--shadow-strong); }
+
+    .stat-bar-container { background: #F8F9FA; border-radius: 20px; margin-bottom: 12px; padding: 16px; }
+    .stat-bar-bg { background: #E9ECEF; height: 8px; border-radius: 10px; margin-top: 8px; }
+    .stat-bar-fill { background: linear-gradient(90deg, var(--mint), #36ead2); border-radius: 10px; }
+       .swipe-label {
+    position: absolute;
+    top: 50px;
+    padding: 10px 20px;
+    border: 4px solid;
+    border-radius: 10px;
+    font-size: 30px;
+    font-weight: 800;
+    z-index: 10;
+    opacity: 0;
+    pointer-events: none;
+}
+.label-trip { right: 20px; color: #00D1B2; border-color: #00D1B2; transform: rotate(15deg); }
+.label-flip { left: 20px; color: #FF4B4B; border-color: #FF4B4B; transform: rotate(-15deg); }
+
+   #instruction-modal .modal-card {
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 35px;
+    padding: 35px;
+    box-shadow: 0 25px 50px rgba(63, 81, 181, 0.15);
+}
+
+.instruction-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: white;
+    border-radius: 15px;
+    border: 1px solid var(--grijs);
+}
+
+.instruction-icon {
+    font-size: 24px;
+    width: 40px;
+    text-align: center;
+}
+   </style>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, collection, getDocs, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -521,6 +753,188 @@ window.shareWA = () => {
             });
         };
     </script>
+</head>
+<body>
+<div class="menu-trigger" onclick="toggleMenu()">☰</div>
+
+<div id="main-dropdown" class="dropdown-menu">
+    <div class="dropdown-item" onclick="toggleMenu(); document.getElementById('host-login-modal').style.display='flex'">
+        🔑 Host Log-in <small>Bekijk live resultaten</small>
+    </div>
+    <div class="dropdown-item" onclick="toggleMenu(); showScreen('info-how-it-works')">
+        📖 Hoe werkt het? <small>Uitleg in 3 stappen</small>
+    </div>
+    <div class="dropdown-item" onclick="toggleMenu(); showScreen('info-problem-solver')">
+        💡 Waarom deze app? <small>Geen keuzestress meer</small>
+    </div>
+    <div class="dropdown-item" onclick="toggleMenu(); showScreen('info-problem-solver')">
+        ✅ Wat levert het op? <small>De voordelen op een rij</small>
+    </div>
+</div>
+    <div id="global-back-btn" class="back-nav hidden" onclick="goHome()">« Terug</div>
+    <div id="start-screen" class="screen-content">
+    <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/03/Flip2Trip.png" 
+         width="220" style="margin-bottom: 30px;">
+
+    <div style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+        <button class="btn-main btn-primary" onclick="showScreen('setup-screen')">
+            Nieuwe Trip Maken
+        </button>
+
+        <button class="btn-main btn-secondary" onclick="document.getElementById('join-modal').style.display='flex'">
+            Deelnemen met Code
+        </button>
+    </div>
+
+    <p style="font-size: 11px; color: var(--text); margin-top: 20px; opacity: 0.5;">
+        v7.2 demo versie
+    </p>
+</div>
+
+
+    <div id="setup-screen" class="hidden screen-content">
+        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/03/Flip2Trip-beeldmerk.png" 
+         style="width: 120px; margin-bottom: 30px; opacity: 0.9;">
+
+    <h2 style="color:var(--mint); margin-bottom: 25px; font-size: 24px; font-weight: 800;">Trip Instellen</h2>
+        <span class="label">Waar gaan we heen?</span><select id="host-dest" class="select-box"><option>Rome</option><option>Valkenburg</option></select>
+        <span class="label">Wat voor trip is het?</span><select id="trip-type" class="select-box">
+            <option>Vriendenuitje</option>
+            <option>Teamuitje</option>
+            <option>Bedrijfsuitje</option>
+            <option>Vrijgezellen</option>
+            <option>Uitje met vereniging</option>
+            <option>Familieuitje</option>
+        </select>
+        <span class="label">Je naam</span><input type="text" id="host-name" class="input-box" placeholder="Je Naam">
+        <span class="label">Jouw E-mail (voor de resultaten)</span><input type="email" id="host-email" class="input-box" placeholder="Je E-mail">
+        <div class="row">
+    <div class="input-group">
+        <span class="label">Aantal personen</span>
+        <input type="number" id="target-p" class="input-box" value="4">
+    </div>
+
+    <div class="input-group">
+        <span class="label">Deadline (min)</span>
+        <input type="number" id="deadline-input" class="input-box" value="60">
+    </div>
+</div>
+        <button class="btn-main" onclick="createRoom()">Trip aanmaken</button>
+    </div>
+
+    <div id="share-screen" class="hidden screen-content">
+        <h3>Trip Code:</h3>
+        <h1 id="display-code" style="color:var(--mint); font-size:60px; margin:10px 0;"></h1>
+        <button class="btn-main" onclick="shareWA()">Deel via WhatsApp met de deelnemers</button>
+        <button class="btn-main btn-secondary" onclick="document.getElementById('profile-modal').style.display='flex'">Zelf beginnen</button>
+    </div>
+
+    <div id="swipe-screen" class="hidden screen-content">
+        <div id="room-header" style="position:fixed; top:0; width:100%; height:80px; border-bottom:1px solid rgba(0,255,194,0.2); display:flex; flex-direction:column; justify-content:center;">
+            <div style="font-size:10px; color:var(--mint); font-weight:800;">ROOM: <span id="active-code"></span></div>
+        </div>
+        <div id="card-container"></div>
+    </div>
+
+    <div id="host-login-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h3>Host Dashboard</h3>
+            <input type="number" id="login-code" class="input-box" placeholder="Code">
+            <input type="email" id="login-email" class="input-box" placeholder="E-mail">
+            <button class="btn-main" onclick="verifyHost()">Check Status</button>
+            <button class="btn-main btn-secondary" onclick="goHome()">Sluiten</button>
+        </div>
+    </div>
+
+    <div id="join-modal" class="modal-overlay">
+    <div class="modal-card">
+        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/03/Flip2Trip-beeldmerk.png" width="80" style="margin-bottom: 20px; opacity: 0.8;">
+
+        <h3 style="color:var(--mint); margin-top: 0;">Deelnemen</h3>
+        <p style="font-size: 12px; opacity: 0.7; margin-bottom: 20px;">Voer de 4-cijferige code in van de host.</p>
+
+        <input type="number" id="join-code-input" class="input-box" placeholder="0000" style="font-size: 24px; letter-spacing: 8px; padding: 15px;">
+
+        <button class="btn-main" onclick="confirmJoin()">Start Trippen</button>
+        <button class="btn-main btn-secondary" onclick="goHome()">Annuleren en terug</button>
+
+
+    </div>
+</div>
+
+    <div id="profile-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h3 style="color:var(--mint)">Profiel</h3>
+            <span class="label">Mijn leeftijd:</span><select id="age-select" class="select-box">
+            
+                <option value="" disabled selected>Kies leeftijd...</option>
+                <option value="<18">Jonger dan 18</option>
+                <option value="18-25">18 - 25 jaar</option>
+                <option value="26-35">26 - 35 jaar</option>
+                <option value="36-50">36 - 50 jaar</option>
+                <option value="50+">Ouder dan 50</option>
+            </select>
+            <span class="label">Geslacht:</span><select id="gender-select" class="select-box">
+                            <option value="" disabled selected>Kies geslacht...</option>
+                <option value="man">Man</option>
+                <option value="vrouw">Vrouw</option>
+                <option value="anders">Anders / Neutraal</option>
+            </select>
+
+            <button class="btn-main" onclick="startSwiping()">Start flippen</button>
+        </div>
+    </div>
+<div id="instruction-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-card">
+        <h3 style="color:var(--indigo); margin-top:0;">Zo werkt het:</h3>
+        
+        <div style="text-align:left; margin: 25px 0;">
+            <div class="instruction-item">
+                <span class="instruction-icon">👉</span>
+                <span><b>Rechts:</b> Dit lijkt me vet! (TRIP)</span>
+            </div>
+            <div class="instruction-item">
+                <span class="instruction-icon">👈</span>
+                <span><b>Links:</b> Deze sla ik over (FLIP)</span>
+            </div>
+            <div class="instruction-item">
+                <span class="instruction-icon">🔥</span>
+                <span><b>Match:</b> Groepsscore wordt berekend!</span>
+            </div>
+        </div>
+
+        <button class="btn-main" onclick="closeInstructions()">Snap ik!</button>
+    </div>
+</div>
+    <div id="stats-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h3 style="color:var(--mint)">Voortgang</h3>
+            <p id="live-progress" style="font-size:12px;"></p>
+            <div id="live-leaderboard"></div>
+            <button class="btn-main btn-secondary" onclick="goHome()">Sluiten</button>
+        </div>
+    </div>
+<div id="info-how-it-works" class="hidden screen-content" style="text-align: left;">
+    <h2 style="color:var(--mint)">Hoe werkt het?</h2>
+    <p style="font-size:14px; line-height:1.6; opacity:0.8;">
+        1. <b>Maak een Trip:</b> De host kiest een stad en zet een deadline.<br><br>
+        2. <b>Swipe & Flip:</b> Iedereen krijgt dezelfde activiteiten te zien en swipet naar rechts (leuk) of links (niet leuk).<br><br>
+        3. <b>De Match:</b> De app berekent welke 3 activiteiten de hoogste score hebben bij de hele groep.
+    </p>
+    <button class="btn-main btn-secondary" onclick="goHome()">Aan de slag</button>
+</div>
+
+<div id="info-problem-solver" class="hidden screen-content" style="text-align: left;">
+    <h2 style="color:var(--mint)">De oplossing</h2>
+    <p style="font-size:14px; line-height:1.6; opacity:0.8;">
+        <b>Het Probleem:</b> Groepsdiscussies over "wat gaan we doen?" duren uren in WhatsApp-groepen. Vaak beslist de luidste stem.<br><br>
+        <b>Onze Oplossing:</b> Democratisch, snel en visueel. FlipOrTrip haalt de keuzestress weg en zorgt dat de activiteit écht door de meerderheid gedragen wordt.
+    </p>
+    <button class="btn-main btn-secondary" onclick="goHome()">Aan de slag</button>
+</div>
+</body>
+</html>
+
 </head>
 <body>
 <div class="menu-trigger" onclick="toggleMenu()">☰</div>
