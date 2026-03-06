@@ -6,6 +6,9 @@
     <title>Flip 2 Trip | Samen beslissen, zonder gedoe</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
+        html {
+    scroll-behavior: smooth;
+}
         :root {
             --lila: #E0BBE4;
             --geel: #FFF380;
@@ -136,6 +139,59 @@
             .hero-logo { width: 220px; }
             .cta-group { flex-direction: column; width: 100%; }
         }
+        .how-it-works {
+    background-color: var(--geel);
+    padding: 100px 8%;
+    text-align: center;
+    border-radius: 60px; /* Mooie ronding tussen de secties */
+    margin: 40px 20px;
+}
+
+.how-it-works h2 {
+    font-size: clamp(32px, 5vw, 48px);
+    color: var(--indigo);
+    margin-bottom: 15px;
+    font-weight: 800;
+}
+
+.subtitle {
+    font-size: 1.1rem;
+    max-width: 650px;
+    margin: 0 auto 60px;
+    color: #333;
+}
+
+.card-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.info-card {
+    background: white;
+    padding: 50px 40px;
+    border-radius: 50px; /* De extra ronde hoeken uit het screenshot */
+    text-align: left;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+    transition: transform 0.3s ease;
+}
+
+.info-card:hover { transform: translateY(-10px); }
+
+.info-card h3 {
+    color: var(--indigo);
+    font-size: 26px;
+    font-weight: 800;
+    margin-bottom: 15px;
+}
+
+.info-card p {
+    font-size: 16px;
+    color: #444;
+    margin: 0;
+}
     </style>
 </head>
 <body>
@@ -144,6 +200,7 @@
         <a href="home.html" class="nav-logo">
             <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/03/Flip2Trip-logo-landscape.png" alt="Flip 2 Trip Logo">
         </a>
+        <a href="#uitleg" class="btn" style="padding: 10px 20px; font-size: 13px; color: var(--indigo); text-decoration: none; margin-right: 15px; font-weight: 800;">Hoe werkt het?</a>
         <a href="index.html" class="btn btn-secondary" style="padding: 10px 20px; font-size: 13px;">Ga naar App</a>
     </nav>
 
@@ -159,6 +216,28 @@
         </div>
     </section>
 
+    <div class="how-it-works" id="uitleg">
+    <h2>Waarom Flip 2 Trip?</h2>
+    <p class="subtitle">Zeg vaarwel tegen eindeloze WhatsApp-discussies en "ik weet het niet" antwoorden.</p>
+
+    <div class="card-container">
+        <div class="info-card">
+            <h3>Swipe & Match</h3>
+            <p>Iedereen uit de groep krijgt dezelfde 'stapel' kaarten met activiteiten. Van mergelgrotten tot cocktailbars. Swipe rechts voor 'Trip' of links voor 'Flip'.</p>
+        </div>
+
+        <div class="info-card">
+            <h3>Democratische Uitslag</h3>
+            <p>Onze algoritmes berekenen direct welke activiteiten de hoogste groeps-score hebben. Geen dominante stemmen meer, maar een plan waar iedereen achter staat.</p>
+        </div>
+
+        <div class="info-card">
+            <h3>Live Updates</h3>
+            <p>De host volgt live de voortgang. Zodra de deadline is verstreken, ontvang je de perfecte top 3 direct in je inbox. Klaar om te gaan!</p>
+        </div>
+    </div>
+</div>
+    
     <section id="steden" class="city-section">
         <h2 style="font-size: 36px; color: var(--indigo); margin-bottom: 15px;">Kies een Bestemming</h2>
         <p style="max-width: 600px; margin: 0 auto; opacity: 0.7;">Start een swipe-sessie op een van onze ondersteunde locaties en ontdek lokale parels.</p>
@@ -174,6 +253,28 @@
     <footer>
         <p>Flip 2 Trip &copy; 2026<br>De nieuwe standaard voor collectieve groepsbeslissingen.</p>
     </footer>
+<script>
+    // Zorgt ervoor dat alle links die beginnen met een # vloeiend scrollen
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
 
+            const targetId = this.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
+
+            if (targetElement) {
+                // We houden rekening met de vaste header hoogte (ca. 80px)
+                const headerOffset = 80;
+                const elementPosition = targetElement.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: "smooth"
+                });
+            }
+        });
+    });
+</script>
 </body>
 </html>
