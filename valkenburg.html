@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Groepsuitje Valkenburg | Swipe & Plan met Flip 2 Trip</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* GEBRUIK DEZELFDE CSS ALS DE HOMEPAGE */
+        html { scroll-behavior: smooth; }
+        :root {
+            --lila: #E0BBE4; --geel: #FFF380; --lavendel: #A29BFE;
+            --indigo: #3F51B5; --glass: rgba(255, 255, 255, 0.85);
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0; font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(-45deg, #ffffff, var(--lila), var(--geel), var(--lavendel));
+            background-size: 400% 400%; animation: aurora 20s ease infinite;
+            color: #1A1A2E; line-height: 1.6; overflow-x: hidden;
+        }
+        @keyframes aurora { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        nav {
+            padding: 10px 5%; display: flex; justify-content: space-between; align-items: center;
+            position: fixed; width: 100%; top: 0; z-index: 1000; backdrop-filter: blur(15px);
+            background: rgba(255,255,255,0.7); border-bottom: 1px solid rgba(255,255,255,0.2); height: 80px;
+        }
+        .nav-logo img { height: 60px; width: auto; }
+
+        .hero-city { padding: 160px 8% 60px; text-align: left; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+        .hero-city h1 { font-size: clamp(32px, 5vw, 60px); color: var(--indigo); margin-bottom: 20px; }
+        
+        .city-badge { background: var(--indigo); color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: 800; text-transform: uppercase; margin-bottom: 15px; display: inline-block; }
+
+        /* Content Blocks */
+        .content-section { padding: 60px 8%; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        
+        .activity-card {
+            background: var(--glass); border-radius: 30px; overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.5); transition: 0.3s;
+        }
+        .activity-card img { width: 100%; height: 200px; object-fit: cover; }
+        .activity-info { padding: 25px; }
+
+        .btn-small { padding: 12px 25px; border-radius: 15px; background: var(--indigo); color: white; text-decoration: none; font-weight: 800; display: inline-block; margin-top: 20px; }
+
+        @media (max-width: 900px) {
+            .hero-city { grid-template-columns: 1fr; text-align: center; padding-top: 120px; }
+            .hero-city img { width: 100%; border-radius: 30px; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="home.html" class="nav-logo">
+        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/03/Flip2Trip-logo-landscape.png" alt="Flip 2 Trip Logo">
+    </a>
+    <a href="index.html" class="btn-small" style="margin-top:0;">Open App</a>
+</nav>
+
+<header class="hero-city">
+    <div>
+        <span class="city-badge">Bestemming Valkenburg</span>
+        <h1>Ontdek Valkenburg met je vrienden</h1>
+        <p>Van de mysterieuze gemeentegrot tot een spectaculaire rit van de rodelbaan. Geen gedoe met plannen: swipe door de leukste activiteiten in Valkenburg en de app doet de rest.</p>
+        <a href="index.html" class="btn-small">Start Valkenburg Swipe</a>
+    </div>
+    <img src="https://images.unsplash.com/photo-1601620023366-267868f060f6?q=80&w=800" alt="Valkenburg" style="width:100%; border-radius:40px; box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
+</header>
+
+<section class="content-section">
+    <h2 style="font-size: 32px; color: var(--indigo); margin-bottom: 40px;">Populaire activiteiten in de regio</h2>
+    <div class="grid-3">
+        <div class="activity-card">
+            <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=400" alt="Mergelgrotten">
+            <div class="activity-info">
+                <h3>Mergelgrot Tour</h3>
+                <p>Verken het ondergrondse gangenstelsel en ontdek de rijke geschiedenis van de Limburgse mijnbouw.</p>
+            </div>
+        </div>
+        <div class="activity-card">
+            <img src="https://images.unsplash.com/photo-1533512930330-4ac257c86793?q=80&w=400" alt="Kabelbaan">
+            <div class="activity-info">
+                <h3>Kabelbaan & Rodelen</h3>
+                <p>Geniet van het beste uitzicht over Valkenburg en suis met hoge snelheid de berg af.</p>
+            </div>
+        </div>
+        <div class="activity-card">
+            <img src="https://images.unsplash.com/photo-1551024709-8f23befc6f87?q=80&w=400" alt="Cocktails">
+            <div class="activity-info">
+                <h3>Bourgondisch Terras</h3>
+                <p>Sluit de dag af op de gezelligste terrasjes van het centrum met lokale biertjes en hapjes.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content-section" style="background: var(--geel); border-radius: 60px; margin: 0 20px; text-align: center;">
+    <h2>Waarom Valkenburg met Flip 2 Trip?</h2>
+    <p style="max-width: 800px; margin: 0 auto 30px;">Valkenburg heeft zóveel te bieden dat je door de bomen het bos niet meer ziet. Onze app bevat een zorgvuldig geselecteerde lijst met de leukste lokale 'hotspots', zodat jullie groep alleen uit de állerbeste opties hoeft te kiezen.</p>
+    <a href="index.html" class="btn-small" style="background: var(--indigo);">Start nu jullie sessie</a>
+</section>
+
+<footer style="padding: 60px; text-align: center; opacity: 0.6; font-size: 13px;">
+    <p>Flip 2 Trip &copy; 2026 | Groepsuitje Valkenburg zonder keuzestress</p>
+</footer>
+
+</body>
+</html>
