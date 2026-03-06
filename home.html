@@ -36,32 +36,41 @@
 
         /* Navigatie met Logo */
         nav {
-            padding: 20px 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            backdrop-filter: blur(15px);
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-        }
+    padding: 15px 5%; /* Iets minder padding voor een strakkere balk */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+    backdrop-filter: blur(15px);
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+}
 
-        .nav-logo {
-            height: 45px; /* Formaat van je logo in de nav */
-            display: flex;
-            align-items: center;
-        }
+.nav-logo {
+    height: 45px; 
+    display: flex;
+    align-items: center;
+}
+
+/* VOEG DIT STUKJE TOE: */
+.nav-logo img {
+    height: 100%;  /* Dwingt de afbeelding om niet hoger te zijn dan de 45px van de container */
+    width: auto;   /* Behoudt de juiste verhoudingen */
+    display: block;
+}
 
         /* Hero Sectie */
         section { padding: 140px 8% 80px; text-align: center; }
         
         .hero-logo {
-            width: 280px; /* Groter logo voor de Hero */
-            margin-bottom: 30px;
-            filter: drop-shadow(0 10px 20px rgba(63, 81, 181, 0.1));
-        }
+    width: 100%;
+    max-width: 280px; /* Nooit breder dan dit */
+    height: auto;
+    margin-bottom: 30px;
+    filter: drop-shadow(0 10px 20px rgba(63, 81, 181, 0.1));
+}
 
         h1 { font-size: clamp(38px, 7vw, 75px); font-weight: 800; color: var(--indigo); line-height: 1.1; margin-bottom: 25px; }
         
