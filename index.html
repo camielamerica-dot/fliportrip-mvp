@@ -470,8 +470,8 @@ window.shareWA = () => {
     <div id="share-screen" class="hidden screen-content">
         <h3>Trip Code:</h3>
         <h1 id="display-code" style="color:var(--mint); font-size:60px; margin:10px 0;"></h1>
-        <button class="btn btn-wa" onclick="shareWA()">Deel via WhatsApp met de deelnemers</button>
-        <button class="btn" onclick="document.getElementById('profile-modal').style.display='flex'">Zelf beginnen</button>
+        <button class="btn-main" onclick="shareWA()">Deel via WhatsApp met de deelnemers</button>
+        <button class="btn-main btn-secondary" onclick="document.getElementById('profile-modal').style.display='flex'">Zelf beginnen</button>
     </div>
 
     <div id="swipe-screen" class="hidden screen-content">
@@ -510,8 +510,8 @@ window.shareWA = () => {
     <div id="profile-modal" class="modal-overlay">
         <div class="modal-card">
             <h3 style="color:var(--mint)">Profiel</h3>
-            <span class="label">Mijn leeftijd:</span>
-            <select id="age-select" class="select-box">
+            <span class="label">Mijn leeftijd:</span><select id="age-select" class="select-box">
+            
                 <option value="" disabled selected>Kies leeftijd...</option>
                 <option value="<18">Jonger dan 18</option>
                 <option value="18-25">18 - 25 jaar</option>
@@ -520,13 +520,13 @@ window.shareWA = () => {
                 <option value="50+">Ouder dan 50</option>
             </select>
             <span class="label">Geslacht:</span><select id="gender-select" class="select-box">
-                <option value="" disabled selected>Kies geslacht...</option>
+                            <option value="" disabled selected>Kies geslacht...</option>
                 <option value="man">Man</option>
                 <option value="vrouw">Vrouw</option>
                 <option value="anders">Anders / Neutraal</option>
             </select>
 
-            <button class="btn" onclick="startSwiping()">Start flippen</button>
+            <button class="btn-main" onclick="startSwiping()">Start flippen</button>
         </div>
     </div>
 
