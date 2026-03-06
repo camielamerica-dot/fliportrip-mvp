@@ -1,4 +1,4 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
@@ -247,6 +247,7 @@
         window.roomData = null;
 
         window.showScreen = (id) => {
+    // Verberg alle schermen
     console.log("Switching to screen:", id);
     const screen = document.getElementById(id);
     if (!screen) {
@@ -256,7 +257,15 @@
     document.querySelectorAll('.screen-content').forEach(s => s.classList.add('hidden'));
     screen.classList.remove('hidden');
 
+    // Toon het gekozen scherm
+    document.getElementById(id).classList.remove('hidden');
+
+    // Toon de terugknop alleen als we NIET op het start-scherm zijn
     const backBtn = document.getElementById('global-back-btn');
+    if (id === 'start-screen') {
+        backBtn.classList.add('hidden');
+    } else {
+        backBtn.classList.remove('hidden');
     if (backBtn) {
         if (id === 'start-screen') backBtn.classList.add('hidden');
         else backBtn.classList.remove('hidden');
@@ -307,6 +316,8 @@ window.goHome = () => {
         };
 window.toggleMenu = () => {
     const menu = document.getElementById('main-dropdown');
+    const isVisible = menu.style.display === 'flex';
+    menu.style.display = isVisible ? 'none' : 'flex';
     if (menu) {
         const isVisible = menu.style.display === 'flex';
         menu.style.display = isVisible ? 'none' : 'flex';
@@ -330,15 +341,24 @@ window.onclick = function(event) {
             } else { alert("Code niet gevonden"); }
         };
 
+       window.startSwiping = async () => {
+    const ageValue = document.getElementById('age-select').value;
+    const genderValue = document.getElementById('gender-select').value;
        window.startSwiping = () => {
     const ageSelect = document.getElementById('age-select');
     const genderSelect = document.getElementById('gender-select');
-    
+
+    // Controleer of beide velden zijn ingevuld
+    if(!ageValue || !genderValue) {
+        return alert("Selecteer eerst je leeftijd én geslacht om je profiel te voltooien!");
     if (!ageSelect || !genderSelect) {
         console.error("Leeftijd of Geslacht veld ontbreekt in HTML");
         return;
     }
 
+    // Stap 1: Sluit profiel en toon instructies
+    document.getElementById('profile-modal').style.display = 'none';
+    document.getElementById('instruction-modal').style.display = 'flex';
     if (!ageSelect.value || !genderSelect.value) {
         alert("Selecteer eerst je leeftijd en geslacht!");
         return;
@@ -357,16 +377,26 @@ window.onclick = function(event) {
 };
 
 window.closeInstructions = async () => {
+    // Stap 2: Sluit instructies en start het echte werk
+    document.getElementById('instruction-modal').style.display = 'none';
+    showScreen('swipe-screen');
     const instructionModal = document.getElementById('instruction-modal');
     if (instructionModal) instructionModal.style.display = 'none';
     
     window.showScreen('swipe-screen');
-    
+
+    // De rest van je bestaande logica voor het ophalen van kaarten
+    document.getElementById('active-code').innerText = window.currentRoom;
     const activeCodeDisplay = document.getElementById('active-code');
     if (activeCodeDisplay) activeCodeDisplay.innerText = window.currentRoom || "0000";
 
     // Haal stad op (van host of van roomData)
     const city = window.roomData ? window.roomData.destination : document.getElementById('host-dest').value;
+    const q = query(collection(db, "activities"), where("city", "==", city));
+    const qs = await getDocs(q);
+    window.acts = qs.docs.map(d => ({id: d.id, ...d.data()}));
+    window.actIdx = 0; 
+    renderCard();
     
     try {
         const q = query(collection(db, "activities"), where("city", "==", city));
@@ -378,13 +408,13 @@ window.closeInstructions = async () => {
         console.error("Fout bij laden activiteiten:", e);
     }
 };
-    
+
     // Verberg de modal
     document.getElementById('profile-modal').style.display = 'none';
-    
+
     // Wissel naar het swipe scherm
     showScreen('swipe-screen');
-    
+
     // Toon de code bovenin
     if(document.getElementById('active-code')) {
         document.getElementById('active-code').innerText = window.currentRoom;
@@ -395,7 +425,7 @@ window.closeInstructions = async () => {
         const city = window.roomData ? window.roomData.destination : document.getElementById('host-dest').value;
         const q = query(collection(db, "activities"), where("city", "==", city));
         const qs = await getDocs(q);
-        
+
         if (qs.empty) {
             alert("Geen activiteiten gevonden voor " + city + ". Check of de stad correct in de database staat.");
             return;
@@ -634,7 +664,7 @@ window.shareWA = () => {
         <div class="modal-card">
             <h3 style="color:var(--mint)">Profiel</h3>
             <span class="label">Mijn leeftijd:</span><select id="age-select" class="select-box">
-            
+
                 <option value="" disabled selected>Kies leeftijd...</option>
                 <option value="<18">Jonger dan 18</option>
                 <option value="18-25">18 - 25 jaar</option>
@@ -655,189 +685,7 @@ window.shareWA = () => {
 <div id="instruction-modal" class="modal-overlay" style="display:none;">
     <div class="modal-card">
         <h3 style="color:var(--indigo); margin-top:0;">Zo werkt het:</h3>
-        
-        <div style="text-align:left; margin: 25px 0;">
-            <div class="instruction-item">
-                <span class="instruction-icon">👉</span>
-                <span><b>Rechts:</b> Dit lijkt me vet! (TRIP)</span>
-            </div>
-            <div class="instruction-item">
-                <span class="instruction-icon">👈</span>
-                <span><b>Links:</b> Deze sla ik over (FLIP)</span>
-            </div>
-            <div class="instruction-item">
-                <span class="instruction-icon">🔥</span>
-                <span><b>Match:</b> Groepsscore wordt berekend!</span>
-            </div>
-        </div>
 
-        <button class="btn-main" onclick="closeInstructions()">Snap ik!</button>
-    </div>
-</div>
-    <div id="stats-modal" class="modal-overlay">
-        <div class="modal-card">
-            <h3 style="color:var(--mint)">Voortgang</h3>
-            <p id="live-progress" style="font-size:12px;"></p>
-            <div id="live-leaderboard"></div>
-            <button class="btn-main btn-secondary" onclick="goHome()">Sluiten</button>
-        </div>
-    </div>
-<div id="info-how-it-works" class="hidden screen-content" style="text-align: left;">
-    <h2 style="color:var(--mint)">Hoe werkt het?</h2>
-    <p style="font-size:14px; line-height:1.6; opacity:0.8;">
-        1. <b>Maak een Trip:</b> De host kiest een stad en zet een deadline.<br><br>
-        2. <b>Swipe & Flip:</b> Iedereen krijgt dezelfde activiteiten te zien en swipet naar rechts (leuk) of links (niet leuk).<br><br>
-        3. <b>De Match:</b> De app berekent welke 3 activiteiten de hoogste score hebben bij de hele groep.
-    </p>
-    <button class="btn-main btn-secondary" onclick="goHome()">Aan de slag</button>
-</div>
-
-<div id="info-problem-solver" class="hidden screen-content" style="text-align: left;">
-    <h2 style="color:var(--mint)">De oplossing</h2>
-    <p style="font-size:14px; line-height:1.6; opacity:0.8;">
-        <b>Het Probleem:</b> Groepsdiscussies over "wat gaan we doen?" duren uren in WhatsApp-groepen. Vaak beslist de luidste stem.<br><br>
-        <b>Onze Oplossing:</b> Democratisch, snel en visueel. FlipOrTrip haalt de keuzestress weg en zorgt dat de activiteit écht door de meerderheid gedragen wordt.
-    </p>
-    <button class="btn-main btn-secondary" onclick="goHome()">Aan de slag</button>
-</div>
-</body>
-</html>
-
-</head>
-<body>
-<div class="menu-trigger" onclick="toggleMenu()">☰</div>
-
-<div id="main-dropdown" class="dropdown-menu">
-    <div class="dropdown-item" onclick="toggleMenu(); document.getElementById('host-login-modal').style.display='flex'">
-        🔑 Host Log-in <small>Bekijk live resultaten</small>
-    </div>
-    <div class="dropdown-item" onclick="toggleMenu(); showScreen('info-how-it-works')">
-        📖 Hoe werkt het? <small>Uitleg in 3 stappen</small>
-    </div>
-    <div class="dropdown-item" onclick="toggleMenu(); showScreen('info-problem-solver')">
-        💡 Waarom deze app? <small>Geen keuzestress meer</small>
-    </div>
-    <div class="dropdown-item" onclick="toggleMenu(); showScreen('info-problem-solver')">
-        ✅ Wat levert het op? <small>De voordelen op een rij</small>
-    </div>
-</div>
-    <div id="global-back-btn" class="back-nav hidden" onclick="goHome()">« Terug</div>
-    <div id="start-screen" class="screen-content">
-    <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/03/Flip2Trip.png" 
-         width="220" style="margin-bottom: 30px;">
-
-    <div style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-        <button class="btn-main btn-primary" onclick="showScreen('setup-screen')">
-            Nieuwe Trip Maken
-        </button>
-
-        <button class="btn-main btn-secondary" onclick="document.getElementById('join-modal').style.display='flex'">
-            Deelnemen met Code
-        </button>
-    </div>
-
-    <p style="font-size: 11px; color: var(--text); margin-top: 20px; opacity: 0.5;">
-        v7.2 demo versie
-    </p>
-</div>
-
-
-    <div id="setup-screen" class="hidden screen-content">
-        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/03/Flip2Trip-beeldmerk.png" 
-         style="width: 120px; margin-bottom: 30px; opacity: 0.9;">
-
-    <h2 style="color:var(--mint); margin-bottom: 25px; font-size: 24px; font-weight: 800;">Trip Instellen</h2>
-        <span class="label">Waar gaan we heen?</span><select id="host-dest" class="select-box"><option>Rome</option><option>Valkenburg</option></select>
-        <span class="label">Wat voor trip is het?</span><select id="trip-type" class="select-box">
-            <option>Vriendenuitje</option>
-            <option>Teamuitje</option>
-            <option>Bedrijfsuitje</option>
-            <option>Vrijgezellen</option>
-            <option>Uitje met vereniging</option>
-            <option>Familieuitje</option>
-        </select>
-        <span class="label">Je naam</span><input type="text" id="host-name" class="input-box" placeholder="Je Naam">
-        <span class="label">Jouw E-mail (voor de resultaten)</span><input type="email" id="host-email" class="input-box" placeholder="Je E-mail">
-        <div class="row">
-    <div class="input-group">
-        <span class="label">Aantal personen</span>
-        <input type="number" id="target-p" class="input-box" value="4">
-    </div>
-
-    <div class="input-group">
-        <span class="label">Deadline (min)</span>
-        <input type="number" id="deadline-input" class="input-box" value="60">
-    </div>
-</div>
-        <button class="btn-main" onclick="createRoom()">Trip aanmaken</button>
-    </div>
-
-    <div id="share-screen" class="hidden screen-content">
-        <h3>Trip Code:</h3>
-        <h1 id="display-code" style="color:var(--mint); font-size:60px; margin:10px 0;"></h1>
-        <button class="btn-main" onclick="shareWA()">Deel via WhatsApp met de deelnemers</button>
-        <button class="btn-main btn-secondary" onclick="document.getElementById('profile-modal').style.display='flex'">Zelf beginnen</button>
-    </div>
-
-    <div id="swipe-screen" class="hidden screen-content">
-        <div id="room-header" style="position:fixed; top:0; width:100%; height:80px; border-bottom:1px solid rgba(0,255,194,0.2); display:flex; flex-direction:column; justify-content:center;">
-            <div style="font-size:10px; color:var(--mint); font-weight:800;">ROOM: <span id="active-code"></span></div>
-        </div>
-        <div id="card-container"></div>
-    </div>
-
-    <div id="host-login-modal" class="modal-overlay">
-        <div class="modal-card">
-            <h3>Host Dashboard</h3>
-            <input type="number" id="login-code" class="input-box" placeholder="Code">
-            <input type="email" id="login-email" class="input-box" placeholder="E-mail">
-            <button class="btn-main" onclick="verifyHost()">Check Status</button>
-            <button class="btn-main btn-secondary" onclick="goHome()">Sluiten</button>
-        </div>
-    </div>
-
-    <div id="join-modal" class="modal-overlay">
-    <div class="modal-card">
-        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/03/Flip2Trip-beeldmerk.png" width="80" style="margin-bottom: 20px; opacity: 0.8;">
-
-        <h3 style="color:var(--mint); margin-top: 0;">Deelnemen</h3>
-        <p style="font-size: 12px; opacity: 0.7; margin-bottom: 20px;">Voer de 4-cijferige code in van de host.</p>
-
-        <input type="number" id="join-code-input" class="input-box" placeholder="0000" style="font-size: 24px; letter-spacing: 8px; padding: 15px;">
-
-        <button class="btn-main" onclick="confirmJoin()">Start Trippen</button>
-        <button class="btn-main btn-secondary" onclick="goHome()">Annuleren en terug</button>
-
-
-    </div>
-</div>
-
-    <div id="profile-modal" class="modal-overlay">
-        <div class="modal-card">
-            <h3 style="color:var(--mint)">Profiel</h3>
-            <span class="label">Mijn leeftijd:</span><select id="age-select" class="select-box">
-            
-                <option value="" disabled selected>Kies leeftijd...</option>
-                <option value="<18">Jonger dan 18</option>
-                <option value="18-25">18 - 25 jaar</option>
-                <option value="26-35">26 - 35 jaar</option>
-                <option value="36-50">36 - 50 jaar</option>
-                <option value="50+">Ouder dan 50</option>
-            </select>
-            <span class="label">Geslacht:</span><select id="gender-select" class="select-box">
-                            <option value="" disabled selected>Kies geslacht...</option>
-                <option value="man">Man</option>
-                <option value="vrouw">Vrouw</option>
-                <option value="anders">Anders / Neutraal</option>
-            </select>
-
-            <button class="btn-main" onclick="startSwiping()">Start flippen</button>
-        </div>
-    </div>
-<div id="instruction-modal" class="modal-overlay" style="display:none;">
-    <div class="modal-card">
-        <h3 style="color:var(--indigo); margin-top:0;">Zo werkt het:</h3>
-        
         <div style="text-align:left; margin: 25px 0;">
             <div class="instruction-item">
                 <span class="instruction-icon">👉</span>
