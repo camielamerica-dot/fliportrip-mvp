@@ -506,10 +506,17 @@ window.shareWA = () => {
         </select>
         <span class="label">Je naam</span><input type="text" id="host-name" class="input-box" placeholder="Je Naam">
         <span class="label">Jouw E-mail (voor de resultaten)</span><input type="email" id="host-email" class="input-box" placeholder="Je E-mail">
-        <div style="display:flex; gap:10px;">
-            <span class="label">Aantal personen</span><input type="number" id="target-p" class="input-box" placeholder="Personen" value="4">
-            <span class="label">Deadline invullen keuzes (minuten)</span><input type="number" id="deadline-input" class="input-box" placeholder="Minuten" value="60">
-        </div>
+        <div class="row">
+    <div class="input-group">
+        <span class="label">Aantal personen</span>
+        <input type="number" id="target-p" class="input-box" value="4">
+    </div>
+
+    <div class="input-group">
+        <span class="label">Deadline (min)</span>
+        <input type="number" id="deadline-input" class="input-box" value="60">
+    </div>
+</div>
         <button class="btn-main" onclick="createRoom()">Trip aanmaken</button>
     </div>
 
