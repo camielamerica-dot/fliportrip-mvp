@@ -181,6 +181,20 @@
     .stat-bar-container { background: #F8F9FA; border-radius: 20px; margin-bottom: 12px; padding: 16px; }
     .stat-bar-bg { background: #E9ECEF; height: 8px; border-radius: 10px; margin-top: 8px; }
     .stat-bar-fill { background: linear-gradient(90deg, var(--mint), #36ead2); border-radius: 10px; }
+       .swipe-label {
+    position: absolute;
+    top: 50px;
+    padding: 10px 20px;
+    border: 4px solid;
+    border-radius: 10px;
+    font-size: 30px;
+    font-weight: 800;
+    z-index: 10;
+    opacity: 0;
+    pointer-events: none;
+}
+.label-trip { right: 20px; color: #00D1B2; border-color: #00D1B2; transform: rotate(15deg); }
+.label-flip { left: 20px; color: #FF4B4B; border-color: #FF4B4B; transform: rotate(-15deg); }
 </style>
 
     <script type="module">
@@ -280,19 +294,44 @@ window.onclick = function(event) {
             } else { alert("Code niet gevonden"); }
         };
 
-        window.startSwiping = async () => {
-            if(!document.getElementById('u-age').value) return alert("Vul je leeftijd in!");
-            document.getElementById('profile-modal').style.display = 'none';
-            showScreen('swipe-screen');
-            document.getElementById('active-code').innerText = window.currentRoom;
+       window.startSwiping = async () => {
+    // Correctie: we gebruiken nu 'age-select' ipv 'u-age'
+    const ageValue = document.getElementById('age-select').value;
+    
+    if(!ageValue) {
+        return alert("Selecteer eerst je leeftijd!");
+    }
+    
+    // Verberg de modal
+    document.getElementById('profile-modal').style.display = 'none';
+    
+    // Wissel naar het swipe scherm
+    showScreen('swipe-screen');
+    
+    // Toon de code bovenin
+    if(document.getElementById('active-code')) {
+        document.getElementById('active-code').innerText = window.currentRoom;
+    }
 
-            // Haal activiteiten op gebaseerd op de gekozen stad
-            const city = window.roomData ? window.roomData.destination : document.getElementById('host-dest').value;
-            const q = query(collection(db, "activities"), where("city", "==", city));
-            const qs = await getDocs(q);
-            window.acts = qs.docs.map(d => ({id: d.id, ...d.data()}));
-            window.actIdx = 0; renderCard();
-        };
+    // Haal activiteiten op
+    try {
+        const city = window.roomData ? window.roomData.destination : document.getElementById('host-dest').value;
+        const q = query(collection(db, "activities"), where("city", "==", city));
+        const qs = await getDocs(q);
+        
+        if (qs.empty) {
+            alert("Geen activiteiten gevonden voor " + city + ". Check of de stad correct in de database staat.");
+            return;
+        }
+
+        window.acts = qs.docs.map(d => ({id: d.id, ...d.data()}));
+        window.actIdx = 0; 
+        renderCard();
+    } catch (error) {
+        console.error("Fout bij ophalen activiteiten:", error);
+        alert("Er ging iets mis bij het laden van de activiteiten.");
+    }
+};
 
         window.handleVote = async (choice) => {
             const card = document.querySelector('.card');
