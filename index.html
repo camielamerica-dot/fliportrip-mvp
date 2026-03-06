@@ -461,7 +461,7 @@ window.shareWA = () => {
             <span class="label">Aantal personen</span><input type="number" id="target-p" class="input-box" placeholder="Personen" value="4">
             <span class="label">Deadline invullen keuzes (minuten)</span><input type="number" id="deadline-input" class="input-box" placeholder="Minuten" value="60">
         </div>
-        <button class="btn" onclick="createRoom()">Trip aanmaken</button>
+        <button class="btn-main" onclick="createRoom()">Trip aanmaken</button>
     </div>
 
     <div id="share-screen" class="hidden screen-content">
@@ -483,8 +483,8 @@ window.shareWA = () => {
             <h3>Host Dashboard</h3>
             <input type="number" id="login-code" class="input-box" placeholder="Code">
             <input type="email" id="login-email" class="input-box" placeholder="E-mail">
-            <button class="btn" onclick="verifyHost()">Check Status</button>
-            <p onclick="document.getElementById('host-login-modal').style.display='none'" style="font-size:12px;">Sluiten</p>
+            <button class="btn-main" onclick="verifyHost()">Check Status</button>
+            <button class="btn-secundary" onclick="document.getElementById('host-login-modal').style.display='none'">Sluiten</button>
         </div>
     </div>
 
@@ -497,9 +497,9 @@ window.shareWA = () => {
         
         <input type="number" id="join-code-input" class="input-box" placeholder="0000" style="font-size: 24px; letter-spacing: 8px; padding: 15px;">
         
-        <button class="btn" onclick="confirmJoin()">Join Trip</button>
+        <button class="btn-main" onclick="confirmJoin()">Join Trip</button>
+        <button class="btn-secondary" onclick="goHome()">Annuleren en terug</button>
         
-        <p onclick="goHome()" style="font-size:12px;">Annuleren en terug</p>
        
     </div>
 </div>
@@ -542,6 +542,7 @@ window.shareWA = () => {
         2. <b>Swipe & Flip:</b> Iedereen krijgt dezelfde activiteiten te zien en swipet naar rechts (leuk) of links (niet leuk).<br><br>
         3. <b>De Match:</b> De app berekent welke 3 activiteiten de hoogste score hebben bij de hele groep.
     </p>
+    <button class="btn-secondary" onclick="goHome()">Aan de slag</button>
 </div>
 
 <div id="info-problem-solver" class="hidden screen-content" style="text-align: left;">
@@ -550,6 +551,7 @@ window.shareWA = () => {
         <b>Het Probleem:</b> Groepsdiscussies over "wat gaan we doen?" duren uren in WhatsApp-groepen. Vaak beslist de luidste stem.<br><br>
         <b>Onze Oplossing:</b> Democratisch, snel en visueel. FlipOrTrip haalt de keuzestress weg en zorgt dat de activiteit écht door de meerderheid gedragen wordt.
     </p>
+    <button class="btn-secondary" onclick="goHome()">Aan de slag</button>
 </div>
 </body>
 </html>
