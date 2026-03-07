@@ -51,6 +51,52 @@
             .hero-city { grid-template-columns: 1fr; text-align: center; padding-top: 120px; }
             .hero-city img { width: 100%; border-radius: 30px; }
         }
+
+        /* FAQ Styling */
+.faq-section {
+    padding: 80px 8%;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.faq-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.faq-item {
+    background: var(--glass);
+    border-radius: 20px;
+    margin-bottom: 15px;
+    padding: 25px;
+    border: 1px solid rgba(255,255,255,0.5);
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.faq-item:hover {
+    transform: translateX(10px);
+    background: white;
+}
+
+.faq-item h3 {
+    margin: 0;
+    font-size: 18px;
+    color: var(--indigo);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.faq-item p {
+    margin-top: 15px;
+    font-size: 15px;
+    color: #555;
+    display: none; /* Standaard verborgen voor een clean look */
+}
+
+.faq-item.active p {
+    display: block;
+}
     </style>
 </head>
 <body>
@@ -104,7 +150,31 @@
     <p style="max-width: 800px; margin: 0 auto 30px;">Valkenburg heeft zóveel te bieden dat je door de bomen het bos niet meer ziet. Onze app bevat een zorgvuldig geselecteerde lijst met de leukste lokale 'hotspots', zodat jullie groep alleen uit de állerbeste opties hoeft te kiezen.</p>
     <a href="index.html" class="btn-small" style="background: var(--indigo);">Start nu jullie sessie</a>
 </section>
+<section class="faq-section">
+    <div class="faq-container">
+        <h2 style="text-align: center; color: var(--indigo); margin-bottom: 40px;">Veelgestelde vragen</h2>
+        
+        <div class="faq-item" onclick="this.classList.toggle('active')">
+            <h3>Moet iedereen de app downloaden? <span>+</span></h3>
+            <p>Nee! Alleen de host maakt een sessie aan. De rest van de groep doet gewoon mee via een unieke link in de browser op hun eigen telefoon. Super simpel.</p>
+        </div>
 
+        <div class="faq-item" onclick="this.classList.toggle('active')">
+            <h3>Zijn de activiteiten in Valkenburg up-to-date? <span>+</span></h3>
+            <p>Zeker. We werken samen met lokale partners in Valkenburg om te zorgen dat je alleen actuele uitjes ziet, van de kerstmarkten in de winter tot de terrassen in de zomer.</p>
+        </div>
+
+        <div class="faq-item" onclick="this.classList.toggle('active')">
+            <h3>Wat als we met een hele grote groep zijn? <span>+</span></h3>
+            <p>Geen probleem. Of je nu met 4 of met 40 personen bent, ons algoritme berekent razendsnel de beste match voor de hele groep.</p>
+        </div>
+
+        <div class="faq-item" onclick="this.classList.toggle('active')">
+            <h3>Kost het gebruik van Flip 2 Trip geld? <span>+</span></h3>
+            <p>Het swipen en matchen is volledig gratis voor groepen. Wij willen dat jullie gewoon een topdag hebben in Valkenburg!</p>
+        </div>
+    </div>
+</section>
 <footer style="padding: 60px; text-align: center; opacity: 0.6; font-size: 13px;">
     <p>Flip 2 Trip &copy; 2026 | Groepsuitje Valkenburg zonder keuzestress</p>
 </footer>
