@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Valkenburg | Flip 2 Trip Smart Match</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
+    <title>Groepsuitje Valkenburg | Swipe & Match met Flip 2 Trip</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -15,7 +15,7 @@
         const db = getFirestore(app);
         const STAD = "Valkenburg";
 
-        async function initLiveMonitor() {
+        async function initLiveTrends() {
             const actSnap = await getDocs(collection(db, "activities"));
             const lib = {};
             actSnap.forEach(d => { if(d.data().city === STAD) lib[d.id] = d.data(); });
@@ -30,93 +30,80 @@
                         });
                     }
                 });
-                updateUI(votes, lib, total);
+                renderUI(votes, lib, total);
             });
         }
 
-        function updateUI(votes, lib, total) {
-            const box = document.getElementById('live-feed');
+        function renderUI(votes, lib, total) {
+            const feed = document.getElementById('live-feed');
             if(total === 0) return;
             const top = Object.keys(votes).sort((a,b) => votes[b] - votes[a]).slice(0,3);
-            box.innerHTML = top.map((id, i) => {
+            feed.innerHTML = top.map((id, i) => {
                 const p = Math.round((votes[id]/total)*100);
                 return `
-                    <div class="monitor-card">
-                        <div class="rank">0${i+1}</div>
-                        <img src="${lib[id].image}" onerror="this.src='https://images.unsplash.com/photo-1533512930330-4ac257c86793?w=200'">
-                        <div class="info">
-                            <h4>${lib[id].title}</h4>
-                            <div class="bar-bg"><div class="bar-fill" style="width:${p}%"></div></div>
+                    <div class="trend-card">
+                        <img src="${lib[id].image}" class="trend-img" onerror="this.src='https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=400'">
+                        <div class="trend-info">
+                            <div class="trend-top"><strong>${lib[id].title}</strong><span>${p}% match</span></div>
+                            <div class="progress-bar"><div class="progress-fill" style="width:${p}%"></div></div>
                         </div>
-                        <div class="perc">${p}%</div>
                     </div>`;
             }).join('');
-            document.getElementById('live-count').innerText = `${total} LIVE VOTES ANALYSED`;
+            document.getElementById('live-counter').innerText = `Live analyse: ${total} swipes in Valkenburg`;
         }
-        window.onload = initLiveMonitor;
+        window.onload = initLiveTrends;
     </script>
 
     <style>
-        :root { --mint: #00FFC2; --obsidian: #0B0E14; --card: #161B22; --text: #8899A6; }
-        * { box-sizing: border-box; }
-        body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; overflow-x: hidden; }
+        :root { --indigo: #1e293b; --accent: #3F51B5; --glass: rgba(255, 255, 255, 0.7); }
+        html { scroll-behavior: smooth; }
+        body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--indigo); background: #fbfbfb; }
 
-        /* HEADER & NAV */
+        /* NAVIGATIE - Premium Glass */
         nav { 
-            height: 90px; display: flex; align-items: center; justify-content: space-between; 
-            padding: 0 8%; border-bottom: 1px solid rgba(0,255,194,0.1); background: rgba(11,14,20,0.8);
-            backdrop-filter: blur(20px); position: fixed; width: 100%; z-index: 1000;
+            position: fixed; width: 100%; top: 0; height: 85px; z-index: 1000;
+            background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(15px);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 8%; border-bottom: 1px solid rgba(0,0,0,0.05); box-sizing: border-box;
         }
-        .logo img { height: 40px; }
-        .nav-links { display: flex; gap: 40px; }
-        .nav-links a { color: var(--text); text-decoration: none; font-size: 12px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
-        .nav-links a:hover { color: var(--mint); }
+        .logo img { height: 45px; }
+        .nav-links { display: flex; gap: 35px; align-items: center; }
+        .nav-links a { text-decoration: none; color: var(--indigo); font-weight: 700; font-size: 14px; }
+        .btn-cta { background: var(--indigo); color: white; padding: 12px 25px; border-radius: 50px; text-decoration: none; font-weight: 800; transition: 0.3s; }
 
-        /* HERO */
-        .hero { padding: 200px 8% 100px; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
-        .hero-tag { color: var(--mint); font-size: 12px; font-weight: 800; letter-spacing: 3px; margin-bottom: 20px; }
-        h1 { font-size: 72px; font-weight: 800; margin: 0; line-height: 0.9; letter-spacing: -3px; }
-        .hero p { color: var(--text); font-size: 18px; margin: 30px 0; max-width: 450px; }
-
-        .btn-mint { 
-            background: var(--mint); color: var(--obsidian); padding: 20px 40px; border-radius: 50px; 
-            text-decoration: none; font-weight: 800; display: inline-block; font-size: 14px; 
-            transition: 0.3s; border: none; cursor: pointer;
+        /* HERO - Light Aurora */
+        .hero { 
+            padding: 180px 8% 100px; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;
+            background: radial-gradient(circle at top right, #f0f7ff, transparent), radial-gradient(circle at bottom left, #f3f0ff, transparent);
         }
-        .btn-mint:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(0,255,194,0.3); }
+        .badge { background: #E0E7FF; color: var(--accent); padding: 6px 16px; border-radius: 100px; font-size: 11px; font-weight: 800; margin-bottom: 20px; display: inline-block; }
+        h1 { font-size: clamp(40px, 5vw, 64px); font-weight: 800; margin: 0 0 25px; line-height: 1.1; letter-spacing: -2px; }
+        .hero p { font-size: 18px; color: #64748b; margin-bottom: 35px; max-width: 480px; }
 
-        /* MONITOR DASHBOARD */
-        .monitor-section { padding: 100px 8%; background: linear-gradient(180deg, var(--obsidian) 0%, #000 100%); }
-        .monitor-box { background: var(--card); border: 1px solid rgba(0,255,194,0.2); border-radius: 40px; padding: 60px; }
-        .monitor-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 50px; }
-        .live-tag { color: #FF4B4B; font-size: 11px; font-weight: 800; letter-spacing: 2px; display: flex; align-items: center; gap: 8px; }
-        .dot { width: 8px; height: 8px; background: #FF4B4B; border-radius: 50%; animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-
-        .monitor-card { 
-            display: flex; align-items: center; gap: 30px; padding: 25px; 
-            background: rgba(255,255,255,0.02); border-radius: 20px; margin-bottom: 15px;
-            border: 1px solid rgba(255,255,255,0.05); transition: 0.4s;
+        /* TRENDS - Glassmorphism Dashboard */
+        .section { padding: 100px 8%; }
+        .glass-panel { 
+            background: var(--glass); border: 1px solid white; border-radius: 40px; 
+            padding: 50px; box-shadow: 0 25px 50px rgba(0,0,0,0.03); backdrop-filter: blur(10px);
         }
-        .monitor-card:hover { border-color: var(--mint); background: rgba(0,255,194,0.03); }
-        .rank { font-size: 24px; font-weight: 800; color: rgba(255,255,255,0.1); width: 40px; }
-        .monitor-card img { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; }
-        .info { flex: 1; }
-        .info h4 { margin: 0 0 10px; font-size: 20px; }
-        .bar-bg { height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; }
-        .bar-fill { height: 100%; background: var(--mint); transition: 1.5s ease-out; }
-        .perc { font-weight: 800; color: var(--mint); font-size: 18px; width: 60px; text-align: right; }
+        .trend-card { 
+            display: flex; align-items: center; gap: 20px; background: white; 
+            padding: 15px; border-radius: 25px; margin-bottom: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.02);
+        }
+        .trend-img { width: 70px; height: 70px; border-radius: 18px; object-fit: cover; }
+        .trend-info { flex: 1; }
+        .trend-top { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 15px; }
+        .progress-bar { height: 8px; background: #f1f5f9; border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--accent); border-radius: 10px; transition: 1.5s ease-out; }
 
-        /* FAQ */
-        .faq { padding: 100px 8%; }
-        .faq-item { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 30px 0; cursor: pointer; }
-        .faq-item h3 { margin: 0; font-size: 18px; display: flex; justify-content: space-between; }
-        .faq-item p { display: none; color: var(--text); margin-top: 20px; }
-        .faq-item.active p { display: block; }
+        /* HOE WERKT HET */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; margin-top: 50px; }
+        .step-card { padding: 40px; background: white; border-radius: 30px; border: 1px solid rgba(0,0,0,0.03); }
+        .step-card h3 { margin-top: 0; color: var(--accent); }
 
         @media (max-width: 1000px) {
-            .hero { grid-template-columns: 1fr; padding-top: 150px; text-align: center; }
-            .hero p { margin: 30px auto; }
+            .hero { grid-template-columns: 1fr; text-align: center; }
+            .hero p { margin: 0 auto 35px; }
             .nav-links { display: none; }
         }
     </style>
@@ -126,58 +113,55 @@
 <nav>
     <div class="logo"><img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/03/Flip2Trip-logo-landscape.png" alt="Logo"></div>
     <div class="nav-links">
-        <a href="#monitor">Live Monitor</a>
-        <a href="#faq">Systeem FAQ</a>
-        <a href="/app" class="btn-mint" style="padding: 12px 25px;">Launch App</a>
+        <a href="#hoe-werkt-het">Hoe werkt het?</a>
+        <a href="#trends">Live Trends</a>
+        <a href="/app" class="btn-cta">Start nu</a>
     </div>
 </nav>
 
 <section class="hero">
     <div>
-        <div class="hero-tag">LOCATION: VALKENBURG</div>
-        <h1>Swipe.<br>Match.<br><span style="color:var(--mint)">Trip.</span></h1>
-        <p>Elimineer groepsapp-discussies. Gebruik onze Smart Match engine om de perfecte dag in Valkenburg te plannen op basis van real-time swipes.</p>
-        <a href="/app" class="btn-mint">Start Groep Sessie</a>
+        <span class="badge">Valkenburg Live</span>
+        <h1>Plan je uitje<br>zonder gedoe.</h1>
+        <p>Swipe samen met je vrienden door de leukste activiteiten in Valkenburg. Geen discussies meer, onze Smart Match engine vindt de perfecte dag.</p>
+        <a href="/app" class="btn-cta" style="padding: 18px 40px; font-size: 16px;">Start groepsessie</a>
     </div>
-    <div style="position: relative; display: flex; justify-content: center;">
-        <div style="width: 300px; height: 500px; background: var(--mint); filter: blur(120px); opacity: 0.15; position: absolute;"></div>
-        <img src="https://images.unsplash.com/photo-1601620023366-267868f060f6?w=500" style="width: 80%; border-radius: 40px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 50px 100px rgba(0,0,0,0.5);">
+    <div style="display: flex; gap: 20px; justify-content: flex-end;">
+        <img src="https://images.unsplash.com/photo-1601620023366-267868f060f6?w=400" style="width: 180px; height: 320px; border-radius: 30px; object-fit: cover; margin-top: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
+        <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400" style="width: 180px; height: 320px; border-radius: 30px; object-fit: cover; box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
     </div>
 </section>
 
-<section class="monitor-section" id="monitor">
-    <div class="monitor-box">
-        <div class="monitor-header">
-            <div>
-                <div class="live-tag"><div class="dot"></div> SMART MATCH MONITOR</div>
-                <h2 style="font-size: 32px; margin: 10px 0 0 0;">Trending in Valkenburg</h2>
-            </div>
-            <div id="live-count" style="font-size: 11px; font-weight: 800; color: var(--text);">ANALYSING DATA...</div>
+<section class="section" id="trends" style="background: #f8fafc;">
+    <div class="glass-panel">
+        <div style="display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 800; color: #ff4b4b; margin-bottom: 20px;">
+            <div style="width: 8px; height: 8px; background: #ff4b4b; border-radius: 50%; animation: pulse 1.5s infinite;"></div> LIVE MATCH FEED
         </div>
-        
+        <h2 style="margin: 0 0 30px 0;">Populairste uitjes in Valkenburg</h2>
         <div id="live-feed">
-            <p style="color: var(--text);">Synchronizing with Firebase v6.0...</p>
+            <p>Data synchroniseren...</p>
         </div>
+        <p id="live-counter" style="text-align: center; font-size: 12px; color: #94a3b8; margin-top: 25px; font-weight: 600;"></p>
     </div>
 </section>
 
-<section class="faq" id="faq">
-    <div class="hero-tag">DOCUMENTATIE</div>
-    <h2 style="font-size: 42px; margin-bottom: 50px;">Systeem FAQ</h2>
-    
-    <div class="faq-item" onclick="this.classList.toggle('active')">
-        <h3>Hoe werkt de Smart Match? <span>+</span></h3>
-        <p>De engine weegt individuele 'likes' tegen de collectieve groeps-interesses die bij aanvang van een kamer worden opgegeven. Dit resulteert in een real-time matchscore.</p>
-    </div>
-    <div class="faq-item" onclick="this.classList.toggle('active')">
-        <h3>Is de data anoniem? <span>+</span></h3>
-        <p>Ja. Flip 2 Trip verzamelt geen persoonlijke data, enkel geanonimiseerde swipes om trends in steden als Valkenburg in kaart te brengen.</p>
+<section class="section" id="hoe-werkt-het">
+    <h2 style="text-align: center; font-size: 36px; margin-bottom: 10px;">In 3 stappen op pad</h2>
+    <p style="text-align: center; color: #64748b; margin-bottom: 50px;">De slimste manier om met een groep te kiezen.</p>
+    <div class="grid">
+        <div class="step-card"><h3>1. Kamer</h3><p>Open een sessie voor Valkenburg en deel de link met je groep.</p></div>
+        <div class="step-card"><h3>2. Swipen</h3><p>Iedereen swipet op zijn eigen telefoon door de activiteiten.</p></div>
+        <div class="step-card"><h3>3. Resultaat</h3><p>Zie direct welke match de hoogste score heeft voor de hele groep.</p></div>
     </div>
 </section>
 
-<footer style="padding: 100px 8%; border-top: 1px solid rgba(255,255,255,0.05); text-align: center; color: var(--text); font-size: 12px;">
-    &copy; 2026 FLIP 2 TRIP | POWERED BY FIREBASE v6.0
+<footer style="padding: 60px 8%; text-align: center; border-top: 1px solid #eee; color: #94a3b8; font-size: 13px;">
+    &copy; 2026 Flip 2 Trip - Slimmer plannen, meer plezier.
 </footer>
+
+<style>
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+</style>
 
 </body>
 </html>
