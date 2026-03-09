@@ -3,166 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Groepsuitje Valkenburg | Live Trends & Planning</title>
+    <title>Groepsuitje Valkenburg | Swipe & Match met Flip 2 Trip</title>
+    <meta name="description" content="Plan het perfecte groepsuitje in Valkenburg. Swipe door activiteiten zoals de mergelgrotten en rodelbaan en vind de ideale match voor jouw vriendengroep.">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     
     <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    const config = { 
-        apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0", 
-        authDomain: "fliportrip-valkenburg.firebaseapp.com", 
-        projectId: "fliportrip-valkenburg" 
-    };
-    const app = initializeApp(config);
-    const db = getFirestore(app);
+        const config = { 
+            apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0", 
+            authDomain: "fliportrip-valkenburg.firebaseapp.com", 
+            projectId: "fliportrip-valkenburg" 
+        };
+        const app = initializeApp(config);
+        const db = getFirestore(app);
+        const HUIDIGE_STAD = "Valkenburg";
 
-    const HUIDIGE_STAD = "Valkenburg"; // De filter voor deze pagina
-
-    async function loadLiveTrends() {
-        // 1. Haal alle activiteiten op die bij Valkenburg horen
-        const actSnap = await getDocs(collection(db, "activities"));
-        const activityLibrary = {};
-        
-        actSnap.forEach(doc => {
-            const data = doc.data();
-            // STRIKTE FILTER: Alleen toevoegen aan library als de stad matcht
-            if (data.city === HUIDIGE_STAD) {
-                activityLibrary[doc.id] = {
-                    title: data.title,
-                    image: data.image,
-                    city: data.city
-                };
-            }
-        });
-
-        // 2. Luister naar de Rooms voor stemmen
-        onSnapshot(collection(db, "rooms"), (snapshot) => {
-            const voteCounts = {};
-            let totalVotesFound = 0;
-
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                // Filter ook de rooms op bestemming voor de zekerheid
-                if (data.votes && data.destination === HUIDIGE_STAD) {
-                    Object.keys(data.votes).forEach(actId => {
-                        // Alleen tellen als de activiteit in onze gefilterde library zit
-                        if (activityLibrary[actId]) {
-                            voteCounts[actId] = (voteCounts[actId] || 0) + data.votes[actId];
-                            totalVotesFound += data.votes[actId];
-                        }
-                    });
-                }
+        async function loadLiveTrends() {
+            const actSnap = await getDocs(collection(db, "activities"));
+            const library = {};
+            actSnap.forEach(doc => {
+                const d = doc.data();
+                if (d.city === HUIDIGE_STAD) library[doc.id] = d;
             });
 
-            renderTrends(voteCounts, activityLibrary, totalVotesFound);
-        });
-    }
-
-    function renderTrends(votes, library, total) {
-        const container = document.getElementById('live-stats-box');
-        if (total === 0) {
-            container.innerHTML = `<p style="color:#64748b;">Nog geen live data voor ${HUIDIGE_STAD}...</p>`;
-            return;
+            onSnapshot(collection(db, "rooms"), (snap) => {
+                const votes = {};
+                let total = 0;
+                snap.forEach(doc => {
+                    const r = doc.data();
+                    if (r.votes && r.destination === HUIDIGE_STAD) {
+                        Object.keys(r.votes).forEach(id => {
+                            if (library[id]) {
+                                votes[id] = (votes[id] || 0) + r.votes[id];
+                                total += r.votes[id];
+                            }
+                        });
+                    }
+                });
+                renderTrends(votes, library, total);
+            });
         }
 
-        // Sorteer op basis van stemmen
-        const sorted = Object.keys(votes)
-            .sort((a, b) => votes[b] - votes[a])
-            .slice(0, 3);
-
-        container.innerHTML = '';
-        sorted.forEach(id => {
-            const act = library[id];
-            const percentage = Math.round((votes[id] / total) * 100);
-            
-            container.innerHTML += `
-                <div class="trending-item">
-                    <img src="${act.image}" alt="${act.title}" class="trending-image" onerror="this.src='https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=200'">
-                    <div class="trending-content">
-                        <div class="trending-info">
-                            <span>${act.title}</span>
-                            <span>${percentage}% populariteit</span>
+        function renderTrends(votes, lib, total) {
+            const container = document.getElementById('live-stats-box');
+            if (total === 0) {
+                container.innerHTML = "<p>Live data wordt verzameld...</p>";
+                return;
+            }
+            const sorted = Object.keys(votes).sort((a, b) => votes[b] - votes[a]).slice(0, 3);
+            container.innerHTML = '';
+            sorted.forEach(id => {
+                const perc = Math.round((votes[id] / total) * 100);
+                container.innerHTML += `
+                    <div class="trending-item">
+                        <img src="${lib[id].image}" class="trending-image" onerror="this.src='https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=200'">
+                        <div class="trending-content">
+                            <div class="trending-info"><span>${lib[id].title}</span><span>${perc}% match</span></div>
+                            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${perc}%;"></div></div>
                         </div>
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill" style="width: ${percentage}%;"></div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
+                    </div>`;
+            });
+            document.getElementById('swipe-count-text').innerText = `Gebaseerd op ${total} live swipes in ${HUIDIGE_STAD}`;
+        }
+        window.onload = loadLiveTrends;
+    </script>
 
-        document.getElementById('swipe-count-text').innerText = `Live dashboard voor ${HUIDIGE_STAD}: ${total} stemmen geanalyseerd.`;
-    }
-
-    window.onload = loadLiveTrends;
-</script>
     <style>
-        :root { --indigo: #1e293b; --mint: #00FFC2; --accent: #3F51B5; }
-        body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--indigo); background: #fbfbfb; }
+        html { scroll-behavior: smooth; }
+        :root { --indigo: #1e293b; --accent: #3F51B5; --glow-1: #f3f0ff; --glow-2: #f0f7ff; }
+        body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--indigo); background: #fbfbfb; line-height: 1.6; }
         
         /* Navigatie */
-        nav { padding: 0 5%; display: flex; justify-content: space-between; align-items: center; position: fixed; width: 100%; top: 0; z-index: 1000; height: 70px; background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.05); }
-        .nav-logo img { height: 35px; }
+        nav { padding: 0 5%; display: flex; justify-content: space-between; align-items: center; position: fixed; width: 100%; top: 0; z-index: 1000; height: 70px; background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .nav-logo img { height: 40px; }
+        .nav-links { display: flex; gap: 25px; align-items: center; }
+        .nav-links a { text-decoration: none; color: var(--indigo); font-weight: 600; font-size: 13px; }
 
-        /* Hero */
-        .hero { padding: 160px 8% 80px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; background: linear-gradient(135deg, #fff 0%, #f0f7ff 100%); }
+        /* Hero City */
+        .hero-city { padding: 160px 8% 100px; display: grid; grid-template-columns: 1fr 1.2fr; gap: 40px; align-items: center; background: linear-gradient(-45deg, #ffffff, var(--glow-1), var(--glow-2), #ffffff); background-size: 400% 400%; animation: aurora 15s ease infinite; }
+        @keyframes aurora { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         .city-badge { background: var(--indigo); color: white; padding: 6px 14px; border-radius: 8px; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 20px; display: inline-block; }
-        h1 { font-size: 48px; font-weight: 800; letter-spacing: -1.5px; margin: 0 0 20px; line-height: 1.1; }
+        h1 { font-size: clamp(32px, 5vw, 56px); font-weight: 800; letter-spacing: -1.5px; margin: 0 0 25px 0; line-height: 1.1; }
 
-        /* Dashboard Look */
-        .dashboard-container { max-width: 900px; margin: 40px auto; padding: 40px; background: white; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.02); }
-        .live-indicator { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #ff4b4b; font-weight: 800; margin-bottom: 20px; }
-        .dot { width: 8px; height: 8px; background: #ff4b4b; border-radius: 50%; animation: blink 1.5s infinite; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        /* Collage */
+        .hero-collage { display: flex; gap: 15px; justify-content: center; }
+        .collage-img { border-radius: 20px; object-fit: cover; box-shadow: 0 20px 40px rgba(0,0,0,0.1); border: 4px solid white; transition: 0.4s; }
+        .img-1 { width: 140px; height: 260px; margin-top: -40px; }
+        .img-2 { width: 180px; height: 340px; z-index: 2; }
+        .img-3 { width: 140px; height: 240px; margin-top: 40px; }
 
-        .trending-item { display: flex; align-items: center; gap: 20px; margin-bottom: 25px; background: #fbfbfb; padding: 15px; border-radius: 20px; }
-        .trending-image { width: 80px; height: 80px; border-radius: 15px; object-fit: cover; background: #eee; }
+        /* Dashboard & Content */
+        .section { padding: 80px 8%; }
+        .dashboard-card { background: white; border-radius: 30px; padding: 40px; border: 1px solid rgba(0,0,0,0.03); box-shadow: 0 10px 30px rgba(0,0,0,0.02); }
+        .trending-item { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; background: #fbfbfb; padding: 15px; border-radius: 20px; }
+        .trending-image { width: 70px; height: 70px; border-radius: 12px; object-fit: cover; }
         .trending-content { flex: 1; }
-        .trending-info { display: flex; justify-content: space-between; font-weight: 800; font-size: 14px; margin-bottom: 10px; }
+        .progress-bar-bg { width: 100%; height: 8px; background: #e2e8f0; border-radius: 10px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: var(--accent); transition: width 1s ease-out; }
         
-        .progress-bar-bg { width: 100%; height: 10px; background: #e2e8f0; border-radius: 10px; overflow: hidden; }
-        .progress-bar-fill { height: 100%; background: var(--accent); border-radius: 10px; transition: width 1s ease-out; }
-
-        .btn { padding: 15px 30px; border-radius: 50px; font-weight: 800; text-decoration: none; display: inline-block; transition: 0.3s; }
+        .how-works-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-top: 40px; }
+        .btn { padding: 15px 30px; border-radius: 12px; font-weight: 800; text-decoration: none; display: inline-block; transition: 0.2s; }
         .btn-primary { background: var(--indigo); color: white; }
+        
+        /* FAQ */
+        .faq-item { background: white; border-radius: 15px; padding: 20px; margin-bottom: 10px; cursor: pointer; border: 1px solid rgba(0,0,0,0.03); }
+        .faq-item p { display: none; margin-top: 10px; font-size: 14px; color: #64748b; }
+        .faq-item.active p { display: block; }
 
-        @media (max-width: 768px) { .hero { grid-template-columns: 1fr; text-align: center; } .hero-collage { display: none; } }
+        @media (max-width: 900px) { .hero-city { grid-template-columns: 1fr; text-align: center; } .hero-collage { display: none; } }
     </style>
 </head>
 <body>
 
 <nav>
     <div class="nav-logo"><img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" alt="Logo"></div>
-    <a href="/app" class="btn" style="font-size: 12px; border: 1px solid #ddd;">Open App</a>
+    <div class="nav-links">
+        <a href="#uitleg">Hoe werkt het?</a>
+        <a href="#trends">Live Trends</a>
+        <a href="#faq">FAQ</a>
+        <a href="/app" class="btn" style="padding: 8px 16px; border: 1px solid #ddd; font-size: 12px;">Open App</a>
+    </div>
 </nav>
 
-<header class="hero">
+<header class="hero-city">
     <div>
-        <span class="city-badge">Bestemming Valkenburg</span>
-        <h1>De favorieten van<br>andere groepen.</h1>
-        <p>Ontdek wat op dit moment populair is in de Mergelstad. Onze Smart Match engine analyseert live alle actieve sessies.</p>
-        <a href="/app" class="btn btn-primary">Start jullie sessie</a>
+        <span class="city-badge">Groepsuitje Valkenburg</span>
+        <h1>Ontdek Valkenburg<br>zonder gedoe.</h1>
+        <p>Plan jullie ideale dag in de Geulstad. Laat iedereen swipen en vind razendsnel de activiteiten die jullie allemaal leuk vinden.</p>
+        <a href="/app" class="btn btn-primary">Start een sessie</a>
     </div>
-    <div class="hero-collage" style="display: flex; gap: 10px; justify-content: flex-end;">
-        <img src="https://images.unsplash.com/photo-1601620023366-267868f060f6?q=80&w=300" style="width: 150px; height: 250px; border-radius: 20px; object-fit: cover; margin-top: 30px;">
-        <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=300" style="width: 150px; height: 250px; border-radius: 20px; object-fit: cover;">
+    <div class="hero-collage">
+        <img src="https://images.unsplash.com/photo-1601620023366-267868f060f6?w=300" class="collage-img img-1">
+        <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=300" class="collage-img img-2">
+        <img src="https://images.unsplash.com/photo-1533512930330-4ac257c86793?w=300" class="collage-img img-3">
     </div>
 </header>
 
-<section style="padding: 20px 8%;">
-    <div class="dashboard-container">
-        <div class="live-indicator"><div class="dot"></div> LIVE SMART MATCH DATA</div>
-        <h2 style="margin: 0 0 30px 0; letter-spacing: -1px;">Trending in Valkenburg</h2>
-
-        <div id="live-stats-box">
-            <p>Data wordt gesynchroniseerd met Business Suite...</p>
+<section class="section" id="uitleg">
+    <div class="dashboard-card" style="background: var(--glow-2);">
+        <h2 style="text-align: center; margin-bottom: 40px;">Hoe werkt Flip 2 Trip?</h2>
+        <div class="how-works-grid">
+            <div><strong>1. Kies je stad</strong><p>Selecteer Valkenburg en start een nieuwe groeps-sessie.</p></div>
+            <div><strong>2. Swipe samen</strong><p>Iedereen krijgt de activiteiten op zijn eigen telefoon en swipet naar links of rechts.</p></div>
+            <div><strong>3. De Match</strong><p>Onze Smart Match engine toont direct welke uitjes de hoogste score hebben in jullie groep.</p></div>
         </div>
-
-        <p id="swipe-count-text" style="font-size: 12px; color: #94a3b8; text-align: center; margin-top: 20px; font-weight: 600;"></p>
     </div>
 </section>
+
+<section class="section" id="trends">
+    <div class="dashboard-card">
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #ff4b4b; font-weight: 800; margin-bottom: 15px;">
+            <div style="width: 8px; height: 8px; background: #ff4b4b; border-radius: 50%;"></div> LIVE TRENDS VALKENBURG
+        </div>
+        <h2 style="margin-top: 0;">Meest geliefd in Valkenburg</h2>
+        <div id="live-stats-box"><p>Data laden...</p></div>
+        <p id="swipe-count-text" style="font-size: 12px; color: #94a3b8; text-align: center; margin-top: 20px;"></p>
+    </div>
+</section>
+
+<section class="section" id="faq">
+    <h2 style="text-align: center; margin-bottom: 40px;">Veelgestelde vragen</h2>
+    <div style="max-width: 700px; margin: 0 auto;">
+        <div class="faq-item" onclick="this.classList.toggle('active')">
+            <strong>Is de app gratis?</strong>
+            <p>Ja, Flip 2 Trip is volledig gratis te gebruiken voor alle vriendengroepen.</p>
+        </div>
+        <div class="faq-item" onclick="this.classList.toggle('active')">
+            <strong>Moet iedereen een account aanmaken?</strong>
+            <p>Nee, alleen de organisator start de kamer. De rest doet mee via een link zonder inloggen.</p>
+        </div>
+    </div>
+</section>
+
+<footer style="padding: 40px; text-align: center; opacity: 0.5; font-size: 12px;">
+    &copy; 2026 Flip 2 Trip - Valkenburg Smart Matching
+</footer>
 
 </body>
 </html>
