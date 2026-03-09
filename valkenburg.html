@@ -7,89 +7,97 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // Jouw specifieke Firebase Config
-        const config = { 
-            apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0", 
-            authDomain: "fliportrip-valkenburg.firebaseapp.com", 
-            projectId: "fliportrip-valkenburg" 
-        };
-        const app = initializeApp(config);
-        const db = getFirestore(app);
+    const config = { 
+        apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0", 
+        authDomain: "fliportrip-valkenburg.firebaseapp.com", 
+        projectId: "fliportrip-valkenburg" 
+    };
+    const app = initializeApp(config);
+    const db = getFirestore(app);
 
-        async function loadLiveTrends() {
-            // 1. Haal alle activiteiten op om de afbeeldingen en titels te hebben
-            const actSnap = await getDocs(collection(db, "activities"));
-            const activityLibrary = {};
-            actSnap.forEach(doc => {
+    const HUIDIGE_STAD = "Valkenburg"; // De filter voor deze pagina
+
+    async function loadLiveTrends() {
+        // 1. Haal alle activiteiten op die bij Valkenburg horen
+        const actSnap = await getDocs(collection(db, "activities"));
+        const activityLibrary = {};
+        
+        actSnap.forEach(doc => {
+            const data = doc.data();
+            // STRIKTE FILTER: Alleen toevoegen aan library als de stad matcht
+            if (data.city === HUIDIGE_STAD) {
                 activityLibrary[doc.id] = {
-                    title: doc.data().title,
-                    image: doc.data().image,
-                    city: doc.data().city
+                    title: data.title,
+                    image: data.image,
+                    city: data.city
                 };
-            });
+            }
+        });
 
-            // 2. Luister naar de Rooms voor live stemmen
-            onSnapshot(collection(db, "rooms"), (snapshot) => {
-                const voteCounts = {};
-                let totalVotesFound = 0;
+        // 2. Luister naar de Rooms voor stemmen
+        onSnapshot(collection(db, "rooms"), (snapshot) => {
+            const voteCounts = {};
+            let totalVotesFound = 0;
 
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    if (data.votes && data.destination === "Valkenburg") {
-                        Object.keys(data.votes).forEach(actId => {
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                // Filter ook de rooms op bestemming voor de zekerheid
+                if (data.votes && data.destination === HUIDIGE_STAD) {
+                    Object.keys(data.votes).forEach(actId => {
+                        // Alleen tellen als de activiteit in onze gefilterde library zit
+                        if (activityLibrary[actId]) {
                             voteCounts[actId] = (voteCounts[actId] || 0) + data.votes[actId];
                             totalVotesFound += data.votes[actId];
-                        });
-                    }
-                });
-
-                renderTrends(voteCounts, activityLibrary, totalVotesFound);
+                        }
+                    });
+                }
             });
+
+            renderTrends(voteCounts, activityLibrary, totalVotesFound);
+        });
+    }
+
+    function renderTrends(votes, library, total) {
+        const container = document.getElementById('live-stats-box');
+        if (total === 0) {
+            container.innerHTML = `<p style="color:#64748b;">Nog geen live data voor ${HUIDIGE_STAD}...</p>`;
+            return;
         }
 
-        function renderTrends(votes, library, total) {
-            const container = document.getElementById('live-stats-box');
-            if (total === 0) {
-                container.innerHTML = "<p>Nog geen live data beschikbaar voor Valkenburg.</p>";
-                return;
-            }
+        // Sorteer op basis van stemmen
+        const sorted = Object.keys(votes)
+            .sort((a, b) => votes[b] - votes[a])
+            .slice(0, 3);
 
-            // Sorteer activiteiten op basis van stemmen
-            const sorted = Object.keys(votes)
-                .filter(id => library[id]) // Alleen als de activiteit nog bestaat
-                .sort((a, b) => votes[b] - votes[a])
-                .slice(0, 3);
-
-            container.innerHTML = '';
-            sorted.forEach(id => {
-                const act = library[id];
-                const percentage = Math.round((votes[id] / total) * 100);
-                
-                container.innerHTML += `
-                    <div class="trending-item">
-                        <img src="${act.image}" alt="${act.title}" class="trending-image" onerror="this.src='https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=200'">
-                        <div class="trending-content">
-                            <div class="trending-info">
-                                <span>${act.title}</span>
-                                <span>${percentage}% Populariteit</span>
-                            </div>
-                            <div class="progress-bar-bg">
-                                <div class="progress-bar-fill" style="width: ${percentage}%;"></div>
-                            </div>
+        container.innerHTML = '';
+        sorted.forEach(id => {
+            const act = library[id];
+            const percentage = Math.round((votes[id] / total) * 100);
+            
+            container.innerHTML += `
+                <div class="trending-item">
+                    <img src="${act.image}" alt="${act.title}" class="trending-image" onerror="this.src='https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=200'">
+                    <div class="trending-content">
+                        <div class="trending-info">
+                            <span>${act.title}</span>
+                            <span>${percentage}% populariteit</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" style="width: ${percentage}%;"></div>
                         </div>
                     </div>
-                `;
-            });
+                </div>
+            `;
+        });
 
-            document.getElementById('swipe-count-text').innerText = `Live geüpdatet: ${total} stemmen verwerkt in Valkenburg.`;
-        }
+        document.getElementById('swipe-count-text').innerText = `Live dashboard voor ${HUIDIGE_STAD}: ${total} stemmen geanalyseerd.`;
+    }
 
-        window.onload = loadLiveTrends;
-    </script>
-
+    window.onload = loadLiveTrends;
+</script>
     <style>
         :root { --indigo: #1e293b; --mint: #00FFC2; --accent: #3F51B5; }
         body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--indigo); background: #fbfbfb; }
