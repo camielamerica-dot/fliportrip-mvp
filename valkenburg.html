@@ -4,18 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Groepsuitje Valkenburg | Swipe & Match met Flip 2 Trip</title>
-    <meta name="description" content="Plan het perfecte groepsuitje in Valkenburg. Swipe door activiteiten zoals de mergelgrotten en rodelbaan en vind de ideale match voor jouw vriendengroep.">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const config = { 
-            apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0", 
-            authDomain: "fliportrip-valkenburg.firebaseapp.com", 
-            projectId: "fliportrip-valkenburg" 
-        };
+        const config = { apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0", authDomain: "fliportrip-valkenburg.firebaseapp.com", projectId: "fliportrip-valkenburg" };
         const app = initializeApp(config);
         const db = getFirestore(app);
         const HUIDIGE_STAD = "Valkenburg";
@@ -23,22 +18,15 @@
         async function loadLiveTrends() {
             const actSnap = await getDocs(collection(db, "activities"));
             const library = {};
-            actSnap.forEach(doc => {
-                const d = doc.data();
-                if (d.city === HUIDIGE_STAD) library[doc.id] = d;
-            });
+            actSnap.forEach(doc => { if (doc.data().city === HUIDIGE_STAD) library[doc.id] = doc.data(); });
 
             onSnapshot(collection(db, "rooms"), (snap) => {
-                const votes = {};
-                let total = 0;
+                const votes = {}; let total = 0;
                 snap.forEach(doc => {
                     const r = doc.data();
                     if (r.votes && r.destination === HUIDIGE_STAD) {
                         Object.keys(r.votes).forEach(id => {
-                            if (library[id]) {
-                                votes[id] = (votes[id] || 0) + r.votes[id];
-                                total += r.votes[id];
-                            }
+                            if (library[id]) { votes[id] = (votes[id] || 0) + r.votes[id]; total += r.votes[id]; }
                         });
                     }
                 });
@@ -48,20 +36,23 @@
 
         function renderTrends(votes, lib, total) {
             const container = document.getElementById('live-stats-box');
-            if (total === 0) {
-                container.innerHTML = "<p>Live data wordt verzameld...</p>";
-                return;
-            }
+            if (total === 0) { container.innerHTML = "<p>Data wordt gesynchroniseerd...</p>"; return; }
             const sorted = Object.keys(votes).sort((a, b) => votes[b] - votes[a]).slice(0, 3);
             container.innerHTML = '';
-            sorted.forEach(id => {
+            sorted.forEach((id, index) => {
                 const perc = Math.round((votes[id] / total) * 100);
                 container.innerHTML += `
-                    <div class="trending-item">
-                        <img src="${lib[id].image}" class="trending-image" onerror="this.src='https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=200'">
-                        <div class="trending-content">
-                            <div class="trending-info"><span>${lib[id].title}</span><span>${perc}% match</span></div>
-                            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${perc}%;"></div></div>
+                    <div class="trend-card" style="animation-delay: ${index * 0.2}s">
+                        <div class="trend-rank">#${index + 1}</div>
+                        <img src="${lib[id].image}" class="trend-img" onerror="this.src='https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=400'">
+                        <div class="trend-content">
+                            <h3>${lib[id].title}</h3>
+                            <div class="trend-meta">
+                                <div class="progress-container">
+                                    <div class="progress-fill" style="width: ${perc}%"></div>
+                                </div>
+                                <span class="perc-label">${perc}% Match</span>
+                            </div>
                         </div>
                     </div>`;
             });
@@ -72,114 +63,169 @@
 
     <style>
         html { scroll-behavior: smooth; }
-        :root { --indigo: #1e293b; --accent: #3F51B5; --glow-1: #f3f0ff; --glow-2: #f0f7ff; }
-        body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--indigo); background: #fbfbfb; line-height: 1.6; }
-        
-        /* Navigatie */
-        nav { padding: 0 5%; display: flex; justify-content: space-between; align-items: center; position: fixed; width: 100%; top: 0; z-index: 1000; height: 70px; background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(0,0,0,0.05); }
-        .nav-logo img { height: 40px; }
-        .nav-links { display: flex; gap: 25px; align-items: center; }
-        .nav-links a { text-decoration: none; color: var(--indigo); font-weight: 600; font-size: 13px; }
+        :root { --indigo: #1e293b; --accent: #3F51B5; --glass: rgba(255, 255, 255, 0.7); --border: rgba(255, 255, 255, 0.4); }
+        body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--indigo); background: #fbfbfb; overflow-x: hidden; }
 
-        /* Hero City */
-        .hero-city { padding: 160px 8% 100px; display: grid; grid-template-columns: 1fr 1.2fr; gap: 40px; align-items: center; background: linear-gradient(-45deg, #ffffff, var(--glow-1), var(--glow-2), #ffffff); background-size: 400% 400%; animation: aurora 15s ease infinite; }
+        /* --- NAVIGATIE (Correcte uitlijning & Logo) --- */
+        nav {
+            padding: 0 5%; display: flex; justify-content: space-between; align-items: center;
+            position: fixed; width: 100%; top: 0; z-index: 1000; height: 80px;
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            background: rgba(255,255,255,0.4); border-bottom: 1px solid rgba(0,0,0,0.05);
+            box-sizing: border-box;
+        }
+        .nav-logo { height: 45px; display: flex; align-items: center; }
+        .nav-logo img { height: 100%; width: auto; }
+        .nav-right { display: flex; align-items: center; gap: 35px; }
+        .nav-links { display: flex; gap: 30px; }
+        .nav-links a { text-decoration: none; color: var(--indigo); font-weight: 700; font-size: 14px; transition: 0.3s; }
+        .nav-links a:hover { color: var(--accent); }
+
+        /* --- HERO (Spectaculair) --- */
+        .hero { 
+            padding: 180px 8% 120px; display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 60px; align-items: center;
+            background: linear-gradient(-45deg, #fff, #f3f0ff, #f0f7ff, #fff);
+            background-size: 400% 400%; animation: aurora 15s ease infinite;
+        }
         @keyframes aurora { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-        .city-badge { background: var(--indigo); color: white; padding: 6px 14px; border-radius: 8px; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 20px; display: inline-block; }
-        h1 { font-size: clamp(32px, 5vw, 56px); font-weight: 800; letter-spacing: -1.5px; margin: 0 0 25px 0; line-height: 1.1; }
-
-        /* Collage */
-        .hero-collage { display: flex; gap: 15px; justify-content: center; }
-        .collage-img { border-radius: 20px; object-fit: cover; box-shadow: 0 20px 40px rgba(0,0,0,0.1); border: 4px solid white; transition: 0.4s; }
-        .img-1 { width: 140px; height: 260px; margin-top: -40px; }
-        .img-2 { width: 180px; height: 340px; z-index: 2; }
-        .img-3 { width: 140px; height: 240px; margin-top: 40px; }
-
-        /* Dashboard & Content */
-        .section { padding: 80px 8%; }
-        .dashboard-card { background: white; border-radius: 30px; padding: 40px; border: 1px solid rgba(0,0,0,0.03); box-shadow: 0 10px 30px rgba(0,0,0,0.02); }
-        .trending-item { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; background: #fbfbfb; padding: 15px; border-radius: 20px; }
-        .trending-image { width: 70px; height: 70px; border-radius: 12px; object-fit: cover; }
-        .trending-content { flex: 1; }
-        .progress-bar-bg { width: 100%; height: 8px; background: #e2e8f0; border-radius: 10px; overflow: hidden; }
-        .progress-bar-fill { height: 100%; background: var(--accent); transition: width 1s ease-out; }
         
-        .how-works-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-top: 40px; }
-        .btn { padding: 15px 30px; border-radius: 12px; font-weight: 800; text-decoration: none; display: inline-block; transition: 0.2s; }
-        .btn-primary { background: var(--indigo); color: white; }
+        .badge { background: var(--indigo); color: white; padding: 6px 16px; border-radius: 100px; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 25px; display: inline-block; letter-spacing: 1px; }
+        h1 { font-size: clamp(40px, 6vw, 64px); font-weight: 800; letter-spacing: -2px; margin: 0 0 25px; line-height: 1.05; }
+        .hero p { font-size: 18px; color: #475569; max-width: 500px; margin-bottom: 35px; }
+
+        /* --- COLLAGE --- */
+        .hero-collage { display: flex; gap: 20px; position: relative; }
+        .collage-img { border-radius: 30px; object-fit: cover; box-shadow: 0 30px 60px rgba(0,0,0,0.12); border: 6px solid white; transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .collage-img:hover { transform: scale(1.05) translateY(-10px); }
+        .img-1 { width: 160px; height: 300px; margin-top: -50px; }
+        .img-2 { width: 220px; height: 400px; z-index: 2; }
+        .img-3 { width: 160px; height: 280px; margin-top: 50px; }
+
+        /* --- SPECTACULAIR DASHBOARD --- */
+        .section { padding: 100px 8%; }
+        .dashboard-wrapper { background: white; border-radius: 40px; padding: 50px; border: 1px solid rgba(0,0,0,0.03); box-shadow: 0 40px 100px rgba(0,0,0,0.03); position: relative; overflow: hidden; }
+        .trend-grid { display: grid; gap: 20px; margin-top: 40px; }
         
-        /* FAQ */
-        .faq-item { background: white; border-radius: 15px; padding: 20px; margin-bottom: 10px; cursor: pointer; border: 1px solid rgba(0,0,0,0.03); }
-        .faq-item p { display: none; margin-top: 10px; font-size: 14px; color: #64748b; }
+        .trend-card { 
+            display: flex; align-items: center; gap: 25px; background: #fbfbfb; padding: 20px; border-radius: 25px; 
+            border: 1px solid rgba(0,0,0,0.02); transition: 0.4s; opacity: 0; animation: fadeIn 0.8s forwards;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .trend-card:hover { transform: translateX(10px); background: #fff; box-shadow: 0 15px 30px rgba(0,0,0,0.03); }
+        
+        .trend-rank { font-size: 32px; font-weight: 800; color: #e2e8f0; min-width: 50px; }
+        .trend-img { width: 100px; height: 100px; border-radius: 20px; object-fit: cover; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .trend-content { flex: 1; }
+        .trend-content h3 { margin: 0 0 10px; font-size: 20px; letter-spacing: -0.5px; }
+        
+        .progress-container { background: #eee; height: 12px; border-radius: 20px; flex: 1; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #3F51B5, #6366f1); border-radius: 20px; transition: width 1.5s ease-in-out; }
+        .trend-meta { display: flex; align-items: center; gap: 15px; }
+        .perc-label { font-weight: 800; color: var(--accent); font-size: 14px; min-width: 80px; }
+
+        /* --- BUTTONS --- */
+        .btn { padding: 16px 35px; border-radius: 16px; font-weight: 800; text-decoration: none; display: inline-block; transition: 0.3s; font-size: 16px; }
+        .btn-primary { background: var(--indigo); color: white; box-shadow: 0 10px 20px rgba(30, 41, 59, 0.2); }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(30, 41, 59, 0.3); }
+
+        /* --- FAQ --- */
+        .faq-item { background: white; border-radius: 20px; padding: 25px; margin-bottom: 15px; cursor: pointer; border: 1px solid rgba(0,0,0,0.03); transition: 0.3s; }
+        .faq-item:hover { border-color: var(--accent); }
+        .faq-item p { display: none; margin-top: 15px; color: #64748b; font-size: 15px; }
         .faq-item.active p { display: block; }
 
-        @media (max-width: 900px) { .hero-city { grid-template-columns: 1fr; text-align: center; } .hero-collage { display: none; } }
+        @media (max-width: 1000px) {
+            .hero { grid-template-columns: 1fr; text-align: center; padding-top: 140px; }
+            .hero p { margin: 0 auto 35px; }
+            .hero-collage, .nav-links { display: none; }
+        }
     </style>
 </head>
 <body>
 
 <nav>
-    <div class="nav-logo"><img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" alt="Logo"></div>
-    <div class="nav-links">
-        <a href="#uitleg">Hoe werkt het?</a>
-        <a href="#trends">Live Trends</a>
-        <a href="#faq">FAQ</a>
-        <a href="/app" class="btn" style="padding: 8px 16px; border: 1px solid #ddd; font-size: 12px;">Open App</a>
+    <a href="/" class="nav-logo">
+        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/03/Flip2Trip-logo-landscape.png" alt="Flip 2 Trip Logo">
+    </a>
+    <div class="nav-right">
+        <div class="nav-links">
+            <a href="#uitleg">Hoe werkt het?</a>
+            <a href="#trends">Live Trends</a>
+            <a href="#faq">FAQ</a>
+        </div>
+        <a href="/app" class="btn btn-primary" style="padding: 10px 20px; font-size: 13px;">Open App</a>
     </div>
 </nav>
 
-<header class="hero-city">
+<header class="hero">
     <div>
-        <span class="city-badge">Groepsuitje Valkenburg</span>
-        <h1>Ontdek Valkenburg<br>zonder gedoe.</h1>
-        <p>Plan jullie ideale dag in de Geulstad. Laat iedereen swipen en vind razendsnel de activiteiten die jullie allemaal leuk vinden.</p>
+        <span class="badge">Bestemming Valkenburg</span>
+        <h1>Geen groepsapp-stress,<br>alleen maar plezier.</h1>
+        <p>Swipe door de leukste uitjes in Valkenburg. Onze Smart Match engine vertelt je binnen seconden wat de groep écht wil doen.</p>
         <a href="/app" class="btn btn-primary">Start een sessie</a>
     </div>
     <div class="hero-collage">
-        <img src="https://images.unsplash.com/photo-1601620023366-267868f060f6?w=300" class="collage-img img-1">
-        <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=300" class="collage-img img-2">
-        <img src="https://images.unsplash.com/photo-1533512930330-4ac257c86793?w=300" class="collage-img img-3">
+        <img src="https://images.unsplash.com/photo-1601620023366-267868f060f6?q=80&w=400" class="collage-img img-1">
+        <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=500" class="collage-img img-2">
+        <img src="https://images.unsplash.com/photo-1533512930330-4ac257c86793?q=80&w=400" class="collage-img img-3">
     </div>
 </header>
 
 <section class="section" id="uitleg">
-    <div class="dashboard-card" style="background: var(--glow-2);">
-        <h2 style="text-align: center; margin-bottom: 40px;">Hoe werkt Flip 2 Trip?</h2>
-        <div class="how-works-grid">
-            <div><strong>1. Kies je stad</strong><p>Selecteer Valkenburg en start een nieuwe groeps-sessie.</p></div>
-            <div><strong>2. Swipe samen</strong><p>Iedereen krijgt de activiteiten op zijn eigen telefoon en swipet naar links of rechts.</p></div>
-            <div><strong>3. De Match</strong><p>Onze Smart Match engine toont direct welke uitjes de hoogste score hebben in jullie groep.</p></div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px;">
+        <div class="dashboard-wrapper" style="background: var(--glow-1);">
+            <h4 style="color: var(--accent); margin-top: 0;">STAP 1</h4>
+            <h3>Maak een kamer</h3>
+            <p>Deel de unieke link met je vrienden. Niemand hoeft een app te downloaden.</p>
+        </div>
+        <div class="dashboard-wrapper" style="background: var(--glow-2);">
+            <h4 style="color: var(--accent); margin-top: 0;">STAP 2</h4>
+            <h3>Iedereen swipet</h3>
+            <p>Like wat je leuk vindt, skip de rest. Het is anoniem en razendsnel.</p>
         </div>
     </div>
 </section>
 
 <section class="section" id="trends">
-    <div class="dashboard-card">
-        <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #ff4b4b; font-weight: 800; margin-bottom: 15px;">
-            <div style="width: 8px; height: 8px; background: #ff4b4b; border-radius: 50%;"></div> LIVE TRENDS VALKENBURG
+    <div class="dashboard-wrapper">
+        <div style="display: flex; align-items: center; gap: 10px; color: #ff4b4b; font-weight: 800; font-size: 12px; margin-bottom: 20px;">
+            <div style="width: 10px; height: 10px; background: #ff4b4b; border-radius: 50%; animation: blink 1.5s infinite;"></div>
+            LIVE SMART MATCH FEED
         </div>
-        <h2 style="margin-top: 0;">Meest geliefd in Valkenburg</h2>
-        <div id="live-stats-box"><p>Data laden...</p></div>
-        <p id="swipe-count-text" style="font-size: 12px; color: #94a3b8; text-align: center; margin-top: 20px;"></p>
+        <h2 style="margin: 0; font-size: 32px; letter-spacing: -1px;">Trending in Valkenburg</h2>
+        
+        <div id="live-stats-box" class="trend-grid">
+            <p>Verbinding maken met Business Suite...</p>
+        </div>
+        
+        <p id="swipe-count-text" style="text-align: center; margin-top: 30px; font-size: 13px; color: #94a3b8; font-weight: 600;"></p>
     </div>
 </section>
 
 <section class="section" id="faq">
-    <h2 style="text-align: center; margin-bottom: 40px;">Veelgestelde vragen</h2>
-    <div style="max-width: 700px; margin: 0 auto;">
+    <h2 style="text-align: center; margin-bottom: 50px; font-size: 32px;">Veelgestelde vragen</h2>
+    <div style="max-width: 800px; margin: 0 auto;">
         <div class="faq-item" onclick="this.classList.toggle('active')">
-            <strong>Is de app gratis?</strong>
-            <p>Ja, Flip 2 Trip is volledig gratis te gebruiken voor alle vriendengroepen.</p>
+            <strong>Hoe weet de app wat de beste match is?</strong>
+            <p>Onze Smart Match engine combineert de individuele swipes met het 'Groeps DNA' dat jullie aan het begin kiezen. Hierdoor krijgt een activiteit die iedereen leuk vindt een extra hoge score.</p>
         </div>
         <div class="faq-item" onclick="this.classList.toggle('active')">
-            <strong>Moet iedereen een account aanmaken?</strong>
-            <p>Nee, alleen de organisator start de kamer. De rest doet mee via een link zonder inloggen.</p>
+            <strong>Kan ik Flip 2 Trip overal gebruiken?</strong>
+            <p>Zeker! We zijn nu live in Valkenburg en Maastricht, maar je kunt de app wereldwijd gebruiken om keuzes te maken.</p>
         </div>
     </div>
 </section>
 
-<footer style="padding: 40px; text-align: center; opacity: 0.5; font-size: 12px;">
-    &copy; 2026 Flip 2 Trip - Valkenburg Smart Matching
+<footer style="padding: 60px 8%; text-align: center; border-top: 1px solid rgba(0,0,0,0.05); opacity: 0.6; font-size: 13px;">
+    Flip 2 Trip &copy; 2026 | De slimste manier om samen te plannen.
 </footer>
+
+<script>
+    // FAQ Toggle
+    document.querySelectorAll('.faq-item').forEach(item => {
+        item.addEventListener('click', () => item.classList.toggle('active'));
+    });
+</script>
 
 </body>
 </html>
