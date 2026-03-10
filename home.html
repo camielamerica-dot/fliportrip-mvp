@@ -193,36 +193,49 @@
             h2 { font-size: 32px; }
         }
 
-        /* --- WAAROM FLIP 2 TRIP --- */
+       /* --- WAAROM FLIP 2 TRIP --- */
+.why-section {
+    padding: 100px 5%; /* Zorgt voor de gewenste witruimte boven/onder de tekst */
+    background-color: #ffffff;
+}
+
 .split-section {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1.2fr; /* Iets meer ruimte voor de foto's */
     gap: 60px;
     align-items: center;
 }
 
-.image-gallery {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
+.hero-images { 
+    display: flex; 
+    align-items: center; 
+    gap: 20px; 
+    justify-content: center; 
+    position: relative; 
 }
 
-.gallery-img {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    border-radius: 20px;
-    background: #eee;
-    transition: transform 0.3s ease;
+.hero-card { 
+    border-radius: 24px; 
+    box-shadow: 0 30px 60px rgba(0,0,0,0.12); 
+    border: 4px solid white; 
+    object-fit: cover; 
+    transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); 
 }
 
-.gallery-img:hover {
-    transform: scale(1.02);
+.hero-card:hover {
+    transform: translateY(-10px) scale(1.02);
 }
 
-.gallery-img.tall {
-    grid-row: span 2;
-    height: 415px;
+/* De specifieke maten uit je voorbeeld */
+.h-1 { width: 140px; height: 260px; margin-top: -60px; }
+.h-2 { width: 200px; height: 360px; z-index: 2; }
+.h-3 { width: 140px; height: 240px; margin-top: 60px; }
+
+/* Mobiele optimalisatie */
+@media (max-width: 850px) {
+    .why-section { padding: 60px 5%; }
+    .split-section { grid-template-columns: 1fr; gap: 80px; text-align: center; }
+    .hero-images { transform: scale(0.85); } /* Zorgt dat de foto's op mobiel passen */
 }
 
 /* Update Media Query voor responsiveness */
@@ -267,7 +280,8 @@
         <a href="#steden" class="btn btn-secondary">Bekijk steden</a>
     </div>
 </section>
-<section class="section" style="background-color: #ffffff; padding-top: 0;">
+
+    <section class="why-section" id="waarom">
     <div class="container">
         <div class="split-section">
             <div class="text-content">
@@ -277,14 +291,16 @@
                 <br>
                 <a href="/app" class="btn btn-primary">Ontdek het zelf</a>
             </div>
-            <div class="image-gallery">
-                <img src="https://images.unsplash.com/photo-1539635278303-d4002c07dee3?auto=format&fit=crop&w=600&q=80" alt="Groep vrienden" class="gallery-img tall">
-                <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=600&q=80" alt="Activiteit ondernemen" class="gallery-img">
-                <img src="https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=600&q=80" alt="Samen lachen" class="gallery-img">
+            
+            <div class="hero-images">
+                <img src="https://images.unsplash.com/photo-1539635278303-d4002c07dee3?auto=format&fit=crop&w=400&q=80" class="hero-card h-1" alt="Sfeer 1">
+                <img src="https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=400&q=80" class="hero-card h-2" alt="Sfeer 2">
+                <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=400&q=80" class="hero-card h-3" alt="Sfeer 3">
             </div>
         </div>
     </div>
 </section>
+    
 <section class="section" id="hoe-werkt-het">
     <div class="container">
         <div class="center-text">
