@@ -192,6 +192,49 @@
             .steps-grid { grid-template-columns: 1fr; gap: 20px; }
             h2 { font-size: 32px; }
         }
+
+        /* --- WAAROM FLIP 2 TRIP --- */
+.split-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+}
+
+.image-gallery {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.gallery-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 20px;
+    background: #eee;
+    transition: transform 0.3s ease;
+}
+
+.gallery-img:hover {
+    transform: scale(1.02);
+}
+
+.gallery-img.tall {
+    grid-row: span 2;
+    height: 415px;
+}
+
+/* Update Media Query voor responsiveness */
+@media (max-width: 850px) {
+    .split-section { 
+        grid-template-columns: 1fr; 
+        gap: 40px; 
+    }
+    .gallery-img.tall {
+        height: 250px;
+    }
+}
     </style>
 </head>
 <body>
@@ -258,18 +301,20 @@
 <script>
     // Mobiel menu toggle
     const menuToggle = document.getElementById('mobile-menu');
-    const navContent = document.getElementById('nav-content');
+const navContent = document.getElementById('nav-content');
 
+if (menuToggle) {
     menuToggle.addEventListener('click', () => {
         navContent.classList.toggle('active');
     });
+}
 
-    // Sluit menu bij klik op link
-    document.querySelectorAll('.nav-links a').forEach(link => {
-        link.addEventListener('click', () => {
-            navContent.classList.remove('active');
-        });
+// Sluit menu bij klik op link
+document.querySelectorAll('.nav-links a').forEach(link => {
+    link.addEventListener('click', () => {
+        navContent.classList.remove('active');
     });
+});
 
     // Smooth scroll script
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
