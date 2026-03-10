@@ -158,6 +158,16 @@
             .nav-links { display: none; }
             .glass-card-main { padding: 40px 20px; border-radius: 30px; }
         }
+
+         /* SECTIE STYLING */
+        .section { padding: 100px 5%; max-width: 1200px; margin: 0 auto; }
+        .center-text { text-align: center; max-width: 700px; margin: 0 auto 60px; }
+        h2 { font-size: 42px; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 15px; }
+
+        /* STAPPEN */
+        .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
+        .step-item { background: #fbfbfb; padding: 40px; border-radius: 30px; border: 1px solid #f0f0f0; }
+        .step-num { width: 40px; height: 40px; background: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 25px; }
     </style>
 </head>
 <body>
@@ -184,7 +194,18 @@
         <a href="#steden" class="btn btn-secondary">Bekijk steden</a>
     </div>
 </section>
-
+<section class="section" id="hoe-werkt-het">
+    <div class="center-text">
+        <h2>In drie stappen naar jullie trip</h2>
+        <p style="color:var(--text-light)">Stop deciding, start doing.</p>
+    </div>
+    <div class="steps-grid">
+        <div class="step-item"><div class="step-num">1</div><strong>Swipe & Match</strong><p>Iedereen swipet op zijn eigen telefoon door de activiteiten in Valkenburg.</p></div>
+        <div class="step-item"><div class="step-num">2</div><strong>De Perfecte Mix</strong><p>Onze technologie berekent razendsnel welke uitjes bij de hele groep passen.</p></div>
+        <div class="step-item"><div class="step-num">3</div><strong>Samen Genieten</strong><p>Binnen minuten is de planning rond. Tijd om herinneringen te maken!</p></div>
+    </div>
+</section>
+    
 <div class="how-it-works" id="uitleg">
     <div class="glass-card-main">
         <h2 style="font-size: 32px; letter-spacing: -1px; margin-bottom: 50px; text-align: center;">In drie stappen naar jullie perfecte trip</h2>
