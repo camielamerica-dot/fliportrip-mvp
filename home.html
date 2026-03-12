@@ -34,7 +34,14 @@
             overflow-x: hidden;
             background-color: #fbfbfb;
         }
-
+h2 { 
+    font-size: clamp(32px, 5vw, 42px); /* Schaalt mooi mee met het scherm */
+    font-weight: 800; 
+    color: var(--indigo); 
+    letter-spacing: -1.5px; 
+    margin-bottom: 20px; 
+    line-height: 1.2;
+}
         /* --- NAVIGATIE DESKTOP --- */
         nav {
             padding: 0 5%;
@@ -195,7 +202,6 @@
 
             .steps-grid { grid-template-columns: 1fr; }
             h1 { font-size: 42px; }
-            h2 { font-size: 42px; }
         } /* <--- HIER GING HET MIS, DEZE SLUIT-ACCOLADE MOET HIER */
 
     </style>
