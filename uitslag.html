@@ -191,8 +191,18 @@
         });
 
         document.getElementById('count-matches').innerText = sortedIds.length;
-        const totalUsers = Math.max(room.userCount || 0, Object.keys(room.users || {}).length, 1);
-        document.getElementById('count-users').innerText = totalUsers;
+        const voteCounts = Object.values(votes);
+const highestScore = voteCounts.length > 0 ? Math.max(...voteCounts) : 1;
+
+// Deelnemers is de hoogste van: de geregistreerde count, de lijst met namen, OF de hoogste score
+const totalUsers = Math.max(
+    room.userCount || 0, 
+    Object.keys(room.users || {}).length, 
+    highestScore, 
+    1 // Altijd minimaal 1 om delen door 0 te voorkomen
+);
+
+document.getElementById('count-users').innerText = totalUsers;
 
         const render = (ids, target, isTopFive) => {
             let html = ids.map(id => {
