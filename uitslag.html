@@ -181,8 +181,13 @@
         actSnap.forEach(d => activities.push({id: d.id, ...d.data()}));
 
         const votes = room.votes || {};
-        const sortedIds = Object.keys(votes).sort((a,b) => votes[b] - votes[a]);
-        document.getElementById('count-matches').innerText = sortedIds.length;
+        const sortedIds = Object.keys(votes).sort((a, b) => {
+    const scoreDiff = votes[b] - votes[a];
+    if (scoreDiff !== 0) return scoreDiff;
+    
+    // De "tie-breaker": sorteer alfabetisch op ID als de score gelijk is
+    return a.localeCompare(b); 
+});
 
         // Deelnemers berekenen
         const voteCounts = Object.values(votes);
