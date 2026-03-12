@@ -362,9 +362,10 @@ We passen de CSS een klein beetje aan zodat de SVG's zich netjes gedragen binnen
 CSS
 /* --- SOCIAL MEDIA SVG ICONS --- */
 .footer-socials {
-    display: flex;
+    display: flex; /* Dit zorgt dat ze naast elkaar staan */
     gap: 12px;
     margin-top: 20px;
+    justify-content: flex-start; /* Zorgt dat ze links uitlijnen onder het tekstje */
 }
 
 .social-icon {
@@ -373,20 +374,17 @@ CSS
     justify-content: center;
     width: 40px;
     height: 40px;
-    background: rgba(30, 41, 59, 0.05); /* Heel licht indigo */
+    background: rgba(30, 41, 59, 0.05);
     border-radius: 12px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: 0.3s;
 }
 
 .social-icon svg {
     width: 20px;
     height: 20px;
+    stroke: #1e293b; /* Of je var(--indigo) */
     fill: none;
-    stroke: var(--indigo);
     stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    transition: all 0.3s ease;
 }
 
 .social-icon:hover {
@@ -638,14 +636,20 @@ CSS
 <footer>
     <div class="footer-container">
         <div class="footer-brand">
-    <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/03/Flip2Trip-logo-landscape.png" alt="Flip 2 Trip">
-    <p>De nieuwe standaard voor collectieve besluitvorming. Wij maken het plannen van groepsreizen weer leuk, simpel en eerlijk.</p>
-    <div class="footer-socials">
-        <a href="https://www.instagram.com/flip2trip/" class="social-icon" target="_blank" title="Instagram">📸</a>
-        <a href="https://www.facebook.com/profile.php?id=61583580819351" class="social-icon" target="_blank" title="Facebook">📘</a>
-        <a href="https://www.tiktok.com/@flip2trip" class="social-icon" target="_blank" title="TikTok">🎵</a>
-    </div>
-</div>
+            <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/03/Flip2Trip-logo-landscape.png" alt="Flip 2 Trip">
+            <p>De nieuwe standaard voor collectieve besluitvorming. Wij maken het plannen van groepsreizen weer leuk, simpel en eerlijk.</p>
+            <div class="footer-socials">
+                <a href="https://www.instagram.com/flip2trip/" class="social-icon" target="_blank" aria-label="Instagram">
+                    <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                </a>
+                <a href="https://www.facebook.com/profile.php?id=61583580819351" class="social-icon" target="_blank" aria-label="Facebook">
+                    <svg viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+                </a>
+                <a href="https://www.tiktok.com/@trip2flip" class="social-icon" target="_blank" aria-label="TikTok">
+                    <svg viewBox="0 0 24 24"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"></path></svg>
+                </a>
+            </div>
+        </div>
 
         <div class="footer-column">
             <h4>Bestemmingen</h4>
@@ -680,23 +684,9 @@ CSS
     </div>
 
     <div class="footer-bottom">
-    <p>&copy; 2026 Flip 2 Trip. Alle rechten voorbehouden.</p>
-    <div class="footer-socials">
-    <a href="https://www.instagram.com/flip2trip/" class="social-icon" target="_blank" aria-label="Instagram">
-        <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
-    </a>
-
-    <a href="https://www.facebook.com/profile.php?id=61583580819351" class="social-icon" target="_blank" aria-label="Facebook">
-        <svg viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
-    </a>
-
-    <a href="https://www.tiktok.com/@trip2flip" class="social-icon" target="_blank" aria-label="TikTok">
-        <svg viewBox="0 0 24 24"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"></path></svg>
-    </a>
-</div>
-</div>
+        <p>&copy; 2026 Flip 2 Trip. Alle rechten voorbehouden.</p>
+    </div>
 </footer>
-
 <script>
     const menuToggle = document.getElementById('mobile-menu');
     const navContent = document.getElementById('nav-content');
