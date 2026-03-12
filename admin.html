@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flip 2 Trip | Business Suite v6.0</title>
+    <title>Flip 2 Trip | Business Suite v6.2</title>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBGms1-wiv_5tq1ehzhhJOjM905WnFMexo&libraries=places"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -16,48 +16,13 @@
             --white: #ffffff;
         }
 
-        body { 
-            background: var(--bg); 
-            color: var(--indigo); 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            margin: 0; 
-            display: flex; 
-            height: 100vh; 
-            overflow: hidden; 
-        }
+        body { background: var(--bg); color: var(--indigo); font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
         /* SIDEBAR */
-        .sidebar { 
-            width: 280px; 
-            background: var(--white); 
-            padding: 30px 20px; 
-            border-right: 1px solid rgba(0,0,0,0.05); 
-            display: flex; 
-            flex-direction: column; 
-            gap: 8px; 
-            box-shadow: 10px 0 30px rgba(0,0,0,0.02);
-            z-index: 10;
-        }
-        
+        .sidebar { width: 280px; background: var(--white); padding: 30px 20px; border-right: 1px solid rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 8px; box-shadow: 10px 0 30px rgba(0,0,0,0.02); z-index: 10; }
         .sidebar img { height: 50px; margin-bottom: 40px; padding: 0 10px; }
 
-        .nav-tag { 
-            background: transparent; 
-            padding: 14px 18px; 
-            border-radius: 14px; 
-            cursor: pointer; 
-            font-size: 14px; 
-            font-weight: 700; 
-            color: var(--text-light); 
-            border: none; 
-            text-align: left; 
-            width: 100%; 
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
+        .nav-tag { background: transparent; padding: 14px 18px; border-radius: 14px; cursor: pointer; font-size: 14px; font-weight: 700; color: var(--text-light); border: none; text-align: left; width: 100%; transition: 0.2s; display: flex; align-items: center; gap: 12px; }
         .nav-tag:hover { background: #f1f5f9; color: var(--indigo); }
         .nav-tag.active { background: var(--indigo); color: white; box-shadow: 0 10px 20px rgba(30, 41, 59, 0.15); }
 
@@ -70,78 +35,27 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
         /* CARDS */
-        .card { 
-            background: var(--white); 
-            padding: 25px; 
-            border-radius: 24px; 
-            border: 1px solid rgba(0,0,0,0.03); 
-            margin-bottom: 25px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
-        }
+        .card { background: var(--white); padding: 25px; border-radius: 24px; border: 1px solid rgba(0,0,0,0.03); margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
 
         /* INPUTS & BUTTONS */
-        input, select, textarea { 
-            background: #f8fafc; 
-            border: 1px solid #e2e8f0; 
-            color: var(--indigo); 
-            padding: 12px 16px; 
-            border-radius: 12px; 
-            width: 100%; 
-            margin-bottom: 12px; 
-            font-family: inherit; 
-            box-sizing: border-box;
-            transition: 0.2s;
-        }
+        input, select, textarea { background: #f8fafc; border: 1px solid #e2e8f0; color: var(--indigo); padding: 12px 16px; border-radius: 12px; width: 100%; margin-bottom: 12px; font-family: inherit; box-sizing: border-box; transition: 0.2s; }
         input:focus { outline: none; border-color: var(--accent); background: white; }
 
-        .btn-accent { 
-            background: var(--accent); 
-            color: white; 
-            border: none; 
-            padding: 14px; 
-            border-radius: 12px; 
-            font-weight: 700; 
-            cursor: pointer; 
-            width: 100%; 
-            transition: 0.3s;
-        }
+        .btn-accent { background: var(--accent); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer; width: 100%; transition: 0.3s; }
         .btn-accent:hover { opacity: 0.9; transform: translateY(-2px); }
 
         /* ITEM LISTS */
-        .item-card { 
-            display: flex; 
-            align-items: center; 
-            background: #f8fafc; 
-            padding: 15px; 
-            border-radius: 16px; 
-            margin-bottom: 10px; 
-            border: 1px solid #edf2f7; 
-        }
+        .item-card { display: flex; align-items: center; background: #f8fafc; padding: 15px; border-radius: 16px; margin-bottom: 10px; border: 1px solid #edf2f7; }
         .thumb { width: 45px; height: 45px; border-radius: 10px; object-fit: cover; margin-right: 15px; background: #eee; }
-        
         .badge-id { font-family: monospace; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-size: 11px; }
 
         /* LOGIN GATE */
-        #login-gate { 
-            position: fixed; 
-            inset: 0; 
-            background: var(--indigo); 
-            z-index: 100000; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-        }
+        #login-gate { position: fixed; inset: 0; background: var(--indigo); z-index: 100000; display: flex; align-items: center; justify-content: center; }
 
-        .btn-outline {
-            background: transparent;
-            border: 1px solid #e2e8f0;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-        }
+        .btn-outline { background: transparent; border: 1px solid #e2e8f0; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
         .btn-outline:hover { background: #fee2e2; border-color: #ef4444; color: #ef4444; }
+        
+        label { font-size: 11px; font-weight: 800; color: var(--text-light); text-transform: uppercase; margin-bottom: 5px; display: block; }
     </style>
 </head>
 <body>
@@ -158,7 +72,7 @@
     <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/03/Flip2Trip-logo-landscape.png">
     <button class="nav-tag active" id="btn-dash" onclick="switchTab('dash')">📊 Live Monitor</button>
     <button class="nav-tag" id="btn-cat" onclick="switchTab('cat')">🎡 Catalogus</button>
-    <button class="nav-tag" id="btn-settings" onclick="switchTab('settings')">⚙️ Systeem</button>
+    <button class="nav-tag" id="btn-settings" onclick="switchTab('settings')">⚙️ Systeem & Content</button>
 </div>
 
 <div class="main">
@@ -181,20 +95,20 @@
             <div>
                 <div class="card">
                     <h3 style="margin-top:0">Nieuwe Activiteit</h3>
-<input type="hidden" id="edit-id">
-<input type="text" id="i-title" placeholder="Naam van uitje">
-<div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-    <select id="i-dest"></select>
-    <select id="i-cat"></select>
-</div>
-<div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-    <input type="text" id="i-price" placeholder="Prijs (bijv. €12,50 of Gratis)">
-    <input type="text" id="i-book-url" placeholder="Boekings-URL (https://...)">
-</div>
-<input type="text" id="i-loc" placeholder="Adres (Locatie)">
-<textarea id="i-desc" placeholder="Korte wervende tekst" rows="4"></textarea>
-<input type="text" id="i-img" placeholder="Afbeelding URL (Unsplash)">
-<button class="btn-accent" onclick="saveItem()">Item Opslaan</button>
+                    <input type="hidden" id="edit-id">
+                    <input type="text" id="i-title" placeholder="Naam van uitje">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <select id="i-dest"></select>
+                        <select id="i-cat"></select>
+                    </div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <input type="text" id="i-price" placeholder="Prijs (bijv. €12,50 of Gratis)">
+                        <input type="text" id="i-book-url" placeholder="Boekings-URL (https://...)">
+                    </div>
+                    <input type="text" id="i-loc" placeholder="Adres (Locatie)">
+                    <textarea id="i-desc" placeholder="Korte wervende tekst" rows="4"></textarea>
+                    <input type="text" id="i-img" placeholder="Afbeelding URL (Unsplash)">
+                    <button class="btn-accent" onclick="saveItem()">Item Opslaan</button>
                 </div>
                 <div class="card" style="border: 2px dashed #e2e8f0; background: transparent;">
                     <h3>Bulk Import</h3>
@@ -203,13 +117,12 @@
                     <button class="btn-accent" style="background: var(--indigo)" onclick="handleCSV()">Start Import</button>
                 </div>
             </div>
-            <div id="cat-list" class="card" style="background: transparent; border: none; padding: 0;">
-                </div>
+            <div id="cat-list"></div>
         </div>
     </div>
 
     <div id="tab-settings" class="tab">
-        <h2>Systeem Instellingen</h2>
+        <h2>Systeem & Bestemmingpagina's</h2>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:30px;">
             <div class="card">
                 <h3>Steden & Bestemmingen</h3>
@@ -228,13 +141,46 @@
                 </div>
             </div>
         </div>
+
+        <div class="card" style="border: 2px solid var(--accent); margin-top: 20px;">
+            <h3 style="color: var(--accent);">🎨 Landingspagina Content Editor</h3>
+            <p style="font-size: 13px; color: var(--text-light); margin-bottom: 20px;">
+                Beheer hier de teksten en sfeer van de pagina per stad.
+            </p>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:15px; margin-bottom: 15px;">
+                <div>
+                    <label>Stad Selecteren</label>
+                    <select id="content-city-select" onchange="loadCityContent()"></select>
+                </div>
+                <div>
+                    <label>Kleur Accent</label>
+                    <input type="color" id="content-color" value="#2D6A4F" style="height:45px; padding:2px;">
+                </div>
+                <div>
+                    <label>Hero Titel</label>
+                    <input type="text" id="content-title" placeholder="Bijv: Jouw uitje in de Ardennen">
+                </div>
+            </div>
+
+            <label>Hero Omschrijving</label>
+            <textarea id="content-desc" placeholder="Wervende tekst voor de landingspagina..." rows="3"></textarea>
+
+            <label style="margin-top: 10px;">Sfeerfoto's (3x URL)</label>
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
+                <input type="text" id="content-img1" placeholder="Foto URL Links">
+                <input type="text" id="content-img2" placeholder="Foto URL Midden">
+                <input type="text" id="content-img3" placeholder="Foto URL Rechts">
+            </div>
+
+            <button class="btn-accent" style="margin-top: 20px;" onclick="saveCityContent()">Pagina Updaten</button>
+        </div>
     </div>
 </div>
 
 <script type="module">
-    // --- FIREBASE LOGIC (Blijft functioneel identiek aan je vorig script) ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, getDoc, query, orderBy, limit, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, getDoc, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const config = { apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0", authDomain: "fliportrip-valkenburg.firebaseapp.com", projectId: "fliportrip-valkenburg" };
     const app = initializeApp(config);
@@ -242,7 +188,7 @@
 
     let activities = [], destinations = [], categories = [];
 
-    window.doAuth = () => { if(document.getElementById('pw').value === 'Flip2026') { document.getElementById('login-gate').style.fadeOut = 300; setTimeout(() => document.getElementById('login-gate').style.display='none', 300); init(); } };
+    window.doAuth = () => { if(document.getElementById('pw').value === 'Flip2026') { document.getElementById('login-gate').style.display='none'; init(); } };
 
     function init() {
         initAutocomplete();
@@ -261,17 +207,52 @@
         });
     }
 
+    // --- LANDINGPAGE EDITOR LOGICA ---
+    window.loadCityContent = async () => {
+        const city = document.getElementById('content-city-select').value;
+        if(!city) return;
+        const snap = await getDoc(doc(db, "cityContent", city));
+        if (snap.exists()) {
+            const d = snap.data();
+            document.getElementById('content-title').value = d.title || "";
+            document.getElementById('content-desc').value = d.desc || "";
+            document.getElementById('content-color').value = d.accent || "#2D6A4F";
+            document.getElementById('content-img1').value = d.images?.[0] || "";
+            document.getElementById('content-img2').value = d.images?.[1] || "";
+            document.getElementById('content-img3').value = d.images?.[2] || "";
+        } else {
+            ['content-title', 'content-desc', 'content-img1', 'content-img2', 'content-img3'].forEach(id => document.getElementById(id).value = "");
+        }
+    };
+
+    window.saveCityContent = async () => {
+        const city = document.getElementById('content-city-select').value;
+        if(!city) return alert("Selecteer een stad");
+        const data = {
+            title: document.getElementById('content-title').value,
+            desc: document.getElementById('content-desc').value,
+            accent: document.getElementById('content-color').value,
+            images: [
+                document.getElementById('content-img1').value,
+                document.getElementById('content-img2').value,
+                document.getElementById('content-img3').value
+            ]
+        };
+        await setDoc(doc(db, "cityContent", city), data);
+        alert("Landingspagina succesvol bijgewerkt!");
+    };
+
+    // --- BESTAANDE LOGICA ---
     function renderRoomList(rooms) {
         document.getElementById('room-list').innerHTML = rooms.map(r => `
             <div class="item-card" style="cursor:pointer; border-left: 4px solid var(--accent);" onclick="renderDashboard('${r.id}')">
                 <div style="flex:1">
                     <span class="badge-id">#${r.id}</span><br>
                     <strong style="font-size:15px;">${r.hostName || 'Anoniem'}</strong><br>
-                    <small style="color:var(--text-light)">${r.destination} • 0 stemmen</small>
+                    <small style="color:var(--text-light)">${r.destination}</small>
                 </div>
                 <div style="color:var(--accent); font-weight:800;">→</div>
-            </div>
-        `).join('');
+            </div>`).join('');
     }
 
     window.renderDashboard = async (roomId) => {
@@ -303,12 +284,10 @@
                         <div style="flex:1"><strong>${r.title}</strong><br><small>${r.cat}</small></div>
                         <div style="text-align:right"><span style="color:var(--accent); font-weight:800;">${r.count}</span></div>
                     </div>
-                `).join('') : '<p style="text-align:center; padding:20px; color:var(--text-light)">Nog geen stemmen uitgebracht door de groep.</p>'}
-            </div>
-        `;
+                `).join('') : '<p style="text-align:center; padding:20px; color:var(--text-light)">Nog geen stemmen uitgebracht.</p>'}
+            </div>`;
     };
 
-    // --- SUPPORT FUNCTIES ---
     function initAutocomplete() {
         const autocomplete = new google.maps.places.Autocomplete(document.getElementById('i-loc'));
         autocomplete.addListener('place_changed', () => {
@@ -323,43 +302,64 @@
         const cOpt = categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
         document.getElementById('i-dest').innerHTML = dOpt;
         document.getElementById('i-cat').innerHTML = cOpt;
+        document.getElementById('content-city-select').innerHTML = `<option value="">-- Stad kiezen --</option>` + dOpt;
         document.getElementById('set-dest').innerHTML = destinations.map(d => `<div class="item-card"><div style="flex:1">${d.name}</div> <button class="btn-outline" onclick="deleteSetting('${d.id}')">✕</button></div>`).join('');
         document.getElementById('set-cat').innerHTML = categories.map(c => `<div class="item-card"><div style="flex:1">${c.name}</div> <button class="btn-outline" onclick="deleteSetting('${c.id}')">✕</button></div>`).join('');
     }
 
     function renderCatalog() {
-    document.getElementById('cat-list').innerHTML = activities.map(i => `
-        <div class="card" style="display:flex; align-items:center; gap:20px; padding:15px;">
-            <img src="${i.image}" class="thumb" style="width:60px; height:60px;">
-            <div style="flex:1">
-                <strong style="font-size:16px;">${i.title}</strong> 
-                <span style="font-size:12px; color:var(--accent); font-weight:800; margin-left:10px;">${i.price || ''}</span><br>
-                <small style="color:var(--text-light)">${i.city} • ${i.category}</small>
-                ${i.bookingUrl ? `<br><a href="${i.bookingUrl}" target="_blank" style="font-size:11px; color:var(--indigo); text-decoration:underline;">Boekingslink bekijken</a>` : ''}
-            </div>
-            <button class="btn-outline" onclick="deleteItem('${i.id}')">VERWIJDEREN</button>
-        </div>`).join('');
-}
+        document.getElementById('cat-list').innerHTML = activities.map(i => `
+            <div class="card" style="display:flex; align-items:center; gap:20px; padding:15px;">
+                <img src="${i.image}" class="thumb" style="width:60px; height:60px;">
+                <div style="flex:1">
+                    <strong style="font-size:16px;">${i.title}</strong> 
+                    <span style="font-size:12px; color:var(--accent); font-weight:800; margin-left:10px;">${i.price || ''}</span><br>
+                    <small style="color:var(--text-light)">${i.city} • ${i.category}</small>
+                </div>
+                <button class="btn-outline" onclick="deleteItem('${i.id}')">VERWIJDEREN</button>
+            </div>`).join('');
+    }
 
     window.saveItem = async () => {
-    const data = {
-        title: document.getElementById('i-title').value,
-        city: document.getElementById('i-dest').value,
-        category: document.getElementById('i-cat').value,
-        price: document.getElementById('i-price').value || "N.v.t.", // Nieuw
-        bookingUrl: document.getElementById('i-book-url').value || "", // Nieuw
-        location: document.getElementById('i-loc').value,
-        desc: document.getElementById('i-desc').value,
-        image: document.getElementById('i-img').value
+        const data = {
+            title: document.getElementById('i-title').value,
+            city: document.getElementById('i-dest').value,
+            category: document.getElementById('i-cat').value,
+            price: document.getElementById('i-price').value || "N.v.t.",
+            bookingUrl: document.getElementById('i-book-url').value || "",
+            location: document.getElementById('i-loc').value,
+            desc: document.getElementById('i-desc').value,
+            image: document.getElementById('i-img').value
+        };
+        await addDoc(collection(db, "activities"), data);
+        document.getElementById('i-title').value = "";
+        alert("Activiteit toegevoegd!");
     };
-    await addDoc(collection(db, "activities"), data);
-    
-    // Velden leegmaken na opslaan
-    document.getElementById('i-title').value = "";
-    document.getElementById('i-price').value = "";
-    document.getElementById('i-book-url').value = "";
-    alert("Activiteit toegevoegd!");
-};
+
+    window.handleCSV = async () => {
+        const file = document.getElementById('csv-file').files[0];
+        if(!file) return alert("Kies een bestand");
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const text = e.target.result;
+            const rows = text.split('\n');
+            const batch = writeBatch(db);
+            for(let i = 1; i < rows.length; i++) {
+                const c = rows[i].split(',');
+                if(c.length >= 3) {
+                    const newDocRef = doc(collection(db, "activities"));
+                    batch.set(newDocRef, {
+                        title: c[0]?.trim(), city: c[1]?.trim(), category: c[2]?.trim(),
+                        location: c[3]?.trim(), desc: c[4]?.trim(), image: c[5]?.trim() || "",
+                        price: c[6]?.trim() || "€ -", bookingUrl: c[7]?.trim() || ""
+                    });
+                }
+            }
+            await batch.commit();
+            alert("Bulk import voltooid!");
+        };
+        reader.readAsText(file);
+    };
 
     window.addSetting = async (type, inputId) => {
         const name = document.getElementById(inputId).value;
@@ -367,29 +367,8 @@
         document.getElementById(inputId).value = "";
     };
 
-    window.deleteSetting = async (id) => { if(confirm("Instelling verwijderen?")) await deleteDoc(doc(db, "settings", id)); };
-    window.deleteItem = async (id) => { if(confirm("Activiteit definitief wissen?")) await deleteDoc(doc(db, "activities", id)); };
-
-    window.handleCSV = async () => {
-    // ... (bestaande reader code)
-    for(let i = 1; i < rows.length; i++) {
-        const c = rows[i].split(delimiter);
-        if(c.length >= 3) {
-            const newDocRef = doc(collection(db, "activities"));
-            batch.set(newDocRef, {
-                title: c[0]?.trim(), 
-                city: c[1]?.trim(), 
-                category: c[2]?.trim(),
-                location: c[3]?.trim(), 
-                desc: c[4]?.trim(), 
-                image: c[5]?.trim() || "",
-                price: c[6]?.trim() || "€ -", // Nieuwe kolom in CSV
-                bookingUrl: c[7]?.trim() || "" // Nieuwe kolom in CSV
-            });
-        }
-    }
-    // ...
-};
+    window.deleteSetting = async (id) => { if(confirm("Verwijderen?")) await deleteDoc(doc(db, "settings", id)); };
+    window.deleteItem = async (id) => { if(confirm("Activiteit wissen?")) await deleteDoc(doc(db, "activities", id)); };
 
     window.switchTab = (t) => {
         document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
