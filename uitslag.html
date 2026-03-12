@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jullie Resultaten | Flip 2 Trip</title>
+    <title>Jullie Trip Resultaten | Flip 2 Trip</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --indigo: #1e293b; --accent: #2D6A4F; --bg: #f8fafc; --text-light: #64748b; --gold: #f59e0b; }
+        :root { --indigo: #1e293b; --accent: #2D6A4F; --bg: #f8fafc; --text-light: #64748b; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--indigo); margin: 0; padding: 0; line-height: 1.5; }
         
         header { background: white; padding: 30px 5%; text-align: center; border-bottom: 1px solid rgba(0,0,0,0.05); }
@@ -60,7 +60,14 @@
         }
         .btn-book:hover { filter: brightness(1.1); transform: translateY(-2px); }
 
-        .gyg-info { font-size: 11px; color: var(--text-light); text-align: center; margin-top: 12px; display: block; }
+        /* Extra results toggle */
+        #extra-results { display: none; }
+        .btn-outline-full {
+            background: transparent; border: 2px solid var(--indigo); color: var(--indigo);
+            padding: 15px; border-radius: 14px; width: 100%; font-weight: 800; cursor: pointer;
+            margin: 20px 0 40px; transition: 0.3s;
+        }
+        .secondary-match { opacity: 0.8; transform: scale(0.98); }
 
         /* Grid for Suggestions */
         .grid-suggestions { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -73,7 +80,10 @@
             padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; margin-bottom: 8px; display: inline-block;
         }
 
-        footer { text-align: center; padding: 60px 20px; color: #94a3b8; font-size: 11px; line-height: 1.8; }
+        .share-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; z-index: 100; }
+        .btn-whatsapp { background: #25D366; color: white; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 15px; border-radius: 50px; text-decoration: none; font-weight: 800; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+
+        footer { text-align: center; padding: 60px 20px 120px; color: #94a3b8; font-size: 11px; line-height: 1.8; }
     </style>
 </head>
 <body>
@@ -96,28 +106,55 @@
         <div class="stat-item"><span id="trip-id">...</span><small>Sessie ID</small></div>
     </div>
 
-    <div class="section-title">🏆 Jullie Groepsfavorieten</div>
-    <div id="results-list">
-        </div>
+    <div class="section-title">🏆 Jullie Top 5 Matches</div>
+    <div id="top-results"></div>
+
+    <button id="btn-show-all" class="btn-outline-full" onclick="toggleExtra()">Bekijk alle groepsresultaten (+)</button>
+
+    <div id="extra-results">
+        <div class="section-title">📊 Overige Stemmen</div>
+        <div id="all-results-list"></div>
+    </div>
 
     <div class="section-title">📍 Perfect te combineren</div>
-    <div class="grid-suggestions" id="suggestions-list">
-        </div>
+    <div class="grid-suggestions" id="suggestions-list"></div>
 
     <footer>
         <p>Geregenereerd voor Trip Sessie <span id="footer-trip-id"></span><br>
-        Flip 2 Trip faciliteert de match. Boekingen en betalingen verlopen veilig via onze partner GetYourGuide.<br>
-        Kosteloos annuleren is mogelijk tot 24 uur voor aanvang van de activiteit.</p>
+        Boekingen verlopen veilig via GetYourGuide. Gratis annuleren tot 24u vooraf.</p>
     </footer>
+</div>
+
+<div class="share-bar">
+    <a href="#" id="wa-share" class="btn-whatsapp">
+        <span>Stuur plan naar de groeps-app</span>
+    </a>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    const config = { apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0", authDomain: "fliportrip-valkenburg.firebaseapp.com", projectId: "fliportrip-valkenburg" };
+    // VERVANG DIT DOOR JE EIGEN FIREBASE CONFIG
+    const config = { 
+        apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0", 
+        authDomain: "fliportrip-valkenburg.firebaseapp.com", 
+        projectId: "fliportrip-valkenburg" 
+    };
     const app = initializeApp(config);
     const db = getFirestore(app);
+
+    window.toggleExtra = () => {
+        const el = document.getElementById('extra-results');
+        const btn = document.getElementById('btn-show-all');
+        if (el.style.display === 'block') {
+            el.style.display = 'none';
+            btn.innerText = 'Bekijk alle groepsresultaten (+)';
+        } else {
+            el.style.display = 'block';
+            btn.innerText = 'Verberg overige resultaten (-)';
+        }
+    };
 
     async function init() {
         const params = new URLSearchParams(window.location.search);
@@ -127,7 +164,6 @@
         document.getElementById('trip-id').innerText = tripId;
         document.getElementById('footer-trip-id').innerText = tripId;
 
-        // 1. Haal de sessie op
         const roomSnap = await getDoc(doc(db, "rooms", tripId));
         if(!roomSnap.exists()) return;
         const room = roomSnap.data();
@@ -135,60 +171,68 @@
         const dest = room.destination || "Valkenburg";
         document.querySelector('#header-title span').innerText = dest;
 
-        // 2. Haal alle activiteiten op
+        // WhatsApp link instellen
+        const shareMsg = encodeURIComponent(`Ons groepsplan voor ${dest} staat klaar! Bekijk de matches hier: ${window.location.href}`);
+        document.getElementById('wa-share').href = `https://wa.me/?text=${shareMsg}`;
+
         const actSnap = await getDocs(collection(db, "activities"));
         const activities = [];
         actSnap.forEach(d => activities.push({id: d.id, ...d.data()}));
 
-        // 3. Sorteer matches op basis van stemmen
         const votes = room.votes || {};
-        const matchedIds = Object.keys(votes).sort((a,b) => votes[b] - votes[a]);
-        document.getElementById('count-matches').innerText = matchedIds.length;
+        const sortedIds = Object.keys(votes).sort((a,b) => votes[b] - votes[a]);
 
-        // 4. Render de Top Matches
-        const resultsContainer = document.getElementById('results-list');
-        const topAct = activities.find(x => x.id === matchedIds[0]);
+        const top5Ids = sortedIds.slice(0, 5);
+        const remainingIds = sortedIds.slice(5);
 
-        resultsContainer.innerHTML = matchedIds.map((id, index) => {
+        document.getElementById('count-matches').innerText = sortedIds.length;
+
+        // Render Top 5
+        document.getElementById('top-results').innerHTML = top5Ids.map((id, index) => {
             const a = activities.find(x => x.id === id);
-            if(!a) return '';
-            const isWinner = index === 0;
-
-            return `
-                <div class="match-card ${isWinner ? 'winner' : ''}">
-                    ${isWinner ? '<div class="winner-tag">BESTE MATCH</div>' : ''}
-                    <img src="${a.image}" class="match-img">
-                    <div class="match-content">
-                        <span class="price-tag">${a.price || '€ -'}</span>
-                        <span class="badge">${a.category}</span>
-                        <h3>${a.title}</h3>
-                        <p>${a.desc || 'Ontdek deze top activiteit met je groep. De perfecte invulling voor jullie dagje uit!'}</p>
-                        <a href="${a.bookingUrl}" target="_blank" class="btn-book">Check beschikbaarheid & Boek</a>
-                        <small class="gyg-info">In samenwerking met GetYourGuide</small>
-                    </div>
-                </div>
-            `;
+            return renderCard(a, index === 0, true);
         }).join('');
 
-        // 5. Render Slimme Upsell (Populair in de buurt van nummer 1)
-        const suggestionsContainer = document.getElementById('suggestions-list');
-        const suggestions = activities
-            .filter(a => a.city === dest && !matchedIds.includes(a.id))
-            .sort(() => 0.5 - Math.random())
-            .slice(0, 4);
+        // Render de rest
+        document.getElementById('all-results-list').innerHTML = remainingIds.map(id => {
+            const a = activities.find(x => x.id === id);
+            return renderCard(a, false, false);
+        }).join('');
 
-        suggestionsContainer.innerHTML = suggestions.map(a => {
-            const dist = Math.floor(Math.random() * 600) + 150; // Simulatie van loopafstand
+        // Upsell suggesties
+        const topAct = activities.find(x => x.id === top5Ids[0]);
+        const suggestions = activities
+            .filter(a => a.city === dest && !sortedIds.includes(a.id))
+            .sort(() => 0.5 - Math.random()).slice(0, 4);
+
+        document.getElementById('suggestions-list').innerHTML = suggestions.map(a => {
+            const dist = Math.floor(Math.random() * 500) + 150;
             return `
                 <div class="small-card">
                     <img src="${a.image}">
-                    <div class="distance-badge">📍 ${dist}m vanaf ${topAct ? topAct.title.split(' ')[0] : 'hoofdlocatie'}</div>
+                    <div class="distance-badge">📍 ${dist}m vanaf ${topAct?.title.split(' ')[0] || 'locatie'}</div>
                     <h4>${a.title}</h4>
-                    <p style="font-size:11px; color:var(--text-light); flex:1;">Maak jullie dag compleet met deze activiteit om de hoek.</p>
                     <a href="${a.bookingUrl}" target="_blank" class="btn-book" style="font-size:12px; padding:10px;">Check uitje</a>
                 </div>
             `;
         }).join('');
+    }
+
+    function renderCard(a, isWinner, isMain) {
+        if(!a) return '';
+        return `
+            <div class="match-card ${isWinner ? 'winner' : ''} ${!isMain ? 'secondary-match' : ''}">
+                ${isWinner ? '<div class="winner-tag">BESTE MATCH</div>' : ''}
+                <img src="${a.image}" class="match-img" style="${!isMain ? 'height:140px' : ''}">
+                <div class="match-content">
+                    <span class="price-tag">${a.price || '€ -'}</span>
+                    <span class="badge">${a.category}</span>
+                    <h3>${a.title}</h3>
+                    ${isMain ? `<p>${a.desc || 'De perfecte activiteit voor jullie groep in ' + a.city + '!'}</p>` : ''}
+                    <a href="${a.bookingUrl}" target="_blank" class="btn-book">Bekijk beschikbaarheid</a>
+                </div>
+            </div>
+        `;
     }
 
     init();
