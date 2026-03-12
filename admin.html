@@ -2,107 +2,235 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>FlipOrTrip | Business Suite v6.0 (Smart Match)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flip 2 Trip | Business Suite v6.0</title>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBGms1-wiv_5tq1ehzhhJOjM905WnFMexo&libraries=places"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root { --mint: #00FFC2; --obsidian: #0B0E14; --card: #161B22; --text: #8899A6; --red: #FF4B4B; }
-        body { background: var(--obsidian); color: white; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
-        .sidebar { width: 280px; background: var(--card); padding: 25px; border-right: 1px solid rgba(0,255,194,0.1); display: flex; flex-direction: column; gap: 10px; }
-        .nav-tag { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 800; color: var(--text); border: 1px solid transparent; text-align: left; border: none; width: 100%; }
-        .nav-tag.active { background: rgba(0,255,194,0.1); color: var(--mint); border: 1px solid var(--mint); }
-        .main { flex: 1; padding: 40px; overflow-y: auto; }
-        .tab { display: none; }
+        :root { 
+            --obsidian: #161B22; 
+            --indigo: #1e293b; 
+            --accent: #2D6A4F; 
+            --text-light: #64748b; 
+            --bg: #f8fafc;
+            --white: #ffffff;
+        }
+
+        body { 
+            background: var(--bg); 
+            color: var(--indigo); 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            margin: 0; 
+            display: flex; 
+            height: 100vh; 
+            overflow: hidden; 
+        }
+
+        /* SIDEBAR */
+        .sidebar { 
+            width: 280px; 
+            background: var(--white); 
+            padding: 30px 20px; 
+            border-right: 1px solid rgba(0,0,0,0.05); 
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px; 
+            box-shadow: 10px 0 30px rgba(0,0,0,0.02);
+            z-index: 10;
+        }
+        
+        .sidebar img { height: 50px; margin-bottom: 40px; padding: 0 10px; }
+
+        .nav-tag { 
+            background: transparent; 
+            padding: 14px 18px; 
+            border-radius: 14px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            font-weight: 700; 
+            color: var(--text-light); 
+            border: none; 
+            text-align: left; 
+            width: 100%; 
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .nav-tag:hover { background: #f1f5f9; color: var(--indigo); }
+        .nav-tag.active { background: var(--indigo); color: white; box-shadow: 0 10px 20px rgba(30, 41, 59, 0.15); }
+
+        /* MAIN AREA */
+        .main { flex: 1; padding: 40px; overflow-y: auto; background: var(--bg); }
+        h2 { font-weight: 800; letter-spacing: -1px; font-size: 28px; margin-bottom: 30px; }
+        
+        .tab { display: none; animation: fadeIn 0.3s ease; }
         .tab.active { display: block; }
-        .card { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; }
-        input, select, textarea { background: #0B0E14; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 12px; border-radius: 10px; width: 100%; margin-bottom: 10px; font-family: inherit; }
-        .btn-mint { background: var(--mint); color: #000; border: none; padding: 12px; border-radius: 50px; font-weight: 800; cursor: pointer; width: 100%; text-transform: uppercase; }
-        .item-card { display: flex; align-items: center; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 15px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.05); }
-        .thumb { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; margin-right: 15px; background: #000; }
-        #login-gate { position: fixed; inset: 0; background: var(--obsidian); z-index: 100000; display: flex; align-items: center; justify-content: center; }
-        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; }
-        .stat-card { background: rgba(0,255,194,0.05); border: 1px solid var(--mint); padding: 20px; border-radius: 15px; text-align: center; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* CARDS */
+        .card { 
+            background: var(--white); 
+            padding: 25px; 
+            border-radius: 24px; 
+            border: 1px solid rgba(0,0,0,0.03); 
+            margin-bottom: 25px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+        }
+
+        /* INPUTS & BUTTONS */
+        input, select, textarea { 
+            background: #f8fafc; 
+            border: 1px solid #e2e8f0; 
+            color: var(--indigo); 
+            padding: 12px 16px; 
+            border-radius: 12px; 
+            width: 100%; 
+            margin-bottom: 12px; 
+            font-family: inherit; 
+            box-sizing: border-box;
+            transition: 0.2s;
+        }
+        input:focus { outline: none; border-color: var(--accent); background: white; }
+
+        .btn-accent { 
+            background: var(--accent); 
+            color: white; 
+            border: none; 
+            padding: 14px; 
+            border-radius: 12px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            width: 100%; 
+            transition: 0.3s;
+        }
+        .btn-accent:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        /* ITEM LISTS */
+        .item-card { 
+            display: flex; 
+            align-items: center; 
+            background: #f8fafc; 
+            padding: 15px; 
+            border-radius: 16px; 
+            margin-bottom: 10px; 
+            border: 1px solid #edf2f7; 
+        }
+        .thumb { width: 45px; height: 45px; border-radius: 10px; object-fit: cover; margin-right: 15px; background: #eee; }
+        
+        .badge-id { font-family: monospace; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-size: 11px; }
+
+        /* LOGIN GATE */
+        #login-gate { 
+            position: fixed; 
+            inset: 0; 
+            background: var(--indigo); 
+            z-index: 100000; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #e2e8f0;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-outline:hover { background: #fee2e2; border-color: #ef4444; color: #ef4444; }
     </style>
 </head>
 <body>
 
 <div id="login-gate">
-    <div class="card" style="width: 320px; text-align: center;">
-        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="120" style="margin-bottom:20px;">
-        <input type="password" id="pw" placeholder="Admin Code">
-        <button class="btn-mint" onclick="doAuth()">Inloggen</button>
+    <div class="card" style="width: 340px; text-align: center; padding: 40px;">
+        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/03/Flip2Trip-logo-landscape.png" width="180" style="margin-bottom:30px;">
+        <input type="password" id="pw" placeholder="Admin Beveiligingscode">
+        <button class="btn-accent" onclick="doAuth()">Dashboard Openen</button>
     </div>
 </div>
 
 <div class="sidebar">
-    <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/02/fliportrip_logo.png" width="130" style="margin-bottom:30px;">
-    <button class="nav-tag active" id="btn-dash" onclick="switchTab('dash')">📊 Live Trip Monitor</button>
-    <button class="nav-tag" id="btn-cat" onclick="switchTab('cat')">🎡 Catalogus Beheer</button>
-    <button class="nav-tag" id="btn-settings" onclick="switchTab('settings')">⚙️ Instellingen</button>
+    <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/03/Flip2Trip-logo-landscape.png">
+    <button class="nav-tag active" id="btn-dash" onclick="switchTab('dash')">📊 Live Monitor</button>
+    <button class="nav-tag" id="btn-cat" onclick="switchTab('cat')">🎡 Catalogus</button>
+    <button class="nav-tag" id="btn-settings" onclick="switchTab('settings')">⚙️ Systeem</button>
 </div>
 
 <div class="main">
     <div id="tab-dash" class="tab active">
         <h2>Live Trip Monitor</h2>
-        <div style="display: grid; grid-template-columns: 300px 1fr; gap: 20px;">
-            <div id="room-list" class="card" style="max-height: 70vh; overflow-y: auto;">
-                <p style="font-size: 12px; color: var(--text);">Actieve sessies verschijnen hier...</p>
+        <div style="display: grid; grid-template-columns: 320px 1fr; gap: 30px;">
+            <div id="room-list" class="card" style="max-height: 75vh; overflow-y: auto; padding: 15px;">
+                <p style="font-size: 12px; color: var(--text-light); text-align: center;">Geen actieve sessies...</p>
             </div>
             <div id="dash-details">
-                <div class="card">
-                    <h3>Selecteer een sessie links</h3>
-                    <p>Hier verschijnen de Smart Match resultaten en groepsinteresses.</p>
+                <div class="card" style="text-align: center; padding: 100px 20px; color: var(--text-light);">
+                    <p>Selecteer een actieve kamer in de lijst links om live data te bekijken.</p>
                 </div>
             </div>
         </div>
     </div>
 
     <div id="tab-cat" class="tab">
-        <div style="display:grid; grid-template-columns: 380px 1fr; gap:30px;">
+        <div style="display:grid; grid-template-columns: 400px 1fr; gap:40px;">
             <div>
                 <div class="card">
-                    <h3>Nieuwe Activiteit</h3>
+                    <h3 style="margin-top:0">Nieuwe Activiteit</h3>
                     <input type="hidden" id="edit-id">
-                    <input type="text" id="i-title" placeholder="Naam">
-                    <select id="i-dest"></select>
-                    <select id="i-cat"></select>
-                    <input type="text" id="i-loc" placeholder="Adres (Google Autocomplete)">
-                    <textarea id="i-desc" placeholder="Beschrijving"></textarea>
-                    <input type="text" id="i-img" placeholder="Afbeelding URL">
-                    <button class="btn-mint" onclick="saveItem()">Opslaan</button>
+                    <input type="text" id="i-title" placeholder="Naam van uitje">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <select id="i-dest"></select>
+                        <select id="i-cat"></select>
+                    </div>
+                    <input type="text" id="i-loc" placeholder="Adres (Locatie)">
+                    <textarea id="i-desc" placeholder="Korte wervende tekst" rows="4"></textarea>
+                    <input type="text" id="i-img" placeholder="Afbeelding URL (Unsplash)">
+                    <button class="btn-accent" onclick="saveItem()">Item Opslaan</button>
                 </div>
-                <div class="card" style="border: 1px dashed var(--mint);">
+                <div class="card" style="border: 2px dashed #e2e8f0; background: transparent;">
                     <h3>Bulk Import</h3>
-                    <input type="file" id="csv-file" accept=".csv">
-                    <button class="btn-mint" style="background:#fff" onclick="handleCSV()">Start Import</button>
+                    <p style="font-size: 13px; color: var(--text-light);">Upload een CSV bestand om meerdere activiteiten tegelijk toe te voegen.</p>
+                    <input type="file" id="csv-file" accept=".csv" style="font-size: 12px;">
+                    <button class="btn-accent" style="background: var(--indigo)" onclick="handleCSV()">Start Import</button>
                 </div>
             </div>
-            <div id="cat-list"></div>
+            <div id="cat-list" class="card" style="background: transparent; border: none; padding: 0;">
+                </div>
         </div>
     </div>
 
     <div id="tab-settings" class="tab">
         <h2>Systeem Instellingen</h2>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:30px;">
             <div class="card">
-                <h3>Bestemmingen</h3>
-                <div id="set-dest"></div>
-                <input type="text" id="new-dest" placeholder="Nieuwe stad">
-                <button class="btn-mint" onclick="addSetting('destinations', 'new-dest')">Toevoegen</button>
+                <h3>Steden & Bestemmingen</h3>
+                <div id="set-dest" style="margin-bottom: 20px;"></div>
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="new-dest" placeholder="Nieuwe stad..." style="margin:0">
+                    <button class="btn-accent" style="width: auto; padding: 0 25px;" onclick="addSetting('destinations', 'new-dest')">Vrijgeven</button>
+                </div>
             </div>
             <div class="card">
-                <h3>Categorieën</h3>
-                <div id="set-cat"></div>
-                <input type="text" id="new-cat" placeholder="Nieuwe categorie">
-                <button class="btn-mint" onclick="addSetting('categories', 'new-cat')">Toevoegen</button>
+                <h3>Activiteit Categorieën</h3>
+                <div id="set-cat" style="margin-bottom: 20px;"></div>
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="new-cat" placeholder="Nieuwe categorie..." style="margin:0">
+                    <button class="btn-accent" style="width: auto; padding: 0 25px;" onclick="addSetting('categories', 'new-cat')">Vrijgeven</button>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <script type="module">
+    // --- FIREBASE LOGIC (Blijft functioneel identiek aan je vorig script) ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, getDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, getDoc, query, orderBy, limit, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const config = { apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0", authDomain: "fliportrip-valkenburg.firebaseapp.com", projectId: "fliportrip-valkenburg" };
     const app = initializeApp(config);
@@ -110,23 +238,20 @@
 
     let activities = [], destinations = [], categories = [];
 
-    window.doAuth = () => { if(document.getElementById('pw').value === 'Flip2026') { document.getElementById('login-gate').style.display='none'; init(); } };
+    window.doAuth = () => { if(document.getElementById('pw').value === 'Flip2026') { document.getElementById('login-gate').style.fadeOut = 300; setTimeout(() => document.getElementById('login-gate').style.display='none', 300); init(); } };
 
     function init() {
         initAutocomplete();
-        // Luister naar settings
         onSnapshot(collection(db, "settings"), s => {
             const data = s.docs.map(d => ({id: d.id, ...d.data()}));
             destinations = data.filter(x => x.type === 'destinations');
             categories = data.filter(x => x.type === 'categories');
             updateUI();
         });
-        // Luister naar activiteiten
         onSnapshot(collection(db, "activities"), s => {
             activities = s.docs.map(d => ({id:d.id, ...d.data()}));
             renderCatalog();
         });
-        // Luister naar actieve rooms voor het dashboard
         onSnapshot(collection(db, "rooms"), s => {
             renderRoomList(s.docs.map(d => ({id: d.id, ...d.data()})));
         });
@@ -134,9 +259,13 @@
 
     function renderRoomList(rooms) {
         document.getElementById('room-list').innerHTML = rooms.map(r => `
-            <div class="item-card" style="cursor:pointer" onclick="renderDashboard('${r.id}')">
-                <div style="flex:1"><strong>Code: ${r.id}</strong><br><small>${r.destination} (${r.hostName})</small></div>
-                <div style="color:var(--mint); font-weight:800;">></div>
+            <div class="item-card" style="cursor:pointer; border-left: 4px solid var(--accent);" onclick="renderDashboard('${r.id}')">
+                <div style="flex:1">
+                    <span class="badge-id">#${r.id}</span><br>
+                    <strong style="font-size:15px;">${r.hostName || 'Anoniem'}</strong><br>
+                    <small style="color:var(--text-light)">${r.destination} • 0 stemmen</small>
+                </div>
+                <div style="color:var(--accent); font-weight:800;">→</div>
             </div>
         `).join('');
     }
@@ -147,43 +276,35 @@
         const room = snap.data();
         const votes = room.votes || {};
 
-        // Bereken Smart Match Scores
         let results = Object.keys(votes).map(actId => {
             const act = activities.find(a => a.id === actId);
             if(!act) return null;
-            // Bonus score als categorie matcht met groeps DNA
             let bonus = (room.groupInterests || []).includes(act.category) ? 10 : 0;
-            return {
-                title: act.title,
-                cat: act.category,
-                count: votes[actId],
-                score: (votes[actId] * 2) + bonus
-            };
+            return { title: act.title, cat: act.category, count: votes[actId], score: (votes[actId] * 2) + bonus };
         }).filter(x => x !== null).sort((a,b) => b.score - a.score);
 
         document.getElementById('dash-details').innerHTML = `
-            <div class="card" style="border-left: 5px solid var(--mint);">
-                <h2 style="margin:0">Kamer ${roomId}</h2>
-                <p>Host: ${room.hostName} | Stad: ${room.destination}</p>
-                <div style="display:flex; gap:10px;">
-                    ${(room.groupInterests || []).map(i => `<span style="background:var(--mint); color:black; padding:2px 10px; border-radius:10px; font-size:10px; font-weight:800;">${i.toUpperCase()}</span>`).join('')}
+            <div class="card" style="background: var(--indigo); color: white;">
+                <h2 style="margin:0; color: white;">Sessie ${roomId}</h2>
+                <p style="opacity:0.7">Host: ${room.hostName} | Bestemming: ${room.destination}</p>
+                <div style="display:flex; gap:8px; margin-top:15px;">
+                    ${(room.groupInterests || []).map(i => `<span style="background:rgba(255,255,255,0.1); color:white; padding:4px 12px; border-radius:8px; font-size:11px; font-weight:700;">${i.toUpperCase()}</span>`).join('')}
                 </div>
             </div>
             <div class="card">
-                <h3>Top Matches</h3>
-                ${results.length > 0 ? results.slice(0, 10).map((r, index) => `
+                <h3>Live Ranking</h3>
+                ${results.length > 0 ? results.map((r, index) => `
                     <div class="item-card">
-                        <div style="width:30px; font-weight:800; color:var(--mint)">#${index+1}</div>
+                        <div style="width:30px; font-weight:800; color:var(--accent)">${index+1}</div>
                         <div style="flex:1"><strong>${r.title}</strong><br><small>${r.cat}</small></div>
-                        <div style="text-align:right"><span style="color:var(--mint)">${r.count} stemmen</span></div>
+                        <div style="text-align:right"><span style="color:var(--accent); font-weight:800;">${r.count}</span></div>
                     </div>
-                `).join('') : '<p>Nog geen stemmen uitgebracht.</p>'}
+                `).join('') : '<p style="text-align:center; padding:20px; color:var(--text-light)">Nog geen stemmen uitgebracht door de groep.</p>'}
             </div>
         `;
     };
 
-    // --- STANDAARD FUNCTIES (v5.2 + CSV FIX) ---
-
+    // --- SUPPORT FUNCTIES ---
     function initAutocomplete() {
         const autocomplete = new google.maps.places.Autocomplete(document.getElementById('i-loc'));
         autocomplete.addListener('place_changed', () => {
@@ -198,16 +319,19 @@
         const cOpt = categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
         document.getElementById('i-dest').innerHTML = dOpt;
         document.getElementById('i-cat').innerHTML = cOpt;
-        document.getElementById('set-dest').innerHTML = destinations.map(d => `<div class="item-card">${d.name} <button onclick="deleteSetting('${d.id}')">✕</button></div>`).join('');
-        document.getElementById('set-cat').innerHTML = categories.map(c => `<div class="item-card">${c.name} <button onclick="deleteSetting('${c.id}')">✕</button></div>`).join('');
+        document.getElementById('set-dest').innerHTML = destinations.map(d => `<div class="item-card"><div style="flex:1">${d.name}</div> <button class="btn-outline" onclick="deleteSetting('${d.id}')">✕</button></div>`).join('');
+        document.getElementById('set-cat').innerHTML = categories.map(c => `<div class="item-card"><div style="flex:1">${c.name}</div> <button class="btn-outline" onclick="deleteSetting('${c.id}')">✕</button></div>`).join('');
     }
 
     function renderCatalog() {
         document.getElementById('cat-list').innerHTML = activities.map(i => `
-            <div class="item-card">
-                <img src="${i.image}" class="thumb">
-                <div style="flex:1"><strong>${i.title}</strong><br><small>${i.city} | ${i.category}</small></div>
-                <button class="btn-outline" onclick="deleteItem('${i.id}')">WIS</button>
+            <div class="card" style="display:flex; align-items:center; gap:20px; padding:15px;">
+                <img src="${i.image}" class="thumb" style="width:60px; height:60px;">
+                <div style="flex:1">
+                    <strong style="font-size:16px;">${i.title}</strong><br>
+                    <small style="color:var(--text-light)">${i.city} • ${i.category}</small>
+                </div>
+                <button class="btn-outline" onclick="deleteItem('${i.id}')">VERWIJDEREN</button>
             </div>`).join('');
     }
 
@@ -221,7 +345,7 @@
             image: document.getElementById('i-img').value
         };
         await addDoc(collection(db, "activities"), data);
-        alert("Opgeslagen!");
+        alert("Activiteit toegevoegd!");
     };
 
     window.addSetting = async (type, inputId) => {
@@ -230,8 +354,8 @@
         document.getElementById(inputId).value = "";
     };
 
-    window.deleteSetting = async (id) => { await deleteDoc(doc(db, "settings", id)); };
-    window.deleteItem = async (id) => { if(confirm("Zeker weten?")) await deleteDoc(doc(db, "activities", id)); };
+    window.deleteSetting = async (id) => { if(confirm("Instelling verwijderen?")) await deleteDoc(doc(db, "settings", id)); };
+    window.deleteItem = async (id) => { if(confirm("Activiteit definitief wissen?")) await deleteDoc(doc(db, "activities", id)); };
 
     window.handleCSV = async () => {
         const file = document.getElementById('csv-file').files[0];
@@ -239,20 +363,19 @@
         reader.onload = async (e) => {
             const rows = e.target.result.split('\n').filter(r => r.trim() !== '');
             const delimiter = rows[0].includes(';') ? ';' : ',';
-            const { writeBatch, collection } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
             const batch = writeBatch(db);
-            
             for(let i = 1; i < rows.length; i++) {
                 const c = rows[i].split(delimiter);
                 if(c.length >= 3) {
-                    batch.set(doc(collection(db, "activities")), {
+                    const newDocRef = doc(collection(db, "activities"));
+                    batch.set(newDocRef, {
                         title: c[0]?.trim(), city: c[1]?.trim(), category: c[2]?.trim(),
                         location: c[3]?.trim(), desc: c[4]?.trim(), image: c[5]?.trim() || ""
                     });
                 }
             }
             await batch.commit();
-            alert("CSV Geïmporteerd!");
+            alert("Bulk import voltooid!");
         };
         reader.readAsText(file);
     };
