@@ -3,46 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flip 2 Trip | Ontdek je match</title>
+    <title id="page-title">Flip 2 Trip | Laden...</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     
-    <style>
-        /* Gebruik de variabelen die we dynamisch gaan aanpassen */
-        :root { 
-            --accent: #2D6A4F; 
-            --obsidian: #161B22; 
-            --indigo: #1e293b; 
-            --text-light: #64748b; 
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const config = { apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0", authDomain: "fliportrip-valkenburg.firebaseapp.com", projectId: "fliportrip-valkenburg" };
+        const app = initializeApp(config);
+        const db = getFirestore(app);
+
+        // Pak de stad uit de URL (bijv: bestemming.html?city=Valkenburg)
+        const urlParams = new URLSearchParams(window.location.search);
+        const STAD = urlParams.get('city') || "Ardennen"; 
+
+        async function initPage() {
+            // 1. Haal de Custom Content op (vanuit de Business Suite Editor)
+            const contentSnap = await getDoc(doc(db, "cityContent", STAD));
+            if(contentSnap.exists()) {
+                const data = contentSnap.data();
+                document.getElementById('hero-title').innerHTML = data.title || `Ontdek ${STAD}`;
+                document.getElementById('hero-desc').innerText = data.desc || "";
+                document.getElementById('badge-city').innerText = `Regio ${STAD}`;
+                document.title = `Flip 2 Trip | ${STAD}`;
+                if(data.accent) document.documentElement.style.setProperty('--accent', data.accent);
+                
+                if(data.images) {
+                    if(data.images[0]) document.getElementById('img-1').src = data.images[0];
+                    if(data.images[1]) document.getElementById('img-2').src = data.images[1];
+                    if(data.images[2]) document.getElementById('img-3').src = data.images[2];
+                }
+            } else {
+                // Default als er nog niks in de database staat
+                document.getElementById('hero-title').innerText = `Samen naar ${STAD}`;
+                document.getElementById('badge-city').innerText = `Regio ${STAD}`;
+            }
+
+            // 2. Start de Live Trends
+            initLiveTrends();
         }
 
-        body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--indigo); overflow-x: hidden; }
+        async function initLiveTrends() {
+            const actSnap = await getDocs(collection(db, "activities"));
+            const lib = {};
+            actSnap.forEach(d => { if(d.data().city === STAD) lib[d.id] = d.data(); });
+
+            onSnapshot(collection(db, "rooms"), (snap) => {
+                let votes = {}, total = 0;
+                snap.forEach(doc => {
+                    const r = doc.data();
+                    if(r.votes && r.destination === STAD) {
+                        Object.keys(r.votes).forEach(id => {
+                            if(lib[id]) { votes[id] = (votes[id] || 0) + r.votes[id]; total += r.votes[id]; }
+                        });
+                    }
+                });
+                renderTrendsUI(votes, lib, total);
+            });
+        }
+
+        function renderTrendsUI(votes, lib, total) {
+            const feed = document.getElementById('live-feed');
+            if(total === 0) {
+                feed.innerHTML = `<p style="color:var(--text-light)">Nog geen live data voor ${STAD}...</p>`;
+                return;
+            }
+            const top = Object.keys(votes).sort((a,b) => votes[b] - votes[a]).slice(0,3);
+            feed.innerHTML = top.map((id) => {
+                const p = Math.round((votes[id]/total)*100);
+                return `
+                    <div class="trend-card">
+                        <img src="${lib[id].image}" class="trend-img" onerror="this.src='https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400'">
+                        <div class="trend-info">
+                            <div class="trend-top"><strong>${lib[id].title}</strong><span>${p}% match</span></div>
+                            <div class="progress-bar"><div class="progress-fill" style="width:${p}%"></div></div>
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+
+        window.onload = initPage;
+    </script>
+
+    <style>
+        :root { 
+            --obsidian: #161B22; 
+            --indigo: #1e293b; 
+            --accent: #2D6A4F; 
+            --text-light: #64748b; 
+            --lila: #f0f7f4;
+            --geel: #fff9e6;
+        }
+
+        html { scroll-behavior: smooth; }
+        body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--indigo); background: #ffffff; overflow-x: hidden; }
+
+        nav { position: fixed; width: 100%; top: 0; height: 90px; z-index: 1000; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); display: flex; justify-content: space-between; align-items: center; padding: 0 5%; border-bottom: 1px solid rgba(0,0,0,0.03); box-sizing: border-box; }
+        .logo img { height: 60px; }
+        .nav-links { display: flex; gap: 30px; align-items: center; }
+        .nav-links a { text-decoration: none; color: var(--indigo); font-weight: 600; font-size: 14px; }
+        .btn-open { background: white; color: var(--indigo); padding: 10px 22px; border-radius: 12px; border: 1px solid #eee; font-weight: 700; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+
+        .hero { padding: 160px 5% 100px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; background: linear-gradient(-45deg, #ffffff, #f1f8f4, #fdfcf0, #ffffff); background-size: 400% 400%; animation: aurora 15s ease infinite; }
+        @keyframes aurora { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         
-        /* Navigatie */
-        nav { position: fixed; width: 100%; top: 0; height: 80px; z-index: 1000; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(15px); display: flex; justify-content: space-between; align-items: center; padding: 0 5%; border-bottom: 1px solid rgba(0,0,0,0.05); box-sizing: border-box; }
-        .logo img { height: 45px; }
+        .badge { background: var(--accent); color: white; padding: 8px 16px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 30px; display: inline-block; letter-spacing: 0.5px; }
+        h1 { font-size: clamp(40px, 8vw, 64px); font-weight: 800; margin: 0 0 25px; line-height: 1.05; letter-spacing: -2.5px; color: var(--obsidian); }
+        .hero p { font-size: 18px; color: var(--text-light); margin-bottom: 40px; max-width: 480px; line-height: 1.5; }
+        .btn-main { background: var(--obsidian); color: white; padding: 20px 35px; border-radius: 14px; text-decoration: none; font-weight: 700; display: inline-block; transition: 0.3s; }
 
-        /* Hero Sectie */
-        .hero { padding: 140px 5% 80px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 50px; align-items: center; background: linear-gradient(135deg, #fff 0%, #f8fafc 100%); }
-        .badge { background: var(--accent); color: white; padding: 6px 14px; border-radius: 8px; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 20px; display: inline-block; }
-        h1 { font-size: clamp(32px, 5vw, 56px); font-weight: 800; margin: 0 0 20px; line-height: 1.1; letter-spacing: -2px; }
-        .hero p { font-size: 18px; color: var(--text-light); line-height: 1.6; margin-bottom: 30px; }
-        .btn-main { background: var(--obsidian); color: white; padding: 18px 32px; border-radius: 12px; text-decoration: none; font-weight: 700; display: inline-block; transition: 0.3s; }
+        .hero-images { display: flex; align-items: center; gap: 20px; justify-content: flex-end; position: relative; }
+        .hero-card { border-radius: 20px; box-shadow: 0 30px 60px rgba(0,0,0,0.12); border: 4px solid white; object-fit: cover; background: #eee; }
+        .h-1 { width: 180px; height: 300px; margin-top: -60px; }
+        .h-2 { width: 240px; height: 400px; z-index: 2; }
+        .h-3 { width: 180px; height: 280px; margin-top: 60px; }
 
-        .hero-images { display: flex; gap: 15px; justify-content: flex-end; }
-        .hero-card { width: 180px; height: 280px; border-radius: 15px; object-fit: cover; box-shadow: 0 20px 40px rgba(0,0,0,0.1); border: 3px solid white; }
+        .section-steps { padding: 100px 5%; background: var(--lila); }
+        .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; max-width: 1200px; margin: 0 auto; }
+        .step-item { background: white; padding: 40px; border-radius: 30px; }
+        .step-num { width: 40px; height: 40px; background: var(--accent); color: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; margin-bottom: 25px; }
 
-        /* Trends Sectie */
-        .section-trends { padding: 80px 5%; max-width: 1100px; margin: 0 auto; }
-        .glass-box { background: #fff; border: 1px solid #f1f5f9; border-radius: 30px; padding: 40px; box-shadow: 0 30px 60px rgba(0,0,0,0.03); }
-        .trend-card { display: flex; align-items: center; gap: 15px; background: #f8fafc; padding: 12px; border-radius: 20px; margin-bottom: 10px; }
-        .trend-img { width: 60px; height: 60px; border-radius: 12px; object-fit: cover; }
-        .trend-info { flex: 1; }
-        .trend-top { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; margin-bottom: 5px; }
-        .progress-bar { height: 6px; background: #e2e8f0; border-radius: 10px; overflow: hidden; }
-        .progress-fill { height: 100%; background: var(--accent); transition: 1s ease-out; }
+        .section-trends { padding: 100px 5%; max-width: 1200px; margin: 0 auto; }
+        .glass-box { background: rgba(255,255,255,0.6); backdrop-filter: blur(20px); border: 1px solid white; border-radius: 40px; padding: 50px; box-shadow: 0 40px 100px rgba(0,0,0,0.03); }
+        .trend-card { display: flex; align-items: center; gap: 20px; background: white; padding: 15px; border-radius: 25px; margin-bottom: 15px; }
+        .trend-img { width: 70px; height: 70px; border-radius: 15px; object-fit: cover; }
+        .progress-bar { height: 8px; background: #f1f5f9; border-radius: 10px; overflow: hidden; margin-top: 10px; }
+        .progress-fill { height: 100%; background: var(--accent); transition: 1.5s ease; }
+
+        .why-section { padding: 80px 5%; background: var(--obsidian); color: white; display: flex; justify-content: center; }
+        .split-section { display: grid; grid-template-columns: 1.2fr 1fr; gap: 80px; align-items: center; max-width: 1200px; }
+        .why-image img { width: 100%; height: 450px; object-fit: cover; border-radius: 30px; }
+
+        footer { background-color: #f8fafc; padding: 80px 5%; border-top: 1px solid rgba(0,0,0,0.05); }
 
         @media (max-width: 900px) {
-            .hero { grid-template-columns: 1fr; text-align: center; }
+            .hero, .steps-grid, .split-section { grid-template-columns: 1fr; text-align: center; }
             .hero-images { display: none; }
         }
     </style>
@@ -50,129 +146,64 @@
 <body>
 
 <nav>
-    <div class="logo"><img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/03/Flip2Trip-logo-landscape.png" alt="Logo"></div>
-    <a href="/app" class="btn-main" style="padding: 10px 20px; font-size: 14px;">Open App</a>
+    <div class="logo"><a href="/"><img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/03/Flip2Trip-logo-landscape.png" alt="Logo"></a></div>
+    <div class="nav-links">
+        <a href="#hoe-werkt-het">Hoe werkt het?</a>
+        <a href="#activiteiten">Activiteiten</a>
+        <a href="/app" class="btn-open">Open App</a>
+    </div>
 </nav>
 
 <header class="hero">
     <div>
-        <span class="badge" id="city-badge">Bestemming</span>
-        <h1 id="city-title">Ontdek je volgende trip</h1>
-        <p id="city-desc">Laden van de beste activiteiten voor jouw groep...</p>
-        <a href="#" id="cta-link" class="btn-main">Start het swipen</a>
+        <span class="badge" id="badge-city">Bestemming</span>
+        <h1 id="hero-title">Avontuur wacht,<br>beslis samen.</h1>
+        <p id="hero-desc">Laden van de beste activiteiten voor jouw groep...</p>
+        <a href="/app" class="btn-main">Start jullie trip</a>
     </div>
     <div class="hero-images">
-        <img id="img1" src="" class="hero-card" style="margin-top: 40px;">
-        <img id="img2" src="" class="hero-card">
-        <img id="img3" src="" class="hero-card" style="margin-top: -40px;">
+        <img src="" id="img-1" class="hero-card h-1">
+        <img src="" id="img-2" class="hero-card h-2">
+        <img src="" id="img-3" class="hero-card h-3">
     </div>
 </header>
 
-<section class="section-trends">
-    <div class="glass-box">
-        <div style="font-size: 11px; font-weight: 800; color: #ff4b4b; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
-            <div style="width: 8px; height: 8px; background: #ff4b4b; border-radius: 50%;"></div> LIVE TRENDS <span id="trend-city-name">...</span>
-        </div>
-        <h2 style="margin: 0 0 30px 0;">Wat anderen nu kiezen</h2>
-        <div id="live-feed">Trends worden geladen...</div>
+<section class="section-steps" id="hoe-werkt-het">
+    <div class="steps-grid">
+        <div class="step-item"><div class="step-num">1</div><strong>Swipe</strong><p>Iedereen swipet op zijn eigen mobiel naar de leukste uitjes.</p></div>
+        <div class="step-item"><div class="step-num">2</div><strong>Match</strong><p>Onze AI ziet precies waar de groep de meeste energie van krijgt.</p></div>
+        <div class="step-item"><div class="step-num">3</div><strong>Go!</strong><p>Geen discussies meer, alleen nog maar genieten van de trip.</p></div>
     </div>
 </section>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+<section class="section-trends" id="activiteiten">
+    <div class="glass-box">
+        <div style="display:flex; align-items:center; gap:10px; font-size:11px; font-weight:800; color:#ff4b4b; margin-bottom:20px;">
+            <div style="width:8px; height:8px; background:#ff4b4b; border-radius:50%;"></div> LIVE TRENDS REGIO
+        </div>
+        <h2 style="margin:0 0 40px 0;">Populairste keuzes nu</h2>
+        <div id="live-feed">
+            <p style="color:var(--text-light)">Trends worden geladen...</p>
+        </div>
+    </div>
+</section>
 
-    const config = { apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0", authDomain: "fliportrip-valkenburg.firebaseapp.com", projectId: "fliportrip-valkenburg" };
-    const app = initializeApp(config);
-    const db = getFirestore(app);
+<section class="why-section">
+    <div class="split-section">
+        <div class="why-content">
+            <h2>Waarom Flip 2 Trip?</h2>
+            <p>Wij filteren de ruis eruit en tonen alleen de best beoordeelde locaties en verborgen parels. Bespaar uren uitzoekwerk en focus op de voorpret.</p>
+            <a href="/app" style="background:white; color:var(--obsidian); padding:15px 30px; border-radius:12px; text-decoration:none; font-weight:700;">Start de App</a>
+        </div>
+        <div class="why-image">
+            <img src="https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800" alt="Groepsplezier">
+        </div>
+    </div>
+</section>
 
-    // --- CONFIGURATIE PER STAD ---
-    const cityConfig = {
-        "Ardennen": {
-            badge: "Regio Ardennen",
-            title: "Avontuur wacht in de bossen.",
-            desc: "Van wildwater kajakken tot verborgen grotten. Swipe met je vrienden en plan de ultieme outdoor trip.",
-            accent: "#2D6A4F",
-            images: [
-                "https://wearelocal.events/wp-content/uploads/2025/01/Ardennen-basic-programma-teambuilding-.webp",
-                "https://wearelocal.events/wp-content/uploads/2025/03/fakkelwandeling-durbuy-ardennen.webp",
-                "https://wearelocal.events/wp-content/uploads/2025/01/grotten-ardennen.webp"
-            ]
-        },
-        "Valkenburg": {
-            badge: "Sfeervol Valkenburg",
-            title: "Ontdek het zuiden op z'n best.",
-            desc: "Mergelgrotten, gezellige terrasjes en de Cauberg. De perfecte mix voor een onvergetelijke groepsdag.",
-            accent: "#D4A373",
-            images: [
-                "https://images.unsplash.com/photo-1593010156930-43574d7df67c?q=80&w=400",
-                "https://images.unsplash.com/photo-1506929641214-5d5e53637604?q=80&w=400",
-                "https://images.unsplash.com/photo-1600121848594-d8644e57abab?q=80&w=400"
-            ]
-        }
-    };
-
-    // 1. Bepaal welke stad we tonen
-    const params = new URLSearchParams(window.location.search);
-    const STAD = params.get('stad') || "Valkenburg"; // Default naar Valkenburg
-    const data = cityConfig[STAD] || cityConfig["Valkenburg"];
-
-    // 2. Pas de UI aan
-    function setupUI() {
-        document.getElementById('city-badge').innerText = data.badge;
-        document.getElementById('city-title').innerText = data.title;
-        document.getElementById('city-desc').innerText = data.desc;
-        document.getElementById('trend-city-name').innerText = STAD.toUpperCase();
-        document.documentElement.style.setProperty('--accent', data.accent);
-        
-        document.getElementById('img1').src = data.images[0];
-        document.getElementById('img2').src = data.images[1];
-        document.getElementById('img3').src = data.images[2];
-        
-        document.getElementById('cta-link').href = `/app?dest=${STAD}`;
-    }
-
-    // 3. Live Trends ophalen
-    async function startTrends() {
-        const actSnap = await getDocs(collection(db, "activities"));
-        const lib = {};
-        actSnap.forEach(d => { if(d.data().city === STAD) lib[d.id] = d.data(); });
-
-        onSnapshot(collection(db, "rooms"), (snap) => {
-            let votes = {}, total = 0;
-            snap.forEach(doc => {
-                const r = doc.data();
-                if(r.votes && r.destination === STAD) {
-                    Object.keys(r.votes).forEach(id => {
-                        if(lib[id]) { votes[id] = (votes[id] || 0) + r.votes[id]; total += r.votes[id]; }
-                    });
-                }
-            });
-            
-            const feed = document.getElementById('live-feed');
-            if(total === 0) {
-                feed.innerHTML = `<p style="font-size:14px; color:var(--text-light)">Nog geen live data voor ${STAD} beschikbaar.</p>`;
-                return;
-            }
-
-            const top = Object.keys(votes).sort((a,b) => votes[b] - votes[a]).slice(0,3);
-            feed.innerHTML = top.map(id => {
-                const p = Math.round((votes[id]/total)*100);
-                return `
-                    <div class="trend-card">
-                        <img src="${lib[id].image}" class="trend-img">
-                        <div class="trend-info">
-                            <div class="trend-top"><strong>${lib[id].title}</strong><span>${p}%</span></div>
-                            <div class="progress-bar"><div class="progress-fill" style="width:${p}%"></div></div>
-                        </div>
-                    </div>`;
-            }).join('');
-        });
-    }
-
-    setupUI();
-    startTrends();
-</script>
+<footer>
+    <p style="text-align:center; color:var(--text-light)">&copy; 2026 Flip 2 Trip. De nieuwe standaard voor groepsplannen.</p>
+</footer>
 
 </body>
 </html>
