@@ -6,15 +6,21 @@
     <title>Flip 2 Trip | Samen beslissen, Perfect Geregeld</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
+        @keyframes aurora {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
         html { scroll-behavior: smooth; }
         :root {
-            --glow-1: #f3f0ff;
-            --glow-2: #f0f7ff;
-            --indigo: #1e293b; 
-            --accent: #3F51B5;
-            --glass: rgba(255, 255, 255, 0.4);
-            --border: rgba(255, 255, 255, 0.6);
-        }
+    --lila: #E0BBE4;
+    --geel: #FFF380;
+    --lavendel: #A29BFE;
+    --obsidian: #161B22;
+    --indigo: #1e293b;
+    --accent: #3F51B5;
+    --text-light: #64748b;
+}
 
         * { box-sizing: border-box; }
 
@@ -78,9 +84,9 @@
         .hero { 
             padding: 180px 8% 120px; 
             text-align: center;
-            background: linear-gradient(-45deg, #ffffff, var(--glow-1), var(--glow-2), #ffffff);
-            background-size: 400% 400%;
-            animation: auroraHero 15s ease infinite;
+           background: linear-gradient(-45deg, #ffffff, var(--lila), var(--geel), var(--lavendel));
+    background-size: 400% 400%; 
+    animation: aurora 15s ease infinite; /* 15s voor iets meer 'actie' dan de 20s op index */
             position: relative;
             z-index: 1;
             border-bottom: 1px solid rgba(0,0,0,0.03);
