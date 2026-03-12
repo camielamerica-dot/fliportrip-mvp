@@ -7,92 +7,46 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         :root { --accent: #2D6A4F; --text: #1e293b; --light: #64748b; --bg: #ffffff; --card-bg: #fcfcfc; }
-        
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
-
-        /* Navigatie */
-        nav { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 20px 5%; background: white; border-bottom: 1px solid #f1f5f9;
-        }
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 5%; background: white; border-bottom: 1px solid #f1f5f9; }
         .nav-links { display: flex; gap: 30px; list-style: none; margin: 0; padding: 0; }
         .nav-links a { text-decoration: none; color: var(--text); font-weight: 600; font-size: 14px; }
         .logo-nav { height: 35px; }
-
-        /* Hero */
-        .hero { 
-            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1506929641214-5d5e53637604?q=80&w=2000&auto=format&fit=crop'); 
-            background-size: cover; background-position: center;
-            height: 350px; display: flex; flex-direction: column; justify-content: center; align-items: center;
-            color: white; text-align: center; padding: 0 20px;
-        }
+        .hero { background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1506929641214-5d5e53637604?q=80&w=2000&auto=format&fit=crop'); background-size: cover; background-position: center; height: 350px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; padding: 0 20px; transition: background 0.5s ease; }
         .hero h1 { font-size: 42px; font-weight: 800; margin: 0; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
         .hero h1 span { color: #fff; border-bottom: 4px solid var(--accent); }
         .hero p { font-size: 18px; opacity: 0.9; margin-top: 10px; }
-
         .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
-
-        /* Stats Row */
-        .stats-row { 
-            display: flex; justify-content: center; gap: 40px; 
-            margin: -40px auto 40px; padding: 25px; background: white; 
-            border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            max-width: 700px; position: relative; z-index: 10;
-        }
+        .stats-row { display: flex; justify-content: center; gap: 40px; margin: -40px auto 40px; padding: 25px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); max-width: 700px; position: relative; z-index: 10; }
         .stat-item { text-align: center; flex: 1; }
         .stat-item b { display: block; font-size: 22px; font-weight: 800; color: var(--accent); }
         .stat-item small { color: var(--light); text-transform: uppercase; font-size: 10px; letter-spacing: 1px; font-weight: 700; }
-
-        /* Sectie headers met toelichting */
         .section-header { margin: 80px 0 30px; }
         .section-header h2 { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 5px; }
         .section-header p { color: var(--light); font-size: 14px; margin: 0; }
-
-        /* Grid & Cards */
         .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; margin-top: 30px; }
         .card { background: var(--card-bg); border: 1px solid #f1f5f9; border-radius: 24px; overflow: hidden; transition: 0.3s; display: flex; flex-direction: column; position: relative; }
         .card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
         .card-img { width: 100%; height: 210px; object-fit: cover; }
-        
-        .match-perc { 
-            position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.95); color: var(--accent); 
-            padding: 6px 12px; border-radius: 10px; font-weight: 800; font-size: 13px; backdrop-filter: blur(5px);
-            border: 1px solid var(--accent);
-        }
-
+        .match-perc { position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.95); color: var(--accent); padding: 6px 12px; border-radius: 10px; font-weight: 800; font-size: 13px; backdrop-filter: blur(5px); border: 1px solid var(--accent); }
         .card-body { padding: 25px; flex-grow: 1; display: flex; flex-direction: column; }
         .card-category { font-size: 10px; font-weight: 700; color: var(--accent); text-transform: uppercase; margin-bottom: 10px; }
         .card-title { font-size: 19px; font-weight: 800; margin: 0 0 10px; line-height: 1.3; }
         .card-desc { font-size: 14px; color: var(--light); margin-bottom: 20px; flex-grow: 1; }
-        
         .card-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 15px; border-top: 1px solid #f1f5f9; }
         .price { font-weight: 800; font-size: 17px; }
-        .btn-link { 
-            color: var(--accent); text-decoration: none; font-weight: 700; font-size: 14px; 
-            padding: 10px 18px; border: 2px solid var(--accent); border-radius: 12px; transition: 0.2s;
-        }
+        .btn-link { color: var(--accent); text-decoration: none; font-weight: 700; font-size: 14px; padding: 10px 18px; border: 2px solid var(--accent); border-radius: 12px; transition: 0.2s; }
         .btn-link:hover { background: var(--accent); color: white; }
-
-        /* Compacte stijl voor overige uitslagen */
         #all-results-list .card-img { height: 150px; }
         #all-results-list .card-body { padding: 15px 20px; }
         #all-results-list .card-title { font-size: 16px; }
-
-        /* Footer */
         footer { background: #1e293b; color: white; padding: 60px 5% 40px; margin-top: 100px; }
         .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; max-width: 1100px; margin: 0 auto; }
         .footer-col h4 { margin-bottom: 20px; font-size: 18px; }
         .footer-col p { font-size: 14px; opacity: 0.7; line-height: 1.6; }
         .footer-bottom { text-align: center; margin-top: 50px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 12px; opacity: 0.5; }
-
         .wa-float { position: fixed; bottom: 30px; right: 30px; background: #25D366; color: white; padding: 15px 25px; border-radius: 50px; text-decoration: none; font-weight: 700; box-shadow: 0 10px 30px rgba(37,211,102,0.3); z-index: 1000; }
-
-        @media (max-width: 768px) {
-            .nav-links { display: none; }
-            .hero h1 { font-size: 32px; }
-            .stats-row { gap: 15px; margin: -30px 15px 40px; }
-            .results-grid { grid-template-columns: 1fr; }
-        }
+        @media (max-width: 768px) { .nav-links { display: none; } .hero h1 { font-size: 32px; } .stats-row { gap: 15px; margin: -30px 15px 40px; } .results-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -108,7 +62,7 @@
 
 <section class="hero">
     <h1 id="hero-title">Resultaten <span>...</span></h1>
-    <p>Dit is jullie ultieme groepsplan voor vandaag</p>
+    <p id="hero-slogan">Dit is jullie ultieme groepsplan voor vandaag</p>
 </section>
 
 <div class="container">
@@ -193,10 +147,35 @@
         const dest = room.destination || "Valkenburg";
         document.getElementById('hero-title').querySelector('span').innerText = dest;
         document.getElementById('trip-id').innerText = tripId;
+
+        // --- DYNAMISCHE SFEER LOGICA ---
+        const citySfeer = {
+            "Valkenburg": {
+                "foto": "https://images.unsplash.com/photo-1593010156930-43574d7df67c?q=80&w=2000",
+                "tekst": "Ontdek de grotten en gezelligheid van het zuiden."
+            },
+            "Ardennen": {
+                "foto": "https://images.unsplash.com/photo-1549110773-f111f4937792?q=80&w=2000",
+                "tekst": "Avontuur in de ruige bossen en diepe valleien."
+            },
+            "Maastricht": {
+                "foto": "https://images.unsplash.com/photo-1627471206103-62024b069d50?q=80&w=2000",
+                "tekst": "Bourgondisch genieten aan de Maas."
+            },
+            "Rome": {
+                "foto": "https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=2000",
+                "tekst": "Rome, de stad van zichtbare geschiedenis."
+            }
+        };
+
+        const sfeer = citySfeer[dest] || citySfeer["Valkenburg"];
+        document.querySelector('.hero').style.backgroundImage = `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('${sfeer.foto}')`;
+        document.getElementById('hero-slogan').innerText = sfeer.tekst;
         
-        // WhatsApp tekst personaliseren
+        // WhatsApp tekst
         document.getElementById('wa-share').href = `https://wa.me/?text=${encodeURIComponent('Onze Top 5 voor ' + dest + ' staat klaar! Bekijk het plan: ' + window.location.href)}`;
 
+        // Activiteiten ophalen
         const actSnap = await getDocs(collection(db, "activities"));
         const activities = [];
         actSnap.forEach(d => activities.push({id: d.id, ...d.data()}));
@@ -205,7 +184,7 @@
         const sortedIds = Object.keys(votes).sort((a,b) => votes[b] - votes[a]);
         document.getElementById('count-matches').innerText = sortedIds.length;
 
-        // Deelnemers berekenen (minimaal gebaseerd op de hoogste score)
+        // Deelnemers berekenen
         const voteCounts = Object.values(votes);
         const maxVotesFound = voteCounts.length > 0 ? Math.max(...voteCounts) : 1;
         const totalUsers = Math.max(room.userCount || 0, Object.keys(room.users || {}).length, maxVotesFound, 1);
@@ -215,10 +194,8 @@
             document.getElementById(target).innerHTML = ids.map(id => {
                 const a = activities.find(x => x.id === id);
                 if(!a) return '';
-                
                 const count = votes[id] || 0;
                 const perc = Math.min(100, Math.round((count / totalUsers) * 100));
-                
                 return `
                     <div class="card">
                         <div class="match-perc">${perc}% Match ${perc === 100 ? '🔥' : ''}</div>
@@ -226,7 +203,7 @@
                         <div class="card-body">
                             <span class="card-category">${a.category}</span>
                             <h3 class="card-title">${a.title}</h3>
-                            ${showDesc ? `<p class="card-desc">${(a.desc || 'Deze activiteit past perfect bij jullie groepsvibe.').substring(0, 95)}...</p>` : ''}
+                            ${showDesc ? `<p class="card-desc">${(a.desc || 'Deze activiteit past perfect bij jullie vibe.').substring(0, 95)}...</p>` : ''}
                             <div class="card-footer">
                                 <span class="price">${a.price || '€ -'}</span>
                                 <a href="${a.bookingUrl}" target="_blank" class="btn-link">Details</a>
@@ -259,31 +236,7 @@
         `).join('');
     }
 
-    init(
-        const citySfeer = {
-    "Valkenburg": {
-        "foto": "https://images.unsplash.com/photo-1593010156930-43574d7df67c?q=80&w=2000",
-        "tekst": "Ontdek de grotten en gezelligheid van het zuiden."
-    },
-    "Ardennen": {
-        "foto": "https://images.unsplash.com/photo-1549110773-f111f4937792?q=80&w=2000",
-        "tekst": "Avontuur in de ruige bossen en diepe valleien."
-    },
-    "Maastricht": {
-        "foto": "https://images.unsplash.com/photo-1627471206103-62024b069d50?q=80&w=2000",
-        "tekst": "Bourgondisch genieten aan de Maas."
-    }
-        "Rome": {
-        "foto": "https://images.unsplash.com/photo-1627471206103-62024b069d50?q=80&w=2000",
-        "tekst": "Rome, de stad van zichtbare geschiedenis"
-    }
-};
-    
-    const sfeer = citySfeer[dest] || citySfeer["Valkenburg"]; // Fallback naar Valkenburg
-document.querySelector('.hero').style.backgroundImage = `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('${sfeer.foto}')`;
-document.querySelector('.hero p').innerText = sfeer.tekst;
-    );
-    
+    init();
 </script>
 </body>
 </html>
