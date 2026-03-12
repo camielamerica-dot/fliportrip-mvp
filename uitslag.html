@@ -3,37 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jullie Trip Resultaten | Flip 2 Trip</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <title>Jullie Resultaten | Flip 2 Trip</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --obsidian: #161B22; --indigo: #1e293b; --accent: #2D6A4F; --bg: #f8fafc; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--indigo); margin: 0; padding: 0; }
+        :root { --indigo: #1e293b; --accent: #2D6A4F; --bg: #f8fafc; --text-light: #64748b; --gold: #f59e0b; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--indigo); margin: 0; padding: 0; line-height: 1.5; }
         
-        header { background: white; padding: 40px 5%; text-align: center; border-bottom: 1px solid rgba(0,0,0,0.05); }
-        .logo { height: 50px; margin-bottom: 20px; }
+        header { background: white; padding: 30px 5%; text-align: center; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .logo { height: 40px; margin-bottom: 15px; }
+        h1 { font-size: 26px; letter-spacing: -1px; margin: 0; }
+        h1 span { color: var(--accent); }
+
+        .container { max-width: 800px; margin: 20px auto 100px; padding: 0 20px; }
         
-        .container { max-width: 800px; margin: -40px auto 100px; padding: 0 20px; }
-        
-        /* Stats Card */
-        .stats-banner { 
-            background: var(--indigo); color: white; border-radius: 24px; padding: 30px; 
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; text-align: center;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        /* USP Bar */
+        .usp-bar {
+            background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 16px;
+            padding: 12px; margin-bottom: 30px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
         }
-        .stat-item span { display: block; font-size: 24px; font-weight: 800; color: #fff; }
-        .stat-item small { opacity: 0.7; font-size: 12px; text-transform: uppercase; }
+        .usp-item { font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 5px; color: var(--accent); text-transform: uppercase; text-align: center; }
+
+        /* Stats Header */
+        .stats-banner { 
+            background: var(--indigo); color: white; border-radius: 24px; padding: 25px; 
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1); margin-bottom: 40px;
+        }
+        .stat-item span { display: block; font-size: 22px; font-weight: 800; }
+        .stat-item small { opacity: 0.6; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+
+        .section-title { margin: 40px 0 20px; font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+        .section-title::after { content: ''; flex: 1; height: 1px; background: #e2e8f0; }
 
         /* Match Cards */
         .match-card { 
-            background: white; border-radius: 24px; overflow: hidden; margin-top: 30px;
+            background: white; border-radius: 24px; overflow: hidden; margin-bottom: 25px;
             display: flex; flex-direction: column; border: 1px solid rgba(0,0,0,0.03);
-            transition: 0.3s;
+            transition: 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.02);
         }
-        .match-card:hover { transform: translateY(-5px); box-shadow: 0 30px 60px rgba(0,0,0,0.08); }
+        .match-card.winner { border: 2px solid var(--accent); position: relative; }
+        .winner-tag { position: absolute; top: 20px; left: 20px; background: var(--accent); color: white; padding: 6px 15px; border-radius: 50px; font-size: 12px; font-weight: 800; z-index: 2; }
         
-        .match-img { width: 100%; height: 250px; object-fit: cover; }
-        .match-content { padding: 30px; }
+        .match-img { width: 100%; height: 230px; object-fit: cover; }
+        .match-content { padding: 25px; }
         
+        .badge { background: #f1f5f9; color: var(--indigo); padding: 5px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        .price-tag { float: right; color: var(--accent); font-weight: 800; font-size: 18px; }
+        
+        .match-card h3 { font-size: 22px; margin: 12px 0; letter-spacing: -0.5px; }
+        .match-card p { color: var(--text-light); font-size: 15px; margin-bottom: 20px; }
+
+        .btn-book { 
+            background: var(--accent); color: white; text-decoration: none; 
+            padding: 16px; border-radius: 14px; display: block; text-align: center;
+            font-weight: 800; transition: 0.3s; font-size: 16px;
+        }
+        .btn-book:hover { filter: brightness(1.1); transform: translateY(-2px); }
+
+        .gyg-info { font-size: 11px; color: var(--text-light); text-align: center; margin-top: 12px; display: block; }
+
+        /* Grid for Suggestions */
+        .grid-suggestions { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .small-card { background: white; border-radius: 20px; padding: 15px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; }
+        .small-card img { height: 110px; width: 100%; object-fit: cover; border-radius: 12px; margin-bottom: 12px; }
+        .small-card h4 { margin: 5px 0; font-size: 15px; line-height: 1.3; }
+        
+        .distance-badge { 
+            background: #fffbeb; color: #92400e; border: 1px solid #fde68a;
+            padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; margin-bottom: 8px; display: inline-block;
+        }
+
+        footer { text-align: center; padding: 60px 20px; color: #94a3b8; font-size: 11px; line-height: 1.8; }
+    </style>
+</head>
+<body>
+
+<header>
+    <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/03/Flip2Trip-logo-landscape.png" class="logo">
+    <h1 id="header-title">Plan jullie trip naar <span>...</span></h1>
+</header>
+
+<div class="container">
+    <div class="usp-bar">
+        <div class="usp-item">✨ Directe bevestiging</div>
+        <div class="usp-item">🔒 Veilig betalen</div>
+        <div class="usp-item">🕒 Gratis annuleren</div>
+    </div>
+
+    <div class="stats-banner">
+        <div class="stat-item"><span id="count-matches">0</span><small>Matches</small></div>
+        <div class="stat-item"><span id="group-score">92%</span><small>Groeps-DNA</small></div>
+        <div class="stat-item"><span id="trip-id">...</span><small>Sessie ID</small></div>
+    </div>
+
+    <div class="section-title">🏆 Jullie Groepsfavorieten</div>
+    <div id="results-list">
+        </div>
+
+    <div class="section-title">📍 Perfect te combineren</div>
+    <div class="grid-suggestions" id="suggestions-list">
+        </div>
+
+    <footer>
+        <p>Geregenereerd voor Trip Sessie <span id="footer-trip-id"></span><br>
+        Flip 2 Trip faciliteert de match. Boekingen en betalingen verlopen veilig via onze partner GetYourGuide.<br>
+        Kosteloos annuleren is mogelijk tot 24 uur voor aanvang van de activiteit.</p>
+    </footer>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const config = { apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0", authDomain: "fliportrip-valkenburg.firebaseapp.com", projectId: "fliportrip-valkenburg" };
+    const app = initializeApp(config);
+    const db = getFirestore(app);
+
+    async function init() {
+        const params = new URLSearchParams(window.location.search);
+        const tripId = params.get('trip');
+        if(!tripId) return;
+
+        document.getElementById('trip-id').innerText = tripId;
+        document.getElementById('footer-trip-id').innerText = tripId;
+
+        // 1. Haal de sessie op
+        const roomSnap = await getDoc(doc(db, "rooms", tripId));
+        if(!roomSnap.exists()) return;
+        const room = roomSnap.data();
+        
+        const dest = room.destination || "Valkenburg";
+        document.querySelector('#header-title span').innerText = dest;
+
+        // 2. Haal alle activiteiten op
+        const actSnap = await getDocs(collection(db, "activities"));
+        const activities = [];
+        actSnap.forEach(d => activities.push({id: d.id, ...d.data()}));
+
+        // 3. Sorteer matches op basis van stemmen
+        const votes = room.votes || {};
+        const matchedIds = Object.keys(votes).sort((a,b) => votes[b] - votes[a]);
+        document.getElementById('count-matches').innerText = matchedIds.length;
+
+        // 4. Render de Top Matches
+        const resultsContainer = document.getElementById('results-list');
+        const topAct = activities.find(x => x.id === matchedIds[0]);
+
+        resultsContainer.innerHTML = matchedIds.map((id, index) => {
+            const a = activities.find(x => x.id === id);
+            if(!a) return '';
+            const isWinner = index === 0;
+
+            return `
+                <div class="match-card ${isWinner ? 'winner' : ''}">
+                    ${isWinner ? '<div class="winner-tag">BESTE MATCH</div>' : ''}
+                    <img src="${a.image}" class="match-img">
+                    <div class="match-content">
+                        <span class="price-tag">${a.price || '€ -'}</span>
+                        <span class="badge">${a.category}</span>
+                        <h3>${a.title}</h3>
+                        <p>${a.desc || 'Ontdek deze top activiteit met je groep. De perfecte invulling voor jullie dagje uit!'}</p>
+                        <a href="${a.bookingUrl}" target="_blank" class="btn-book">Check beschikbaarheid & Boek</a>
+                        <small class="gyg-info">In samenwerking met GetYourGuide</small>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // 5. Render Slimme Upsell (Populair in de buurt van nummer 1)
+        const suggestionsContainer = document.getElementById('suggestions-list');
+        const suggestions = activities
+            .filter(a => a.city === dest && !matchedIds.includes(a.id))
+            .sort(() => 0.5 - Math.random())
+            .slice(0, 4);
+
+        suggestionsContainer.innerHTML = suggestions.map(a => {
+            const dist = Math.floor(Math.random() * 600) + 150; // Simulatie van loopafstand
+            return `
+                <div class="small-card">
+                    <img src="${a.image}">
+                    <div class="distance-badge">📍 ${dist}m vanaf ${topAct ? topAct.title.split(' ')[0] : 'hoofdlocatie'}</div>
+                    <h4>${a.title}</h4>
+                    <p style="font-size:11px; color:var(--text-light); flex:1;">Maak jullie dag compleet met deze activiteit om de hoek.</p>
+                    <a href="${a.bookingUrl}" target="_blank" class="btn-book" style="font-size:12px; padding:10px;">Check uitje</a>
+                </div>
+            `;
+        }).join('');
+    }
+
+    init();
+</script>
+</body>
+</html>
         .badge { background: #f1f5f9; color: var(--indigo); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; }
         .price-tag { float: right; color: var(--accent); font-weight: 800; font-size: 18px; }
         
