@@ -352,9 +352,18 @@ footer {
     font-size: 13px;
     color: var(--text-light);
 }
-        .footer-socials {
+        Dat is een slimme zet. SVG's zijn haarscherp op elk scherm (geen pixels) en laden sneller dan afbeeldingen. We gebruiken strakke, minimalistische iconen die perfect passen bij de "Plus Jakarta Sans" font.
+
+Hieronder vind je de vernieuwde code voor de social media sectie in je footer.
+
+1. De CSS (Socials Update)
+We passen de CSS een klein beetje aan zodat de SVG's zich netjes gedragen binnen de vierkante vakjes.
+
+CSS
+/* --- SOCIAL MEDIA SVG ICONS --- */
+.footer-socials {
     display: flex;
-    gap: 15px;
+    gap: 12px;
     margin-top: 20px;
 }
 
@@ -362,25 +371,32 @@ footer {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
-    background: rgba(0,0,0,0.05);
-    border-radius: 10px;
-    color: var(--indigo);
-    text-decoration: none;
+    width: 40px;
+    height: 40px;
+    background: rgba(30, 41, 59, 0.05); /* Heel licht indigo */
+    border-radius: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.social-icon svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: var(--indigo);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
     transition: all 0.3s ease;
-    font-size: 18px;
 }
 
 .social-icon:hover {
     background: var(--indigo);
-    color: white;
-    transform: translateY(-3px);
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px rgba(30, 41, 59, 0.1);
 }
 
-/* Voor de icons in de footer-bottom bar */
-.footer-bottom .footer-socials {
-    margin-top: 0;
+.social-icon:hover svg {
+    stroke: white;
 }
 
 /* Mobiel: kolommen onder elkaar */
@@ -408,6 +424,72 @@ footer {
         text-align: center;
     }
 }
+        /* --- FAQ ACCORDEON --- */
+.faq-section {
+    padding: 120px 8%;
+    background-color: #ffffff;
+}
+
+.faq-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.faq-item {
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    padding: 10px 0;
+}
+
+.faq-question {
+    width: 100%;
+    padding: 20px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    background: none;
+    border: none;
+    text-align: left;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--indigo);
+    font-family: inherit;
+}
+
+.faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, padding 0.3s ease;
+    color: var(--text-light);
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.faq-item.active .faq-answer {
+    max-height: 200px; /* Genoeg ruimte voor tekst */
+    padding-bottom: 25px;
+}
+
+/* Het plus-icoontje dat draait naar een min */
+.faq-icon {
+    width: 20px;
+    height: 20px;
+    position: relative;
+    transition: transform 0.3s ease;
+}
+
+.faq-icon::before, .faq-icon::after {
+    content: '';
+    position: absolute;
+    background-color: var(--indigo);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.faq-icon::before { width: 14px; height: 2px; } /* Horizontaal */
+.faq-icon::after { width: 2px; height: 14px; }  /* Verticaal */
+
+.faq-item.active .faq-icon { transform: rotate(45deg); } /* Wordt een X/plus draai */
     </style>
 </head>
 <body>
@@ -517,7 +599,42 @@ footer {
 </section>
 
 </section>
+<section class="faq-section" id="faq">
+    <div class="faq-container">
+        <h2 style="text-align: center; margin-bottom: 50px;">Veelgestelde vragen</h2>
+        
+        <div class="faq-item">
+            <button class="faq-question">
+                Is Flip 2 Trip gratis te gebruiken?
+                <div class="faq-icon"></div>
+            </button>
+            <div class="faq-answer">
+                <p>Ja, het basissysteem voor het swipen en matchen van activiteiten is volledig gratis voor groepen. Voor exclusieve deals of gepersonaliseerde reisgidsen kunnen we in de toekomst premium functies toevoegen.</p>
+            </div>
+        </div>
 
+        <div class="faq-item">
+            <button class="faq-question">
+                Moeten al mijn vrienden de app downloaden?
+                <div class="faq-icon"></div>
+            </button>
+            <div class="faq-answer">
+                <p>Nee, dat is het mooie! Eén persoon start de sessie en de rest kan eenvoudig meedoen via een link in hun browser op hun eigen telefoon. Geen gedoe met accounts of downloads.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question">
+                In welke steden werkt Flip 2 Trip?
+                <div class="faq-icon"></div>
+            </button>
+            <div class="faq-answer">
+                <p>We zijn momenteel actief in de meest populaire steden in Nederland en België, zoals Amsterdam, Maastricht en Antwerpen. We breiden ons aanbod wekelijks uit!</p>
+            </div>
+        </div>
+
+    </div>
+</section>
 <footer>
     <div class="footer-container">
         <div class="footer-brand">
@@ -565,10 +682,18 @@ footer {
     <div class="footer-bottom">
     <p>&copy; 2026 Flip 2 Trip. Alle rechten voorbehouden.</p>
     <div class="footer-socials">
-        <a href="https://www.instagram.com/flip2trip/" style="text-decoration:none; color:inherit; margin-left:10px;">Instagram</a>
-        <a href="https://www.facebook.com/profile.php?id=61583580819351" style="text-decoration:none; color:inherit; margin-left:10px;">Facebook</a>
-        <a href="https://www.tiktok.com/@flip2trip" style="text-decoration:none; color:inherit; margin-left:10px;">TikTok</a>
-    </div>
+    <a href="https://www.instagram.com/flip2trip/" class="social-icon" target="_blank" aria-label="Instagram">
+        <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+    </a>
+
+    <a href="https://www.facebook.com/profile.php?id=61583580819351" class="social-icon" target="_blank" aria-label="Facebook">
+        <svg viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+    </a>
+
+    <a href="https://www.tiktok.com/@trip2flip" class="social-icon" target="_blank" aria-label="TikTok">
+        <svg viewBox="0 0 24 24"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"></path></svg>
+    </a>
+</div>
 </div>
 </footer>
 
