@@ -259,7 +259,31 @@
         `).join('');
     }
 
-    init();
+    init(
+        const citySfeer = {
+    "Valkenburg": {
+        "foto": "https://images.unsplash.com/photo-1593010156930-43574d7df67c?q=80&w=2000",
+        "tekst": "Ontdek de grotten en gezelligheid van het zuiden."
+    },
+    "Ardennen": {
+        "foto": "https://images.unsplash.com/photo-1549110773-f111f4937792?q=80&w=2000",
+        "tekst": "Avontuur in de ruige bossen en diepe valleien."
+    },
+    "Maastricht": {
+        "foto": "https://images.unsplash.com/photo-1627471206103-62024b069d50?q=80&w=2000",
+        "tekst": "Bourgondisch genieten aan de Maas."
+    }
+        "Rome": {
+        "foto": "https://images.unsplash.com/photo-1627471206103-62024b069d50?q=80&w=2000",
+        "tekst": "Rome, de stad van zichtbare geschiedenis"
+    }
+};
+    
+    const sfeer = citySfeer[dest] || citySfeer["Valkenburg"]; // Fallback naar Valkenburg
+document.querySelector('.hero').style.backgroundImage = `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('${sfeer.foto}')`;
+document.querySelector('.hero p').innerText = sfeer.tekst;
+    );
+    
 </script>
 </body>
 </html>
