@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- ALGEMENE STIJLEN & VARIABELEN --- */
-        html { scroll-behavior: smooth; }
+        html { scroll-behavior: smooth; }   
         :root {
             --lila: #E0BBE4;
             --geel: #FFF380;
@@ -285,6 +285,99 @@ h2 {
             h1 { font-size: 42px; }
         } /* <--- HIER GING HET MIS, DEZE SLUIT-ACCOLADE MOET HIER */
 
+        /* --- MODERN FOOTER --- */
+footer {
+    background-color: #f8fafc; /* Of gebruik var(--obsidian) voor een dark mode footer */
+    padding: 100px 8% 50px;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    color: var(--indigo);
+    opacity: 1; /* We halen de lage opacity van je oude footer weg */
+}
+
+.footer-container {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 1fr;
+    gap: 60px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.footer-brand img {
+    height: 45px;
+    margin-bottom: 20px;
+}
+
+.footer-brand p {
+    color: var(--text-light);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.footer-column h4 {
+    font-size: 16px;
+    font-weight: 800;
+    margin-bottom: 25px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.footer-column ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-column ul li {
+    margin-bottom: 12px;
+}
+
+.footer-column ul li a {
+    text-decoration: none;
+    color: var(--text-light);
+    font-size: 14px;
+    transition: color 0.2s ease;
+}
+
+.footer-column ul li a:hover {
+    color: var(--accent);
+}
+
+.footer-bottom {
+    margin-top: 80px;
+    padding-top: 30px;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    color: var(--text-light);
+}
+
+/* Mobiel: kolommen onder elkaar */
+@media (max-width: 900px) {
+    .footer-container {
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+    }
+    .footer-brand {
+        grid-column: span 2;
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 600px) {
+    .footer-container {
+        grid-template-columns: 1fr;
+    }
+    .footer-brand {
+        grid-column: span 1;
+    }
+    .footer-bottom {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+    }
+}
     </style>
 </head>
 <body>
@@ -396,8 +489,50 @@ h2 {
 </section>
 
 <footer>
-    <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/03/Flip2Trip-beeldmerk.png" height="40" style="margin-bottom: 20px; opacity: 0.5;">
-    <p>Flip 2 Trip &copy; 2026<br>De nieuwe standaard voor collectieve besluitvorming.</p>
+    <div class="footer-container">
+        <div class="footer-brand">
+            <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/03/Flip2Trip-logo-landscape.png" alt="Flip 2 Trip">
+            <p>De nieuwe standaard voor collectieve besluitvorming. Wij maken het plannen van groepsreizen weer leuk, simpel en eerlijk.</p>
+        </div>
+
+        <div class="footer-column">
+            <h4>Bestemmingen</h4>
+            <ul>
+                <li><a href="/valkenburg">Valkenburg</a></li>
+                <li><a href="/maastricht">Maastricht</a></li>
+                <li><a href="/amsterdam">Amsterdam</a></li>
+                <li><a href="/antwerpen">Antwerpen</a></li>
+                <li><a href="/bestemmingen">Alle steden</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-column">
+            <h4>Partners & Info</h4>
+            <ul>
+                <li><a href="/partner-worden">Partner worden</a></li>
+                <li><a href="/hoe-het-werkt">Hoe het werkt</a></li>
+                <li><a href="/over-ons">Over Flip 2 Trip</a></li>
+                <li><a href="/blog">Reis tips</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-column">
+            <h4>Contact</h4>
+            <ul>
+                <li><a href="mailto:info@flip2trip.nl">info@flip2trip.nl</a></li>
+                <li><a href="/contact">Contactformulier</a></li>
+                <li><a href="/privacy">Privacybeleid</a></li>
+                <li><a href="/voorwaarden">Voorwaarden</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="footer-bottom">
+        <p>&copy; 2026 Flip 2 Trip. Alle rechten voorbehouden.</p>
+        <div class="footer-socials">
+            <span>Volg ons op Instagram & LinkedIn</span>
+        </div>
+    </div>
 </footer>
 
 <script>
