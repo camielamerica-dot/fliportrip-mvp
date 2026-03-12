@@ -8,127 +8,143 @@
     <style>
         :root { --accent: #2D6A4F; --text: #1e293b; --light: #64748b; --bg: #ffffff; --card-bg: #fcfcfc; }
         
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background: var(--bg); 
-            color: var(--text); 
-            margin: 0; padding: 0; 
-            -webkit-font-smoothing: antialiased;
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+
+        /* Integratie Navigatie */
+        nav { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 20px 5%; background: white; border-bottom: 1px solid #f1f5f9;
         }
+        .nav-links { display: flex; gap: 30px; list-style: none; margin: 0; padding: 0; }
+        .nav-links a { text-decoration: none; color: var(--text); font-weight: 600; font-size: 14px; }
+        .logo-nav { height: 35px; }
 
-        .container { max-width: 1100px; margin: 0 auto; padding: 40px 20px; }
+        /* Hero Sectie */
+        .hero { 
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1506929641214-5d5e53637604?q=80&w=2000&auto=format&fit=crop'); 
+            background-size: cover; background-position: center;
+            height: 350px; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            color: white; text-align: center; padding: 0 20px;
+        }
+        .hero h1 { font-size: 42px; font-weight: 800; margin: 0; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        .hero h1 span { color: #fff; border-bottom: 4px solid var(--accent); }
+        .hero p { font-size: 18px; opacity: 0.9; margin-top: 10px; }
 
-        /* Luchtige Header */
-        header { text-align: center; padding: 60px 0 40px; }
-        .logo { height: 45px; margin-bottom: 20px; filter: grayscale(1); opacity: 0.8; }
-        h1 { font-size: 32px; font-weight: 800; letter-spacing: -1px; margin: 0; }
-        h1 span { color: var(--accent); }
-        .subtitle { color: var(--light); font-size: 16px; margin-top: 10px; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
 
-        /* Stats in een dunne lijn */
+        /* Stats Row */
         .stats-row { 
             display: flex; justify-content: center; gap: 40px; 
-            margin: 40px 0; padding: 20px 0; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9;
+            margin: -40px auto 40px; padding: 25px; background: white; 
+            border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            max-width: 700px; position: relative; z-index: 10;
         }
-        .stat-item { text-align: center; }
-        .stat-item b { display: block; font-size: 20px; font-weight: 800; }
-        .stat-item small { color: var(--light); text-transform: uppercase; font-size: 10px; letter-spacing: 1px; }
+        .stat-item { text-align: center; flex: 1; }
+        .stat-item b { display: block; font-size: 22px; font-weight: 800; color: var(--accent); }
+        .stat-item small { color: var(--light); text-transform: uppercase; font-size: 10px; letter-spacing: 1px; font-weight: 700; }
 
-        /* Grid Systeem voor Desktop */
-        .results-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
-            gap: 30px; 
-            margin-top: 30px;
-        }
+        /* Grid */
+        .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; margin-top: 30px; }
 
-        /* Clean Cards */
-        .card { 
-            background: var(--card-bg); 
-            border: 1px solid #f1f5f9; 
-            border-radius: 20px; 
-            overflow: hidden; 
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            display: flex; flex-direction: column;
-        }
+        /* Card Design */
+        .card { background: var(--card-bg); border: 1px solid #f1f5f9; border-radius: 24px; overflow: hidden; transition: 0.3s; display: flex; flex-direction: column; position: relative; }
         .card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
+        .card-img { width: 100%; height: 210px; object-fit: cover; }
         
-        .card-img { width: 100%; height: 200px; object-fit: cover; }
+        /* Match Badge */
+        .match-perc { 
+            position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.95); color: var(--accent); 
+            padding: 6px 12px; border-radius: 10px; font-weight: 800; font-size: 13px; backdrop-filter: blur(5px);
+            border: 1px solid var(--accent);
+        }
+
         .card-body { padding: 25px; flex-grow: 1; display: flex; flex-direction: column; }
-        
-        .card-category { font-size: 10px; font-weight: 700; color: var(--accent); text-transform: uppercase; margin-bottom: 8px; }
-        .card-title { font-size: 18px; font-weight: 800; margin: 0 0 10px 0; line-height: 1.3; }
+        .card-category { font-size: 10px; font-weight: 700; color: var(--accent); text-transform: uppercase; margin-bottom: 10px; }
+        .card-title { font-size: 19px; font-weight: 800; margin: 0 0 10px; line-height: 1.3; }
         .card-desc { font-size: 14px; color: var(--light); margin-bottom: 20px; flex-grow: 1; }
         
-        .card-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 15px; border-top: 1px solid #f8fafc; }
-        .price { font-weight: 800; font-size: 16px; }
+        .card-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 15px; border-top: 1px solid #f1f5f9; }
+        .price { font-weight: 800; font-size: 17px; }
         .btn-link { 
             color: var(--accent); text-decoration: none; font-weight: 700; font-size: 14px; 
-            padding: 8px 16px; border: 1px solid var(--accent); border-radius: 10px; transition: 0.2s;
+            padding: 10px 18px; border: 2px solid var(--accent); border-radius: 12px; transition: 0.2s;
         }
         .btn-link:hover { background: var(--accent); color: white; }
 
-        /* Sectie titels */
-        .section-header { margin: 80px 0 30px; text-align: left; }
-        .section-header h2 { font-size: 24px; font-weight: 800; }
+        .section-header { margin: 80px 0 30px; }
+        .section-header h2 { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
 
-        /* WhatsApp Floating Button - Subtieler */
-        .wa-float { 
-            position: fixed; bottom: 30px; right: 30px; 
-            background: #25D366; color: white; padding: 15px 25px; 
-            border-radius: 50px; text-decoration: none; font-weight: 700; font-size: 14px;
-            box-shadow: 0 10px 30px rgba(37, 211, 102, 0.3); z-index: 1000;
-        }
+        /* Integratie Footer */
+        footer { background: #1e293b; color: white; padding: 60px 5% 40px; margin-top: 100px; }
+        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; max-width: 1100px; margin: 0 auto; }
+        .footer-col h4 { margin-bottom: 20px; font-size: 18px; }
+        .footer-col p { font-size: 14px; opacity: 0.7; line-height: 1.6; }
+        .footer-bottom { text-align: center; margin-top: 50px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 12px; opacity: 0.5; }
 
-        /* Mobile Adjustments */
+        .wa-float { position: fixed; bottom: 30px; right: 30px; background: #25D366; color: white; padding: 15px 25px; border-radius: 50px; text-decoration: none; font-weight: 700; box-shadow: 0 10px 30px rgba(37,211,102,0.3); z-index: 1000; }
+
         @media (max-width: 768px) {
-            .stats-row { gap: 20px; }
-            h1 { font-size: 24px; }
+            .nav-links { display: none; }
+            .hero h1 { font-size: 32px; }
+            .stats-row { gap: 15px; margin: -30px 15px 40px; }
             .results-grid { grid-template-columns: 1fr; }
-            .wa-float { left: 20px; right: 20px; text-align: center; }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <header>
-        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/03/Flip2Trip-logo-landscape.png" class="logo" alt="Flip 2 Trip">
-        <h1 id="header-title">Resultaten <span>...</span></h1>
-        <p class="subtitle">Op basis van de unieke vibe van jullie groep</p>
-    </header>
+<nav>
+    <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/03/Flip2Trip-logo-landscape.png" class="logo-nav" alt="Flip 2 Trip">
+    <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="#">Hoe het werkt</a></li>
+        <li><a href="#">Bestemmingen</a></li>
+    </ul>
+</nav>
 
+<section class="hero">
+    <h1 id="hero-title">Resultaten <span>...</span></h1>
+    <p>Dit is jullie ultieme groepsplan voor vandaag</p>
+</section>
+
+<div class="container">
     <div class="stats-row">
+        <div class="stat-item"><b id="count-users">0</b><small>Deelnemers</small></div>
         <div class="stat-item"><b id="count-matches">0</b><small>Matches</small></div>
         <div class="stat-item"><b id="trip-id">...</b><small>Sessie ID</small></div>
-        <div class="stat-item"><b>GYG</b><small>Boekingspartner</small></div>
     </div>
 
-    <div class="section-header">
-        <h2>🏆 Jullie Top 5</h2>
-    </div>
+    <div class="section-header"><h2>🏆 Jullie Top 5</h2></div>
     <div id="top-results" class="results-grid"></div>
 
     <div id="extra-section" style="display:none;">
-        <div class="section-header">
-            <h2>📊 Overige uitslagen</h2>
-        </div>
+        <div class="section-header"><h2>📊 Overige favorieten</h2></div>
         <div id="all-results-list" class="results-grid"></div>
     </div>
 
     <div style="text-align: center; margin: 40px 0;">
-        <button onclick="toggleExtra()" id="btn-toggle" style="background:none; border:none; color:var(--light); cursor:pointer; font-weight:700; text-decoration:underline;">Bekijk alle resultaten</button>
+        <button onclick="toggleExtra()" id="btn-toggle" style="background:none; border:none; color:var(--light); cursor:pointer; font-weight:700; text-decoration:underline; font-size: 15px;">Bekijk alle resultaten (+)</button>
     </div>
 
-    <div class="section-header">
-        <h2>📍 Combineer & ontdek</h2>
-    </div>
+    <div class="section-header"><h2>📍 Perfect te combineren</h2></div>
     <div id="suggestions-list" class="results-grid"></div>
-
-    <footer style="margin-top: 100px; text-align: center; color: var(--light); font-size: 12px; padding-bottom: 100px;">
-        <p>© 2026 Flip 2 Trip. Alle boekingen verlopen via GetYourGuide met 24u annuleringsgarantie.</p>
-    </footer>
 </div>
+
+<footer>
+    <div class="footer-grid">
+        <div class="footer-col">
+            <h4>Flip 2 Trip</h4>
+            <p>De slimste manier om met je vriendengroep, familie of collega's de perfecte dag te plannen.</p>
+        </div>
+        <div class="footer-col">
+            <h4>Service</h4>
+            <p>Directe beschikbaarheid<br>Veilig betalen via GetYourGuide<br>24u gratis annuleren</p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        © 2026 Flip 2 Trip - Jouw match in elke stad.
+    </div>
+</footer>
 
 <a href="#" id="wa-share" class="wa-float">Deel plan via WhatsApp</a>
 
@@ -149,7 +165,7 @@
         const btn = document.getElementById('btn-toggle');
         const isHidden = sec.style.display === 'none';
         sec.style.display = isHidden ? 'block' : 'none';
-        btn.innerText = isHidden ? 'Verberg extra resultaten' : 'Bekijk alle resultaten';
+        btn.innerText = isHidden ? 'Verberg extra favorieten (-)' : 'Bekijk alle resultaten (+)';
     };
 
     async function init() {
@@ -160,10 +176,14 @@
         const roomSnap = await getDoc(doc(db, "rooms", tripId));
         if(!roomSnap.exists()) return;
         const room = roomSnap.data();
-        const dest = room.destination || "Valkenburg";
         
-        document.getElementById('header-title').querySelector('span').innerText = dest;
+        // Aantal deelnemers bepalen
+        const totalUsers = room.userCount || Object.keys(room.users || {}).length || 1;
+        document.getElementById('count-users').innerText = totalUsers;
         document.getElementById('trip-id').innerText = tripId;
+        
+        const dest = room.destination || "Valkenburg";
+        document.getElementById('hero-title').querySelector('span').innerText = dest;
         document.getElementById('wa-share').href = `https://wa.me/?text=${encodeURIComponent('Ons groepsplan voor ' + dest + ' staat klaar: ' + window.location.href)}`;
 
         const actSnap = await getDocs(collection(db, "activities"));
@@ -174,20 +194,21 @@
         const sortedIds = Object.keys(votes).sort((a,b) => votes[b] - votes[a]);
         document.getElementById('count-matches').innerText = sortedIds.length;
 
-        const top5 = sortedIds.slice(0, 5);
-        const rest = sortedIds.slice(5);
-
-        const render = (ids, target) => {
+        const render = (ids, target, showDesc) => {
             document.getElementById(target).innerHTML = ids.map(id => {
                 const a = activities.find(x => x.id === id);
                 if(!a) return '';
+                const count = votes[id] || 0;
+                const perc = Math.round((count / totalUsers) * 100);
+                
                 return `
                     <div class="card">
+                        <div class="match-perc">${perc}% Match</div>
                         <img src="${a.image}" class="card-img">
                         <div class="card-body">
                             <span class="card-category">${a.category}</span>
                             <h3 class="card-title">${a.title}</h3>
-                            <p class="card-desc">${a.desc ? a.desc.substring(0, 100) + '...' : 'Een geweldige ervaring voor jullie groep.'}</p>
+                            ${showDesc ? `<p class="card-desc">${(a.desc || '').substring(0, 90)}...</p>` : ''}
                             <div class="card-footer">
                                 <span class="price">${a.price || '€ -'}</span>
                                 <a href="${a.bookingUrl}" target="_blank" class="btn-link">Beschikbaarheid</a>
@@ -198,23 +219,23 @@
             }).join('');
         };
 
-        render(top5, 'top-results');
-        render(rest, 'all-results-list');
+        render(sortedIds.slice(0, 5), 'top-results', true);
+        render(sortedIds.slice(5), 'all-results-list', false);
 
-        // Suggesties
+        // Omgevings suggesties (Upsell)
         const suggestions = activities
             .filter(a => a.city === dest && !sortedIds.includes(a.id))
             .sort(() => 0.5 - Math.random()).slice(0, 3);
 
         document.getElementById('suggestions-list').innerHTML = suggestions.map(a => `
             <div class="card">
-                <img src="${a.image}" class="card-img" style="height:140px">
+                <img src="${a.image}" class="card-img" style="height:150px">
                 <div class="card-body">
-                    <span class="card-category">Tip van Flip</span>
+                    <span class="card-category">Ook populair</span>
                     <h3 class="card-title" style="font-size:16px;">${a.title}</h3>
                     <div class="card-footer">
-                        <span class="price" style="font-size:14px;">${a.price || '€ -'}</span>
-                        <a href="${a.bookingUrl}" target="_blank" class="btn-link" style="font-size:12px;">Bekijk</a>
+                        <span class="price" style="font-size:15px;">${a.price || '€ -'}</span>
+                        <a href="${a.bookingUrl}" target="_blank" class="btn-link" style="padding: 8px 14px; font-size:12px;">Bekijk</a>
                     </div>
                 </div>
             </div>
