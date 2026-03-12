@@ -360,41 +360,45 @@ Hieronder vind je de vernieuwde code voor de social media sectie in je footer.
 We passen de CSS een klein beetje aan zodat de SVG's zich netjes gedragen binnen de vierkante vakjes.
 
 CSS
-/* --- SOCIAL MEDIA SVG ICONS --- */
+/* --- SOCIAL MEDIA SVG ICONS (FIXED) --- */
 .footer-socials {
-    display: flex; /* Dit zorgt dat ze naast elkaar staan */
+    display: flex !important; /* Dwingt flexbox */
+    flex-direction: row !important; /* Dwingt horizontale rij */
     gap: 12px;
-    margin-top: 20px;
-    justify-content: flex-start; /* Zorgt dat ze links uitlijnen onder het tekstje */
+    margin-top: 25px;
+    justify-content: flex-start;
+    flex-wrap: nowrap; /* Voorkomt dat ze naar een nieuwe regel springen */
 }
 
 .social-icon {
-    display: flex;
+    display: inline-flex !important; /* Zorgt dat ze niet de hele breedte pakken */
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
+    width: 42px !important; /* Vaste breedte */
+    height: 42px !important; /* Vaste hoogte */
     background: rgba(30, 41, 59, 0.05);
     border-radius: 12px;
-    transition: 0.3s;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    flex-shrink: 0; /* Voorkomt dat ze in elkaar gedrukt worden */
 }
 
 .social-icon svg {
     width: 20px;
     height: 20px;
-    stroke: #1e293b; /* Of je var(--indigo) */
+    stroke: var(--indigo); /* Gebruikt je variabele */
     fill: none;
     stroke-width: 2;
+    transition: stroke 0.3s ease;
 }
 
 .social-icon:hover {
-    background: var(--indigo);
+    background: var(--indigo) !important;
     transform: translateY(-4px);
-    box-shadow: 0 10px 15px rgba(30, 41, 59, 0.1);
+    box-shadow: 0 10px 20px rgba(30, 41, 59, 0.15);
 }
 
 .social-icon:hover svg {
-    stroke: white;
+    stroke: white !important;
 }
 
 /* Mobiel: kolommen onder elkaar */
