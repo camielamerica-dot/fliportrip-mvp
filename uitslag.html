@@ -191,34 +191,42 @@
         actSnap.forEach(d => activities.push({id: d.id, ...d.data()}));
 
         const votes = room.votes || {};
-        const sortedIds = Object.keys(votes).sort((a,b) => votes[b] - votes[a]);
-        document.getElementById('count-matches').innerText = sortedIds.length;
+const voteCounts = Object.values(votes);
+
+// We bepalen het totaal aantal deelnemers op basis van de hoogste score 
+// (of de room.userCount als die hoger is)
+const maxVotesFound = voteCounts.length > 0 ? Math.max(...voteCounts) : 1;
+const totalUsers = Math.max(room.userCount || 0, Object.keys(room.users || {}).length, maxVotesFound, 1);
+
+document.getElementById('count-users').innerText = totalUsers;
+document.getElementById('trip-id').innerText = tripId;
 
         const render = (ids, target, showDesc) => {
-            document.getElementById(target).innerHTML = ids.map(id => {
-                const a = activities.find(x => x.id === id);
-                if(!a) return '';
-                const count = votes[id] || 0;
-                const perc = Math.round((count / totalUsers) * 100);
-                
-                return `
-                    <div class="card">
-                        <div class="match-perc">${perc}% Match</div>
-                        <img src="${a.image}" class="card-img">
-                        <div class="card-body">
-                            <span class="card-category">${a.category}</span>
-                            <h3 class="card-title">${a.title}</h3>
-                            ${showDesc ? `<p class="card-desc">${(a.desc || '').substring(0, 90)}...</p>` : ''}
-                            <div class="card-footer">
-                                <span class="price">${a.price || '€ -'}</span>
-                                <a href="${a.bookingUrl}" target="_blank" class="btn-link">Beschikbaarheid</a>
-                            </div>
-                        </div>
+    document.getElementById(target).innerHTML = ids.map(id => {
+        const a = activities.find(x => x.id === id);
+        if(!a) return '';
+        
+        const count = votes[id] || 0;
+        // Percentage kan nu nooit boven de 100% uitkomen
+        const perc = Math.min(100, Math.round((count / totalUsers) * 100));
+        
+        return `
+            <div class="card">
+                <div class="match-perc">${perc}% Match</div>
+                <img src="${a.image}" class="card-img">
+                <div class="card-body">
+                    <span class="card-category">${a.category}</span>
+                    <h3 class="card-title">${a.title}</h3>
+                    ${showDesc ? `<p class="card-desc">${(a.desc || '').substring(0, 90)}...</p>` : ''}
+                    <div class="card-footer">
+                        <span class="price">${a.price || '€ -'}</span>
+                        <a href="${a.bookingUrl}" target="_blank" class="btn-link">Beschikbaarheid</a>
                     </div>
-                `;
-            }).join('');
-        };
-
+                </div>
+            </div>
+        `;
+    }).join('');
+};
         render(sortedIds.slice(0, 5), 'top-results', true);
         render(sortedIds.slice(5), 'all-results-list', false);
 
