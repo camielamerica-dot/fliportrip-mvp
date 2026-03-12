@@ -110,36 +110,61 @@
         .progress-fill { height: 100%; background: var(--accent); transition: 1.5s ease; }
 
         .why-section {
-    padding: 60px 8%; /* Minder verticale ruimte */
-    background: var(--obsidian);
-    color: white;
-}
+            padding: 80px 5%;
+            background: var(--obsidian);
+            color: white;
+            display: flex;
+            justify-content: center;
+        }
 
-.split-section {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 60px;
-    align-items: center;
-    max-width: 1100px; /* Houdt de sectie smal */
-    margin: 0 auto;
-}
+        .split-section {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 80px;
+            align-items: center;
+            max-width: 1200px;
+            width: 100%;
+        }
 
-.why-image img {
-    width: 100%;
-    max-height: 400px; /* Voorkomt dat de foto te hoog wordt */
-    object-fit: cover;
-    border-radius: 24px;
-}
+        .why-content h2 {
+            color: white;
+            margin-bottom: 24px;
+            font-size: clamp(28px, 4vw, 38px);
+        }
 
-.btn-main-light {
-    background: white;
-    color: var(--obsidian);
-    padding: 16px 32px;
-    border-radius: 12px;
-    text-decoration: none;
-    font-weight: 700;
-    display: inline-block;
-}
+        .why-content p {
+            color: rgba(255,255,255,0.7);
+            line-height: 1.7;
+            font-size: 17px;
+            margin-bottom: 35px;
+            max-width: 500px;
+        }
+
+        .why-image img {
+            width: 100%;
+            height: 450px;
+            object-fit: cover;
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+
+        .btn-white {
+            background: white;
+            color: var(--obsidian);
+            padding: 18px 32px;
+            border-radius: 14px;
+            text-decoration: none;
+            font-weight: 700;
+            display: inline-block;
+            transition: 0.3s;
+        }
+
+        .btn-white:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(255,255,255,0.1);
+        }
+
+                  
 
         .faq-section { padding: 100px 8%; background-color: #ffffff; }
         .faq-container { max-width: 800px; margin: 0 auto; }
@@ -174,6 +199,14 @@
             .hero { padding-top: 120px; }
             .hero p { margin: 0 auto 30px; }
             .footer-brand { margin-bottom: 30px; }
+            .split-section {
+                grid-template-columns: 1fr;
+                gap: 40px;
+                text-align: center;
+            }
+            .why-content p { margin: 0 auto 30px; }
+            .why-image img { height: 300px; }
+        }
         }
     </style>
 </head>
