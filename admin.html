@@ -181,16 +181,20 @@
             <div>
                 <div class="card">
                     <h3 style="margin-top:0">Nieuwe Activiteit</h3>
-                    <input type="hidden" id="edit-id">
-                    <input type="text" id="i-title" placeholder="Naam van uitje">
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                        <select id="i-dest"></select>
-                        <select id="i-cat"></select>
-                    </div>
-                    <input type="text" id="i-loc" placeholder="Adres (Locatie)">
-                    <textarea id="i-desc" placeholder="Korte wervende tekst" rows="4"></textarea>
-                    <input type="text" id="i-img" placeholder="Afbeelding URL (Unsplash)">
-                    <button class="btn-accent" onclick="saveItem()">Item Opslaan</button>
+<input type="hidden" id="edit-id">
+<input type="text" id="i-title" placeholder="Naam van uitje">
+<div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+    <select id="i-dest"></select>
+    <select id="i-cat"></select>
+</div>
+<div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+    <input type="text" id="i-price" placeholder="Prijs (bijv. €12,50 of Gratis)">
+    <input type="text" id="i-book-url" placeholder="Boekings-URL (https://...)">
+</div>
+<input type="text" id="i-loc" placeholder="Adres (Locatie)">
+<textarea id="i-desc" placeholder="Korte wervende tekst" rows="4"></textarea>
+<input type="text" id="i-img" placeholder="Afbeelding URL (Unsplash)">
+<button class="btn-accent" onclick="saveItem()">Item Opslaan</button>
                 </div>
                 <div class="card" style="border: 2px dashed #e2e8f0; background: transparent;">
                     <h3>Bulk Import</h3>
@@ -324,29 +328,38 @@
     }
 
     function renderCatalog() {
-        document.getElementById('cat-list').innerHTML = activities.map(i => `
-            <div class="card" style="display:flex; align-items:center; gap:20px; padding:15px;">
-                <img src="${i.image}" class="thumb" style="width:60px; height:60px;">
-                <div style="flex:1">
-                    <strong style="font-size:16px;">${i.title}</strong><br>
-                    <small style="color:var(--text-light)">${i.city} • ${i.category}</small>
-                </div>
-                <button class="btn-outline" onclick="deleteItem('${i.id}')">VERWIJDEREN</button>
-            </div>`).join('');
-    }
+    document.getElementById('cat-list').innerHTML = activities.map(i => `
+        <div class="card" style="display:flex; align-items:center; gap:20px; padding:15px;">
+            <img src="${i.image}" class="thumb" style="width:60px; height:60px;">
+            <div style="flex:1">
+                <strong style="font-size:16px;">${i.title}</strong> 
+                <span style="font-size:12px; color:var(--accent); font-weight:800; margin-left:10px;">${i.price || ''}</span><br>
+                <small style="color:var(--text-light)">${i.city} • ${i.category}</small>
+                ${i.bookingUrl ? `<br><a href="${i.bookingUrl}" target="_blank" style="font-size:11px; color:var(--indigo); text-decoration:underline;">Boekingslink bekijken</a>` : ''}
+            </div>
+            <button class="btn-outline" onclick="deleteItem('${i.id}')">VERWIJDEREN</button>
+        </div>`).join('');
+}
 
     window.saveItem = async () => {
-        const data = {
-            title: document.getElementById('i-title').value,
-            city: document.getElementById('i-dest').value,
-            category: document.getElementById('i-cat').value,
-            location: document.getElementById('i-loc').value,
-            desc: document.getElementById('i-desc').value,
-            image: document.getElementById('i-img').value
-        };
-        await addDoc(collection(db, "activities"), data);
-        alert("Activiteit toegevoegd!");
+    const data = {
+        title: document.getElementById('i-title').value,
+        city: document.getElementById('i-dest').value,
+        category: document.getElementById('i-cat').value,
+        price: document.getElementById('i-price').value || "N.v.t.", // Nieuw
+        bookingUrl: document.getElementById('i-book-url').value || "", // Nieuw
+        location: document.getElementById('i-loc').value,
+        desc: document.getElementById('i-desc').value,
+        image: document.getElementById('i-img').value
     };
+    await addDoc(collection(db, "activities"), data);
+    
+    // Velden leegmaken na opslaan
+    document.getElementById('i-title').value = "";
+    document.getElementById('i-price').value = "";
+    document.getElementById('i-book-url').value = "";
+    alert("Activiteit toegevoegd!");
+};
 
     window.addSetting = async (type, inputId) => {
         const name = document.getElementById(inputId).value;
@@ -358,27 +371,25 @@
     window.deleteItem = async (id) => { if(confirm("Activiteit definitief wissen?")) await deleteDoc(doc(db, "activities", id)); };
 
     window.handleCSV = async () => {
-        const file = document.getElementById('csv-file').files[0];
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const rows = e.target.result.split('\n').filter(r => r.trim() !== '');
-            const delimiter = rows[0].includes(';') ? ';' : ',';
-            const batch = writeBatch(db);
-            for(let i = 1; i < rows.length; i++) {
-                const c = rows[i].split(delimiter);
-                if(c.length >= 3) {
-                    const newDocRef = doc(collection(db, "activities"));
-                    batch.set(newDocRef, {
-                        title: c[0]?.trim(), city: c[1]?.trim(), category: c[2]?.trim(),
-                        location: c[3]?.trim(), desc: c[4]?.trim(), image: c[5]?.trim() || ""
-                    });
-                }
-            }
-            await batch.commit();
-            alert("Bulk import voltooid!");
-        };
-        reader.readAsText(file);
-    };
+    // ... (bestaande reader code)
+    for(let i = 1; i < rows.length; i++) {
+        const c = rows[i].split(delimiter);
+        if(c.length >= 3) {
+            const newDocRef = doc(collection(db, "activities"));
+            batch.set(newDocRef, {
+                title: c[0]?.trim(), 
+                city: c[1]?.trim(), 
+                category: c[2]?.trim(),
+                location: c[3]?.trim(), 
+                desc: c[4]?.trim(), 
+                image: c[5]?.trim() || "",
+                price: c[6]?.trim() || "€ -", // Nieuwe kolom in CSV
+                bookingUrl: c[7]?.trim() || "" // Nieuwe kolom in CSV
+            });
+        }
+    }
+    // ...
+};
 
     window.switchTab = (t) => {
         document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
