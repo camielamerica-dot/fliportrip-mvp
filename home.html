@@ -35,7 +35,7 @@
             background-color: #fbfbfb;
         }
 
-        /* --- NAVIGATIE --- */
+        /* --- NAVIGATIE DESKTOP --- */
         nav {
             padding: 0 5%;
             display: flex;
@@ -60,12 +60,13 @@
             flex-direction: column;
             gap: 5px;
             cursor: pointer;
-            z-index: 1001;
+            z-index: 1002;
         }
-        .menu-toggle span { width: 25px; height: 3px; background: var(--indigo); border-radius: 3px; }
+        .menu-toggle span { width: 25px; height: 3px; background: var(--indigo); border-radius: 3px; transition: 0.3s; }
 
         .nav-links { display: flex; gap: 25px; align-items: center; }
-        .nav-links a { text-decoration: none; color: var(--indigo); font-weight: 600; font-size: 13px; }
+        .nav-links a { text-decoration: none; color: var(--indigo); font-weight: 600; font-size: 13px; transition: 0.2s; }
+        .nav-links a:hover { color: var(--accent); }
 
         /* --- HERO --- */
         .hero { 
@@ -86,9 +87,9 @@
         .btn { padding: 14px 28px; border-radius: 12px; font-weight: 700; text-decoration: none; transition: all 0.2s ease; font-size: 15px; display: inline-block; }
         .btn-primary { background: var(--indigo); color: white; box-shadow: 0 10px 20px rgba(30, 41, 59, 0.1); }
         .btn-secondary { background: white; color: var(--indigo); border: 1px solid rgba(0,0,0,0.06); }
-        .btn:hover { transform: translateY(-2px); }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
 
-        /* --- WAAROM SECTIE (WIT MET EXTRA RUIMTE) --- */
+        /* --- WAAROM SECTIE --- */
         .why-section { padding: 160px 5%; background-color: #ffffff; }
         .split-section { 
             display: grid; 
@@ -123,66 +124,37 @@
         /* --- DESTINATIONS --- */
         .destinations-container { padding: 100px 8%; background-color: #fbfbfb; }
         .destination-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
-        .city-card { background: white; padding: 30px; border-radius: 24px; text-decoration: none; color: var(--indigo); border: 1px solid rgba(0,0,0,0.02); min-height: 180px; display: flex; flex-direction: column; justify-content: space-between; }
+        .city-card { background: white; padding: 30px; border-radius: 24px; text-decoration: none; color: var(--indigo); border: 1px solid rgba(0,0,0,0.02); min-height: 180px; display: flex; flex-direction: column; justify-content: space-between; transition: 0.3s; }
+        .city-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
 
-        footer { padding: 80px 5%; text-align: center; opacity: 0.4; font-size: 12px; }
+        footer { padding: 80px 5%; text-align: center; opacity: 0.5; font-size: 13px; }
 
-        /* --- MOBILE OPTIMALISATIE --- */
-        /* --- FULLSCREEN MOBILE MENU --- */
-@media (max-width: 900px) {
-    .menu-toggle { 
-        display: flex; 
-        position: relative;
-        z-index: 1002; /* Boven het menu uit */
-    }
+        /* --- MOBILE OPTIMALISATIE (Start op 900px) --- */
+        @media (max-width: 900px) {
+            .menu-toggle { display: flex; }
 
-    /* Het menu wordt een fullscreen overlay */
-    .nav-links { 
-        display: none; 
-        flex-direction: column; 
-        justify-content: center; /* Menu items in het midden */
-        align-items: center;
-        position: fixed; 
-        top: 0; 
-        left: 0; 
-        width: 100vw; 
-        height: 100vh; 
-        background: white; 
-        gap: 30px; 
-        z-index: 1001;
-        padding: 0;
-    }
+            .nav-links { 
+                display: none; 
+                flex-direction: column; 
+                justify-content: center; 
+                align-items: center;
+                position: fixed; 
+                top: 0; left: 0; 
+                width: 100vw; height: 100vh; 
+                background: white; 
+                gap: 30px; 
+                z-index: 1001;
+            }
 
-    .nav-links.active { 
-        display: flex !important; 
-        animation: fadeIn 0.3s ease;
-    }
+            .nav-links.active { display: flex !important; animation: fadeIn 0.3s ease; }
+            .nav-links a { font-size: 24px; font-weight: 800; }
 
-    .nav-links a {
-        font-size: 24px; /* Grotere tekst voor fullscreen */
-        font-weight: 800;
-    }
+            @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    /* Animatie voor het menu */
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Hamburger naar 'X' animatie als menu actief is */
-    #mobile-menu.active span:nth-child(1) {
-        transform: rotate(45deg) translate(5px, 5px);
-    }
-    #mobile-menu.active span:nth-child(2) {
-        opacity: 0;
-    }
-    #mobile-menu.active span:nth-child(3) {
-        transform: rotate(-45deg) translate(7px, -7px);
-    }
-
-    /* Verberg logo in de achtergrond als menu open is (optioneel voor rust) */
-    nav.menu-open .nav-logo { opacity: 0; }
-}
+            /* Hamburger naar X animatie */
+            .menu-toggle.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 6px); }
+            .menu-toggle.active span:nth-child(2) { opacity: 0; }
+            .menu-toggle.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -6px); }
 
             .why-section { padding: 80px 5%; }
             .split-section { grid-template-columns: 1fr; gap: 60px; text-align: center; }
@@ -195,7 +167,8 @@
             .steps-grid { grid-template-columns: 1fr; }
             h1 { font-size: 42px; }
             h2 { font-size: 32px; }
-        }
+        } /* <--- HIER GING HET MIS, DEZE SLUIT-ACCOLADE MOET HIER */
+
     </style>
 </head>
 <body>
@@ -276,15 +249,26 @@
 <script>
     const menuToggle = document.getElementById('mobile-menu');
     const navContent = document.getElementById('nav-content');
+    const body = document.querySelector('body');
 
     menuToggle.addEventListener('click', () => {
         navContent.classList.toggle('active');
+        menuToggle.classList.toggle('active');
+        
+        // Voorkom scrollen als menu open is
+        if (navContent.classList.contains('active')) {
+            body.style.overflow = 'hidden';
+        } else {
+            body.style.overflow = 'auto';
+        }
     });
 
     // Close menu on link click
     document.querySelectorAll('.nav-links a').forEach(link => {
         link.addEventListener('click', () => {
             navContent.classList.remove('active');
+            menuToggle.classList.remove('active');
+            body.style.overflow = 'auto';
         });
     });
 </script>
