@@ -128,15 +128,61 @@
         footer { padding: 80px 5%; text-align: center; opacity: 0.4; font-size: 12px; }
 
         /* --- MOBILE OPTIMALISATIE --- */
-        @media (max-width: 900px) {
-            nav { height: 70px; }
-            .menu-toggle { display: flex; }
-            .nav-links { 
-                display: none; flex-direction: column; position: absolute; top: 70px; left: 0; 
-                width: 100%; background: white; padding: 30px; gap: 20px; 
-                box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-            }
-            .nav-links.active { display: flex; }
+        /* --- FULLSCREEN MOBILE MENU --- */
+@media (max-width: 900px) {
+    .menu-toggle { 
+        display: flex; 
+        position: relative;
+        z-index: 1002; /* Boven het menu uit */
+    }
+
+    /* Het menu wordt een fullscreen overlay */
+    .nav-links { 
+        display: none; 
+        flex-direction: column; 
+        justify-content: center; /* Menu items in het midden */
+        align-items: center;
+        position: fixed; 
+        top: 0; 
+        left: 0; 
+        width: 100vw; 
+        height: 100vh; 
+        background: white; 
+        gap: 30px; 
+        z-index: 1001;
+        padding: 0;
+    }
+
+    .nav-links.active { 
+        display: flex !important; 
+        animation: fadeIn 0.3s ease;
+    }
+
+    .nav-links a {
+        font-size: 24px; /* Grotere tekst voor fullscreen */
+        font-weight: 800;
+    }
+
+    /* Animatie voor het menu */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Hamburger naar 'X' animatie als menu actief is */
+    #mobile-menu.active span:nth-child(1) {
+        transform: rotate(45deg) translate(5px, 5px);
+    }
+    #mobile-menu.active span:nth-child(2) {
+        opacity: 0;
+    }
+    #mobile-menu.active span:nth-child(3) {
+        transform: rotate(-45deg) translate(7px, -7px);
+    }
+
+    /* Verberg logo in de achtergrond als menu open is (optioneel voor rust) */
+    nav.menu-open .nav-logo { opacity: 0; }
+}
 
             .why-section { padding: 80px 5%; }
             .split-section { grid-template-columns: 1fr; gap: 60px; text-align: center; }
