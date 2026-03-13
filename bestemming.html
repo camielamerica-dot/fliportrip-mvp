@@ -106,7 +106,6 @@
     const feed = document.getElementById('live-feed');
     const titleElement = document.getElementById('trend-title-main');
     
-    // Update de titel met de stadsnaam
     titleElement.innerText = `De meest trending activiteiten op dit moment in ${STAD}`;
 
     if(total === 0) {
@@ -114,23 +113,27 @@
         return;
     }
 
-    // Sorteer en pak de top 5
     const top = Object.keys(votes).sort((a,b) => votes[b] - votes[a]).slice(0, 5);
     
     feed.innerHTML = top.map((id, i) => {
         const p = Math.round((votes[id]/total)*100);
+        const activity = lib[id];
+        // We pakken de link uit de database, of sturen ze naar de app als er geen link is
+        const targetLink = activity.link || `/app?activity=${id}`;
+
         return `
-            <div class="trend-card">
-                <img src="${lib[id].image}" class="trend-img" onerror="this.src='https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=200'">
+            <div class="trend-card" onclick="window.open('${targetLink}', '_blank')" style="cursor:pointer;">
+                <img src="${activity.image}" class="trend-img" onerror="this.src='https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=200'">
                 <div class="trend-info">
                     <div class="trend-top">
-                        <strong>${i+1}. ${lib[id].title}</strong>
+                        <strong>${i+1}. ${activity.title}</strong>
                         <span style="color:var(--accent)">${p}% match</span>
                     </div>
                     <div class="progress-bar">
                         <div class="progress-fill" style="width:${p}%"></div>
                     </div>
                 </div>
+                <div class="trend-arrow">→</div>
             </div>`;
     }).join('');
 }
@@ -282,6 +285,29 @@
     margin-bottom: 6px; 
     font-size: 13px; 
     font-weight: 700; 
+}
+        .trend-card {
+    position: relative;
+    /* ... rest van je bestaande styling ... */
+}
+
+.trend-card:hover {
+    background: #f8fafc; /* Lichtgrijze hover */
+    transform: translateX(8px);
+    border-color: var(--accent);
+}
+
+.trend-arrow {
+    margin-left: 10px;
+    font-weight: 800;
+    color: var(--text-light);
+    opacity: 0;
+    transition: 0.3s;
+}
+
+.trend-card:hover .trend-arrow {
+    opacity: 1;
+    color: var(--accent);
 }
 
 /* Mobiel vriendelijk maken */
