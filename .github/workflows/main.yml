@@ -10,17 +10,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: 🛰️ Haal code op
         uses: actions/checkout@v4
 
-      - name: Deploy via FTP
+      - name: 📂 Upload via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ftp.flip2trip.nl
+          server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           port: 21
-          server-dir: /public_html/
+          # DIT IS DE BELANGRIJKSTE WIJZIGING:
+          server-dir: httpdocs/
           security: loose
-          passive: true
