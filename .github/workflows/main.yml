@@ -20,9 +20,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           port: 21
-          # We dwingen de robot om naar de httpdocs map te gaan vanaf de root
-          server-dir: /httpdocs/
-          # Belangrijk voor servers die eigenwijs zijn met SSL-certificaten
+          # We proberen nu het relatieve pad zonder slashes aan het begin
+          server-dir: ./httpdocs/
           security: loose
-          # Voorkomt dat de verbinding te snel verbreekt
           timeout: 60000
