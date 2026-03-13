@@ -140,7 +140,56 @@ document.querySelectorAll('.nav-links a').forEach(link => {
     :root { --obsidian: #161B22; --indigo: #1e293b; --accent: #2D6A4F; --text-light: #64748b; --bg-light: #f8fafc; }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
     body { font-family: 'Plus Jakarta Sans', sans-serif; color: var(--indigo); overflow-x: hidden; background: #fff; line-height: 1.5; width: 100%; }
+/* Universele Button Animatie */
+a[href="/app"], .nav-btn, .btn-secondary {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+}
 
+/* Hover effect voor desktop */
+@media (min-width: 901px) {
+    a[href="/app"]:hover, .nav-btn:hover, .btn-secondary:hover {
+        transform: translateY(-3px); /* Beweegt subtiel omhoog */
+        box-shadow: 0 10px 20px rgba(0,0,0,0.15); /* Voegt diepte toe */
+        filter: brightness(1.1); /* Maakt de kleur iets lichter */
+    }
+
+    a[href="/app"]:active, .nav-btn:active {
+        transform: translateY(-1px); /* Klik-effect */
+    }
+}
+
+/* Speciaal effect voor de Trends kaarten */
+.trend-card {
+    transition: all 0.3s ease;
+}
+
+.trend-card:hover {
+    background-color: #fcfcfc;
+    border-color: var(--accent);
+    transform: scale(1.02); /* Maakt de hele kaart een fractie groter */
+}
+        @keyframes shimmer {
+    100% { left: 125%; }
+}
+
+a[href="/app"]::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -60%;
+    width: 20%;
+    height: 200%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(30deg);
+    transition: none;
+}
+
+a[href="/app"]:hover::after {
+    animation: shimmer 0.8s forwards;
+}
     /* --- NAVIGATIE DESKTOP --- */
 nav {
     padding: 0 5%;
