@@ -1,4 +1,18 @@
-- name: 📂 Upload via FTP
+name: Deploy-Mijndomein
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  web-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛰️ Haal code op
+        uses: actions/checkout@v4
+
+      - name: 📂 Upload via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ftp.flip2trip.nl
@@ -6,9 +20,6 @@
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           port: 21
-          # We proberen nu het pad zonder enige puntjes of slashes aan het begin
-          # De robot begint in de map waar de FTP-gebruiker landt.
-          server-dir: ./httpdocs/ 
+          server-dir: httpdocs/
           security: loose
-          # Voeg dit toe om precies te zien wat de robot doet in de logs:
-          log-level: verbose
+          timeout: 60000
