@@ -103,24 +103,37 @@
 }
 
         function renderUI(votes, lib, total) {
-            const feed = document.getElementById('live-feed');
-            if(total === 0) {
-                feed.innerHTML = '<p style="color:var(--text-light)">Nog geen live data voor deze regio...</p>';
-                return;
-            }
-            const top = Object.keys(votes).sort((a,b) => votes[b] - votes[a]).slice(0,3);
-            feed.innerHTML = top.map((id, i) => {
-                const p = Math.round((votes[id]/total)*100);
-                return `
-                    <div class="trend-card">
-                        <img src="${lib[id].image}" class="trend-img" onerror="this.src='https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400'">
-                        <div class="trend-info">
-                            <div class="trend-top"><strong>${lib[id].title}</strong><span>${p}% match</span></div>
-                            <div class="progress-bar"><div class="progress-fill" style="width:${p}%"></div></div>
-                        </div>
-                    </div>`;
-            }).join('');
-        }
+    const feed = document.getElementById('live-feed');
+    const titleElement = document.getElementById('trend-title-main');
+    
+    // Update de titel met de stadsnaam
+    titleElement.innerText = `De meest trending activiteiten op dit moment in ${STAD}`;
+
+    if(total === 0) {
+        feed.innerHTML = '<p style="color:var(--text-light)">Nog geen live data voor deze regio...</p>';
+        return;
+    }
+
+    // Sorteer en pak de top 5
+    const top = Object.keys(votes).sort((a,b) => votes[b] - votes[a]).slice(0, 5);
+    
+    feed.innerHTML = top.map((id, i) => {
+        const p = Math.round((votes[id]/total)*100);
+        return `
+            <div class="trend-card">
+                <img src="${lib[id].image}" class="trend-img" onerror="this.src='https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=200'">
+                <div class="trend-info">
+                    <div class="trend-top">
+                        <strong>${i+1}. ${lib[id].title}</strong>
+                        <span style="color:var(--accent)">${p}% match</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width:${p}%"></div>
+                    </div>
+                </div>
+            </div>`;
+    }).join('');
+}
         window.onload = initPage;
     </script>
 
@@ -213,6 +226,68 @@
             .why-content p { margin: 0 auto 30px; }
             .why-image img { height: 300px; }
         }
+        .trend-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 60px;
+    align-items: center;
+}
+
+.live-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+    font-weight: 800;
+    color: #ff4b4b;
+    margin-bottom: 20px;
+}
+
+.pulse {
+    width: 8px;
+    height: 8px;
+    background: #ff4b4b;
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(255, 75, 75, 0.7);
+    animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 75, 75, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 10px 10px rgba(255, 75, 75, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 75, 75, 0); }
+}
+
+.trend-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: white;
+    padding: 12px;
+    border-radius: 18px;
+    margin-bottom: 12px;
+    transition: 0.3s;
+    border: 1px solid rgba(0,0,0,0.03);
+}
+
+.trend-card:hover { transform: translateX(5px); border-color: var(--accent); }
+
+.trend-img { width: 50px; height: 50px; border-radius: 12px; object-fit: cover; }
+
+.trend-info { flex: 1; }
+
+.trend-top { 
+    display: flex; 
+    justify-content: space-between; 
+    margin-bottom: 6px; 
+    font-size: 13px; 
+    font-weight: 700; 
+}
+
+/* Mobiel vriendelijk maken */
+@media (max-width: 900px) {
+    .trend-layout { grid-template-columns: 1fr; gap: 40px; }
+}
     </style>
 </head>
 <body>
@@ -253,13 +328,22 @@
 </section>
 
 <section class="section-trends" id="activiteiten">
-    <div class="glass-box">
-        <div style="display:flex; align-items:center; gap:10px; font-size:11px; font-weight:800; color:#ff4b4b; margin-bottom:20px;">
-            <div style="width:8px; height:8px; background:#ff4b4b; border-radius:50%;"></div> <span id="dyn-trend-city">LIVE TRENDS</span>
+    <div class="glass-box trend-layout">
+        <div class="trend-intro">
+            <div class="live-indicator">
+                <div class="pulse"></div> 
+                <span id="dyn-trend-city">LIVE TRENDS</span>
+            </div>
+            <h2 id="trend-title-main">De meest trending activiteiten op dit moment</h2>
+            <p style="color:var(--text-light); line-height: 1.6;">
+                Gebaseerd op de real-time swipes en matches van groepen die momenteel hun trip naar deze bestemming plannen.
+            </p>
         </div>
-        <h2 style="margin:0 0 40px 0;">Populairste outdoor keuzes</h2>
-        <div id="live-feed">
-            <p style="color:var(--text-light)">Trends worden geladen...</p>
+
+        <div class="trend-feed-container">
+            <div id="live-feed">
+                <p style="color:var(--text-light)">Trends worden geladen...</p>
+            </div>
         </div>
     </div>
 </section>
