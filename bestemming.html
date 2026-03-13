@@ -73,23 +73,34 @@
         }
 
         async function initLiveTrends() {
-            const actSnap = await getDocs(collection(db, "activities"));
-            const lib = {};
-            actSnap.forEach(d => { if(d.data().city === STAD) lib[d.id] = d.data(); });
+    const actSnap = await getDocs(collection(db, "activities"));
+    const lib = {};
+    
+    actSnap.forEach(d => { 
+        const activityData = d.data();
+        // We maken beide waarden kleine letters voor een eerlijke vergelijking
+        if(activityData.city && activityData.city.toLowerCase().trim() === STAD.toLowerCase().trim()) { 
+            lib[d.id] = activityData; 
+        } 
+    });
 
-            onSnapshot(collection(db, "rooms"), (snap) => {
-                let votes = {}, total = 0;
-                snap.forEach(doc => {
-                    const r = doc.data();
-                    if(r.votes && r.destination === STAD) {
-                        Object.keys(r.votes).forEach(id => {
-                            if(lib[id]) { votes[id] = (votes[id] || 0) + r.votes[id]; total += r.votes[id]; }
-                        });
+    onSnapshot(collection(db, "rooms"), (snap) => {
+        let votes = {}, total = 0;
+        snap.forEach(doc => {
+            const r = doc.data();
+            // Match ook hier de bestemming van de room met de huidige stad
+            if(r.votes && r.destination && r.destination.toLowerCase().trim() === STAD.toLowerCase().trim()) {
+                Object.keys(r.votes).forEach(id => {
+                    if(lib[id]) { 
+                        votes[id] = (votes[id] || 0) + r.votes[id]; 
+                        total += r.votes[id]; 
                     }
                 });
-                renderUI(votes, lib, total);
-            });
-        }
+            }
+        });
+        renderUI(votes, lib, total);
+    });
+}
 
         function renderUI(votes, lib, total) {
             const feed = document.getElementById('live-feed');
