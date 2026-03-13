@@ -23,7 +23,7 @@ jobs:
           port: 21
           security: loose
           timeout: 120000
-          server-dir: /httpdocs/
+          server-dir: httpdocs/
           exclude: |
             **/.git*
             **/.git*/**
