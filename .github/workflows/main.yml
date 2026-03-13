@@ -13,7 +13,7 @@ jobs:
     - name: 🛰️ Haal code op
       uses: actions/checkout@v3
 
-    - name: 📂 Bestanden overzetten
+    - name: 📂 Bestanden overzetten via FTPS
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
         server: ${{ secrets.FTP_SERVER }}
@@ -21,3 +21,7 @@ jobs:
         password: ${{ secrets.FTP_PASSWORD }}
         server-dir: ./
         protocol: ftp
+        port: 21
+        security: ftps
+        # Dit negeert eventuele certificaatfouten die bij shared hosting vaak voorkomen
+        ignore-ssl-errors: true
