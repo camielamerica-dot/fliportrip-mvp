@@ -13,14 +13,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 📂 Upload via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        uses: ArielMejiaDev/ftp-deploy@v3.0.0
         with:
           server: ftp.flip2trip.nl
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
           port: 21
-          # We proberen nu het relatieve pad zonder slashes aan het begin
-          server-dir: ./httpdocs/
-          security: loose
-          timeout: 60000
+          # We proberen nu het pad zonder enige extra tekens:
+          local_dir: .
+          remote_dir: ./httpdocs
+          delete: false
