@@ -54,6 +54,10 @@
         .btn-outline:hover { background: #fee2e2; border-color: #ef4444; color: #ef4444; }
         
         label { font-size: 11px; font-weight: 800; color: var(--text-light); text-transform: uppercase; margin-bottom: 5px; display: block; }
+
+        /* FAQ SPECIFIC */
+        .faq-row { display: grid; grid-template-columns: 1fr 1.5fr 45px; gap: 10px; margin-bottom: 10px; }
+        .faq-row input { margin-bottom: 0; }
     </style>
 </head>
 <body>
@@ -167,16 +171,27 @@
             </div>
 
             <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
+            
             <h4 style="margin-bottom: 15px;">"Waarom" Sectie Content</h4>
-            
-            <label>Waarom Titel</label>
-            <input type="text" id="content-why-title" placeholder="Bijv: Waarom Ardennen met Flip 2 Trip?">
-            
-            <label>Waarom Tekst</label>
-            <textarea id="content-why-text" placeholder="Uitleg over de voordelen van deze specifieke regio..." rows="3"></textarea>
-            
-            <label>Waarom Afbeelding URL</label>
-            <input type="text" id="content-why-img" placeholder="Afbeelding URL voor de waarom-sectie">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <label>Waarom Titel</label>
+                    <input type="text" id="content-why-title" placeholder="Bijv: Waarom Ardennen?">
+                    <label>Waarom Afbeelding URL</label>
+                    <input type="text" id="content-why-img">
+                </div>
+                <div>
+                    <label>Waarom Tekst</label>
+                    <textarea id="content-why-text" rows="5"></textarea>
+                </div>
+            </div>
+
+            <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
+
+            <h4 style="margin-bottom: 15px;">📍 Veelgestelde Vragen (FAQ) per Bestemming</h4>
+            <div id="faq-list-editor" style="margin-bottom: 15px;">
+                </div>
+            <button class="btn-outline" style="width: auto; margin-bottom: 30px;" onclick="addFaqRow()">+ Vraag toevoegen</button>
 
             <button class="btn-accent" style="margin-top: 20px; font-size: 16px;" onclick="saveCityContent()">Pagina Content Opslaan</button>
         </div>
@@ -211,12 +226,26 @@
         });
     }
 
+    // --- FAQ FUNCTIES ---
+    window.addFaqRow = (q = "", a = "") => {
+        const container = document.getElementById('faq-list-editor');
+        const div = document.createElement('div');
+        div.className = "faq-row";
+        div.innerHTML = `
+            <input type="text" class="faq-q" placeholder="Vraag..." value="${q}">
+            <input type="text" class="faq-a" placeholder="Antwoord..." value="${a}">
+            <button class="btn-outline" onclick="this.parentElement.remove()" style="padding: 10px; color: #ef4444;">✕</button>
+        `;
+        container.appendChild(div);
+    };
+
     // --- LANDINGPAGE CONTENT LOGICA ---
     window.loadCityContent = async () => {
         const city = document.getElementById('content-city-select').value;
         if(!city) return;
 
         const snap = await getDoc(doc(db, "cityContent", city));
+        document.getElementById('faq-list-editor').innerHTML = ""; // Reset FAQs
         
         if (snap.exists()) {
             const d = snap.data();
@@ -230,8 +259,9 @@
             document.getElementById('content-why-title').value = d.whyTitle || "";
             document.getElementById('content-why-text').value = d.whyText || "";
             document.getElementById('content-why-img').value = d.whyImage || "";
+            
+            if(d.faqs) d.faqs.forEach(f => addFaqRow(f.q, f.a));
         } else {
-            // Reset velden als stad nog niet bestaat in cityContent
             ['content-title', 'content-badge', 'content-desc', 'content-img1', 'content-img2', 'content-img3', 'content-why-title', 'content-why-text', 'content-why-img'].forEach(id => {
                 document.getElementById(id).value = "";
             });
@@ -242,6 +272,14 @@
     window.saveCityContent = async () => {
         const city = document.getElementById('content-city-select').value;
         if(!city) return alert("Selecteer eerst een stad");
+
+        // Verzamel FAQs
+        const faqs = [];
+        document.querySelectorAll('.faq-row').forEach(row => {
+            const q = row.querySelector('.faq-q').value;
+            const a = row.querySelector('.faq-a').value;
+            if(q && a) faqs.push({ q, a });
+        });
 
         const data = {
             title: document.getElementById('content-title').value,
@@ -255,7 +293,8 @@
                 document.getElementById('content-img1').value,
                 document.getElementById('content-img2').value,
                 document.getElementById('content-img3').value
-            ]
+            ],
+            faqs: faqs
         };
 
         try {
@@ -290,7 +329,7 @@
 
         document.getElementById('dash-details').innerHTML = `
             <div class="card" style="background:var(--indigo); color:white;">
-                <h2>Sessie ${roomId}</h2>
+                <h2 style="color:white; margin:0;">Sessie ${roomId}</h2>
                 <p>Host: ${room.hostName} | Stad: ${room.destination}</p>
             </div>
             <div class="card">
