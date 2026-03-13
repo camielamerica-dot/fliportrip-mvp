@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flip 2 Trip | Business Suite v6.2</title>
+    <title>Flip 2 Trip | Business Suite v6.3</title>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBGms1-wiv_5tq1ehzhhJOjM905WnFMexo&libraries=places"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -44,12 +44,10 @@
         .btn-accent { background: var(--accent); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer; width: 100%; transition: 0.3s; }
         .btn-accent:hover { opacity: 0.9; transform: translateY(-2px); }
 
-        /* ITEM LISTS */
         .item-card { display: flex; align-items: center; background: #f8fafc; padding: 15px; border-radius: 16px; margin-bottom: 10px; border: 1px solid #edf2f7; }
         .thumb { width: 45px; height: 45px; border-radius: 10px; object-fit: cover; margin-right: 15px; background: #eee; }
         .badge-id { font-family: monospace; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-size: 11px; }
 
-        /* LOGIN GATE */
         #login-gate { position: fixed; inset: 0; background: var(--indigo); z-index: 100000; display: flex; align-items: center; justify-content: center; }
 
         .btn-outline { background: transparent; border: 1px solid #e2e8f0; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
@@ -95,26 +93,19 @@
             <div>
                 <div class="card">
                     <h3 style="margin-top:0">Nieuwe Activiteit</h3>
-                    <input type="hidden" id="edit-id">
                     <input type="text" id="i-title" placeholder="Naam van uitje">
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
                         <select id="i-dest"></select>
                         <select id="i-cat"></select>
                     </div>
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                        <input type="text" id="i-price" placeholder="Prijs (bijv. €12,50 of Gratis)">
-                        <input type="text" id="i-book-url" placeholder="Boekings-URL (https://...)">
+                        <input type="text" id="i-price" placeholder="Prijs (bijv. €12,50)">
+                        <input type="text" id="i-book-url" placeholder="Boekings-URL">
                     </div>
                     <input type="text" id="i-loc" placeholder="Adres (Locatie)">
                     <textarea id="i-desc" placeholder="Korte wervende tekst" rows="4"></textarea>
-                    <input type="text" id="i-img" placeholder="Afbeelding URL (Unsplash)">
+                    <input type="text" id="i-img" placeholder="Afbeelding URL">
                     <button class="btn-accent" onclick="saveItem()">Item Opslaan</button>
-                </div>
-                <div class="card" style="border: 2px dashed #e2e8f0; background: transparent;">
-                    <h3>Bulk Import</h3>
-                    <p style="font-size: 13px; color: var(--text-light);">Upload een CSV bestand om meerdere activiteiten tegelijk toe te voegen.</p>
-                    <input type="file" id="csv-file" accept=".csv" style="font-size: 12px;">
-                    <button class="btn-accent" style="background: var(--indigo)" onclick="handleCSV()">Start Import</button>
                 </div>
             </div>
             <div id="cat-list"></div>
@@ -123,7 +114,8 @@
 
     <div id="tab-settings" class="tab">
         <h2>Systeem & Bestemmingpagina's</h2>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:30px;">
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:30px; margin-bottom:30px;">
             <div class="card">
                 <h3>Steden & Bestemmingen</h3>
                 <div id="set-dest" style="margin-bottom: 20px;"></div>
@@ -142,11 +134,9 @@
             </div>
         </div>
 
-        <div class="card" style="border: 2px solid var(--accent); margin-top: 20px;">
+        <div class="card" style="border: 2px solid var(--accent);">
             <h3 style="color: var(--accent);">🎨 Landingspagina Content Editor</h3>
-            <p style="font-size: 13px; color: var(--text-light); margin-bottom: 20px;">
-                Beheer hier de teksten en sfeer van de pagina per stad.
-            </p>
+            <p style="font-size: 13px; color: var(--text-light); margin-bottom: 20px;">Pas hier de teksten en afbeeldingen aan die getoond worden op de specifieke landingspagina van een stad.</p>
 
             <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:15px; margin-bottom: 15px;">
                 <div>
@@ -158,29 +148,44 @@
                     <input type="color" id="content-color" value="#2D6A4F" style="height:45px; padding:2px;">
                 </div>
                 <div>
-                    <label>Hero Titel</label>
-                    <input type="text" id="content-title" placeholder="Bijv: Jouw uitje in de Ardennen">
+                    <label>Badge Tekst</label>
+                    <input type="text" id="content-badge" placeholder="Bijv: Regio Ardennen">
                 </div>
             </div>
+
+            <label>Hero Titel (HTML toegestaan voor &lt;br&gt;)</label>
+            <input type="text" id="content-title" placeholder="Bijv: Avontuur wacht, <br>beslis samen.">
 
             <label>Hero Omschrijving</label>
             <textarea id="content-desc" placeholder="Wervende tekst voor de landingspagina..." rows="3"></textarea>
 
-            <label style="margin-top: 10px;">Sfeerfoto's (3x URL)</label>
+            <label style="margin-top: 10px;">Hero Sfeerfoto's (3x URL)</label>
             <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
                 <input type="text" id="content-img1" placeholder="Foto URL Links">
                 <input type="text" id="content-img2" placeholder="Foto URL Midden">
                 <input type="text" id="content-img3" placeholder="Foto URL Rechts">
             </div>
 
-            <button class="btn-accent" style="margin-top: 20px;" onclick="saveCityContent()">Pagina Updaten</button>
+            <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
+            <h4 style="margin-bottom: 15px;">"Waarom" Sectie Content</h4>
+            
+            <label>Waarom Titel</label>
+            <input type="text" id="content-why-title" placeholder="Bijv: Waarom Ardennen met Flip 2 Trip?">
+            
+            <label>Waarom Tekst</label>
+            <textarea id="content-why-text" placeholder="Uitleg over de voordelen van deze specifieke regio..." rows="3"></textarea>
+            
+            <label>Waarom Afbeelding URL</label>
+            <input type="text" id="content-why-img" placeholder="Afbeelding URL voor de waarom-sectie">
+
+            <button class="btn-accent" style="margin-top: 20px; font-size: 16px;" onclick="saveCityContent()">Pagina Content Opslaan</button>
         </div>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, getDoc, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const config = { apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0", authDomain: "fliportrip-valkenburg.firebaseapp.com", projectId: "fliportrip-valkenburg" };
     const app = initializeApp(config);
@@ -191,7 +196,6 @@
     window.doAuth = () => { if(document.getElementById('pw').value === 'Flip2026') { document.getElementById('login-gate').style.display='none'; init(); } };
 
     function init() {
-        initAutocomplete();
         onSnapshot(collection(db, "settings"), s => {
             const data = s.docs.map(d => ({id: d.id, ...d.data()}));
             destinations = data.filter(x => x.type === 'destinations');
@@ -207,95 +211,93 @@
         });
     }
 
-    // --- LANDINGPAGE EDITOR LOGICA ---
+    // --- LANDINGPAGE CONTENT LOGICA ---
     window.loadCityContent = async () => {
         const city = document.getElementById('content-city-select').value;
         if(!city) return;
+
         const snap = await getDoc(doc(db, "cityContent", city));
+        
         if (snap.exists()) {
             const d = snap.data();
             document.getElementById('content-title').value = d.title || "";
+            document.getElementById('content-badge').value = d.badge || "";
             document.getElementById('content-desc').value = d.desc || "";
             document.getElementById('content-color').value = d.accent || "#2D6A4F";
             document.getElementById('content-img1').value = d.images?.[0] || "";
             document.getElementById('content-img2').value = d.images?.[1] || "";
             document.getElementById('content-img3').value = d.images?.[2] || "";
+            document.getElementById('content-why-title').value = d.whyTitle || "";
+            document.getElementById('content-why-text').value = d.whyText || "";
+            document.getElementById('content-why-img').value = d.whyImage || "";
         } else {
-            ['content-title', 'content-desc', 'content-img1', 'content-img2', 'content-img3'].forEach(id => document.getElementById(id).value = "");
+            // Reset velden als stad nog niet bestaat in cityContent
+            ['content-title', 'content-badge', 'content-desc', 'content-img1', 'content-img2', 'content-img3', 'content-why-title', 'content-why-text', 'content-why-img'].forEach(id => {
+                document.getElementById(id).value = "";
+            });
+            document.getElementById('content-color').value = "#2D6A4F";
         }
     };
 
     window.saveCityContent = async () => {
         const city = document.getElementById('content-city-select').value;
-        if(!city) return alert("Selecteer een stad");
+        if(!city) return alert("Selecteer eerst een stad");
+
         const data = {
             title: document.getElementById('content-title').value,
+            badge: document.getElementById('content-badge').value,
             desc: document.getElementById('content-desc').value,
             accent: document.getElementById('content-color').value,
+            whyTitle: document.getElementById('content-why-title').value,
+            whyText: document.getElementById('content-why-text').value,
+            whyImage: document.getElementById('content-why-img').value,
             images: [
                 document.getElementById('content-img1').value,
                 document.getElementById('content-img2').value,
                 document.getElementById('content-img3').value
             ]
         };
-        await setDoc(doc(db, "cityContent", city), data);
-        alert("Landingspagina succesvol bijgewerkt!");
+
+        try {
+            await setDoc(doc(db, "cityContent", city), data);
+            alert("✅ De pagina voor " + city + " is succesvol bijgewerkt!");
+        } catch (e) {
+            alert("Fout bij opslaan: " + e.message);
+        }
     };
 
-    // --- BESTAANDE LOGICA ---
+    // --- OVERIGE DASHBOARD FUNCTIES ---
     function renderRoomList(rooms) {
         document.getElementById('room-list').innerHTML = rooms.map(r => `
-            <div class="item-card" style="cursor:pointer; border-left: 4px solid var(--accent);" onclick="renderDashboard('${r.id}')">
+            <div class="item-card" style="cursor:pointer;" onclick="renderDashboard('${r.id}')">
                 <div style="flex:1">
                     <span class="badge-id">#${r.id}</span><br>
-                    <strong style="font-size:15px;">${r.hostName || 'Anoniem'}</strong><br>
-                    <small style="color:var(--text-light)">${r.destination}</small>
+                    <strong>${r.hostName || 'Anoniem'}</strong><br>
+                    <small>${r.destination}</small>
                 </div>
-                <div style="color:var(--accent); font-weight:800;">→</div>
             </div>`).join('');
     }
 
     window.renderDashboard = async (roomId) => {
-        const docRef = doc(db, "rooms", roomId);
-        const snap = await getDoc(docRef);
+        const snap = await getDoc(doc(db, "rooms", roomId));
         const room = snap.data();
         const votes = room.votes || {};
 
         let results = Object.keys(votes).map(actId => {
             const act = activities.find(a => a.id === actId);
-            if(!act) return null;
-            let bonus = (room.groupInterests || []).includes(act.category) ? 10 : 0;
-            return { title: act.title, cat: act.category, count: votes[actId], score: (votes[actId] * 2) + bonus };
-        }).filter(x => x !== null).sort((a,b) => b.score - a.score);
+            return act ? { title: act.title, count: votes[actId] } : null;
+        }).filter(x => x).sort((a,b) => b.count - a.count);
 
         document.getElementById('dash-details').innerHTML = `
-            <div class="card" style="background: var(--indigo); color: white;">
-                <h2 style="margin:0; color: white;">Sessie ${roomId}</h2>
-                <p style="opacity:0.7">Host: ${room.hostName} | Bestemming: ${room.destination}</p>
-                <div style="display:flex; gap:8px; margin-top:15px;">
-                    ${(room.groupInterests || []).map(i => `<span style="background:rgba(255,255,255,0.1); color:white; padding:4px 12px; border-radius:8px; font-size:11px; font-weight:700;">${i.toUpperCase()}</span>`).join('')}
-                </div>
+            <div class="card" style="background:var(--indigo); color:white;">
+                <h2>Sessie ${roomId}</h2>
+                <p>Host: ${room.hostName} | Stad: ${room.destination}</p>
             </div>
             <div class="card">
-                <h3>Live Ranking</h3>
-                ${results.length > 0 ? results.map((r, index) => `
-                    <div class="item-card">
-                        <div style="width:30px; font-weight:800; color:var(--accent)">${index+1}</div>
-                        <div style="flex:1"><strong>${r.title}</strong><br><small>${r.cat}</small></div>
-                        <div style="text-align:right"><span style="color:var(--accent); font-weight:800;">${r.count}</span></div>
-                    </div>
-                `).join('') : '<p style="text-align:center; padding:20px; color:var(--text-light)">Nog geen stemmen uitgebracht.</p>'}
+                <h3>Stemmen</h3>
+                ${results.map(r => `<div class="item-card"><div style="flex:1">${r.title}</div><b>${r.count}</b></div>`).join('')}
             </div>`;
     };
-
-    function initAutocomplete() {
-        const autocomplete = new google.maps.places.Autocomplete(document.getElementById('i-loc'));
-        autocomplete.addListener('place_changed', () => {
-            const place = autocomplete.getPlace();
-            const city = place.address_components.find(c => c.types.includes("locality"))?.long_name;
-            if (city) document.getElementById('i-dest').value = city;
-        });
-    }
 
     function updateUI() {
         const dOpt = destinations.map(d => `<option value="${d.name}">${d.name}</option>`).join('');
@@ -303,20 +305,16 @@
         document.getElementById('i-dest').innerHTML = dOpt;
         document.getElementById('i-cat').innerHTML = cOpt;
         document.getElementById('content-city-select').innerHTML = `<option value="">-- Stad kiezen --</option>` + dOpt;
-        document.getElementById('set-dest').innerHTML = destinations.map(d => `<div class="item-card"><div style="flex:1">${d.name}</div> <button class="btn-outline" onclick="deleteSetting('${d.id}')">✕</button></div>`).join('');
-        document.getElementById('set-cat').innerHTML = categories.map(c => `<div class="item-card"><div style="flex:1">${c.name}</div> <button class="btn-outline" onclick="deleteSetting('${c.id}')">✕</button></div>`).join('');
+        document.getElementById('set-dest').innerHTML = destinations.map(d => `<div class="item-card"><div style="flex:1">${d.name}</div><button class="btn-outline" onclick="deleteSetting('${d.id}')">✕</button></div>`).join('');
+        document.getElementById('set-cat').innerHTML = categories.map(c => `<div class="item-card"><div style="flex:1">${c.name}</div><button class="btn-outline" onclick="deleteSetting('${c.id}')">✕</button></div>`).join('');
     }
 
     function renderCatalog() {
         document.getElementById('cat-list').innerHTML = activities.map(i => `
-            <div class="card" style="display:flex; align-items:center; gap:20px; padding:15px;">
-                <img src="${i.image}" class="thumb" style="width:60px; height:60px;">
-                <div style="flex:1">
-                    <strong style="font-size:16px;">${i.title}</strong> 
-                    <span style="font-size:12px; color:var(--accent); font-weight:800; margin-left:10px;">${i.price || ''}</span><br>
-                    <small style="color:var(--text-light)">${i.city} • ${i.category}</small>
-                </div>
-                <button class="btn-outline" onclick="deleteItem('${i.id}')">VERWIJDEREN</button>
+            <div class="card" style="display:flex; align-items:center; gap:20px;">
+                <img src="${i.image}" class="thumb">
+                <div style="flex:1"><strong>${i.title}</strong><br><small>${i.city} • ${i.category}</small></div>
+                <button class="btn-outline" onclick="deleteItem('${i.id}')">✕</button>
             </div>`).join('');
     }
 
@@ -332,33 +330,7 @@
             image: document.getElementById('i-img').value
         };
         await addDoc(collection(db, "activities"), data);
-        document.getElementById('i-title').value = "";
         alert("Activiteit toegevoegd!");
-    };
-
-    window.handleCSV = async () => {
-        const file = document.getElementById('csv-file').files[0];
-        if(!file) return alert("Kies een bestand");
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const text = e.target.result;
-            const rows = text.split('\n');
-            const batch = writeBatch(db);
-            for(let i = 1; i < rows.length; i++) {
-                const c = rows[i].split(',');
-                if(c.length >= 3) {
-                    const newDocRef = doc(collection(db, "activities"));
-                    batch.set(newDocRef, {
-                        title: c[0]?.trim(), city: c[1]?.trim(), category: c[2]?.trim(),
-                        location: c[3]?.trim(), desc: c[4]?.trim(), image: c[5]?.trim() || "",
-                        price: c[6]?.trim() || "€ -", bookingUrl: c[7]?.trim() || ""
-                    });
-                }
-            }
-            await batch.commit();
-            alert("Bulk import voltooid!");
-        };
-        reader.readAsText(file);
     };
 
     window.addSetting = async (type, inputId) => {
