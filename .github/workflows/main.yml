@@ -1,4 +1,4 @@
-name: 🚀 Deploy naar Mijndomein
+name: 🚀 Deploy via SFTP
 
 on:
   push:
@@ -13,18 +13,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Deploy via FTPS
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      - name: Upload via SFTP
+        uses: appleboy/scp-action@v0.1.7
         with:
-          server: ftp.flip2trip.nl
+          host: ftp.flip2trip.nl
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
-          port: 21
-          security: loose
-          timeout: 120000
-          server-dir: httpdocs/
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/.htaccess
+          port: 22
+          source: "."
+          target: "httpdocs"
