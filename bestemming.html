@@ -7,155 +7,154 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, onSnapshot, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const config = { apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0", authDomain: "fliportrip-valkenburg.firebaseapp.com", projectId: "fliportrip-valkenburg" };
-        const app = initializeApp(config);
-        const db = getFirestore(app);
+    const config = { 
+        apiKey: "AIzaSyAx_XDqOW9hth7dwSFBZYJnk_dTa2lnvQ0", 
+        authDomain: "fliportrip-valkenburg.firebaseapp.com", 
+        projectId: "fliportrip-valkenburg" 
+    };
+    const app = initializeApp(config);
+    const db = getFirestore(app);
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const STAD = urlParams.get('city') || "Ardennen";
-
-        async function initPage() {
-            const contentSnap = await getDoc(doc(db, "cityContent", STAD));
-            
-            if(contentSnap.exists()) {
-                const data = contentSnap.data();
-                
-                // Update Hero & Styling
-                if(data.accent) document.documentElement.style.setProperty('--accent', data.accent);
-                if(data.badge) document.getElementById('dyn-badge').innerText = data.badge;
-                if(data.title) document.getElementById('dyn-title').innerHTML = data.title;
-                if(data.desc) document.getElementById('dyn-desc').innerText = data.desc;
-                
-                // Update Hero Images
-                if(data.images) {
-                    if(data.images[0]) document.getElementById('dyn-img-1').src = data.images[0];
-                    if(data.images[1]) document.getElementById('dyn-img-2').src = data.images[1];
-                    if(data.images[2]) document.getElementById('dyn-img-3').src = data.images[2];
-                }
-
-                // Update Why Section
-                if(data.whyTitle) document.getElementById('dyn-why-title').innerText = data.whyTitle;
-                if(data.whyText) document.getElementById('dyn-why-text').innerText = data.whyText;
-                if(data.whyImage) document.getElementById('dyn-why-img').src = data.whyImage;
-
-                // --- FAQ DYNAMISCH LADEN ---
-                const faqContainer = document.getElementById('faq-section');
-                const faqList = document.getElementById('faq-list');
-
-                if (data.faqs && data.faqs.length > 0) {
-                    faqContainer.style.display = 'block';
-                    faqList.innerHTML = data.faqs.map(faq => `
-                        <div class="faq-item">
-                            <button class="faq-question">
-                                ${faq.q}
-                                <div class="faq-icon"></div>
-                            </button>
-                            <div class="faq-answer">
-                                <p>${faq.a}</p>
-                            </div>
-                        </div>
-                    `).join('');
-                    
-                    // Activeer de klik-logica
-                    if(window.attachFaqLogic) window.attachFaqLogic();
-                } else {
-                    faqContainer.style.display = 'none';
-                }
-
-                document.title = `Flip 2 Trip | ${STAD}`;
-                document.getElementById('dyn-trend-city').innerText = `LIVE TRENDS ${STAD.toUpperCase()}`;
-            }
-
-            initLiveTrends();
-            // Zoek de meta description tag of maak hem aan
-let metaDesc = document.querySelector('meta[name="description"]');
-if (!metaDesc) {
-    metaDesc = document.createElement('meta');
-    metaDesc.name = "description";
-    document.head.appendChild(metaDesc);
-}
-metaDesc.content = `Plan je perfecte groepsreis naar ${formattedCity}. Bekijk trending activiteiten, swipe met je vrienden en vind de ideale match met Flip 2 Trip.`;
-        }
-
-        async function initLiveTrends() {
-    const actSnap = await getDocs(collection(db, "activities"));
-    const lib = {};
+    const urlParams = new URLSearchParams(window.location.search);
+    const STAD = urlParams.get('city') || "Ardennen";
     
-    actSnap.forEach(d => { 
-        const activityData = d.data();
-        // We maken beide waarden kleine letters voor een eerlijke vergelijking
-        if(activityData.city && activityData.city.toLowerCase().trim() === STAD.toLowerCase().trim()) { 
-            lib[d.id] = activityData; 
-        } 
-    });
-
-    onSnapshot(collection(db, "rooms"), (snap) => {
-        let votes = {}, total = 0;
-        snap.forEach(doc => {
-            const r = doc.data();
-            // Match ook hier de bestemming van de room met de huidige stad
-            if(r.votes && r.destination && r.destination.toLowerCase().trim() === STAD.toLowerCase().trim()) {
-                Object.keys(r.votes).forEach(id => {
-                    if(lib[id]) { 
-                        votes[id] = (votes[id] || 0) + r.votes[id]; 
-                        total += r.votes[id]; 
-                    }
-                });
-            }
-        });
-        renderUI(votes, lib, total);
-    });
-}
-
-        function renderUI(votes, lib, total) {
-    const feed = document.getElementById('live-feed');
-    // FIX: We moeten dit element eerst 'vinden' voordat we het kunnen gebruiken
-    const titleElement = document.getElementById('trend-title-main');
-    
-    // Netjes maken van de stadsnaam
+    // Formatteer de stad direct globaal zodat we deze overal kunnen gebruiken
     const formattedCity = STAD.charAt(0).toUpperCase() + STAD.slice(1).toLowerCase();
 
-    // Alleen updaten als het element ook echt bestaat in de HTML
-    if(titleElement) {
-        titleElement.innerText = `De meest trending activiteiten op dit moment in ${formattedCity}`;
-    }
-
-    if(total === 0) {
-        feed.innerHTML = '<p style="color:var(--text-light)">Nog geen live data voor deze regio...</p>';
-        return;
-    }
-
-    // Pak de Top 5
-    const top = Object.keys(votes).sort((a,b) => votes[b] - votes[a]).slice(0, 5);
-    
-    feed.innerHTML = top.map((id, i) => {
-        const p = Math.round((votes[id]/total)*100);
-        const activity = lib[id];
+    async function initPage() {
+        const contentSnap = await getDoc(doc(db, "cityContent", STAD));
         
-        // Gebruik de link uit de database, anders een fallback naar de app
-        const targetLink = activity.link || `/app?activity=${id}`;
+        if(contentSnap.exists()) {
+            const data = contentSnap.data();
+            
+            // Update Hero & Styling
+            if(data.accent) document.documentElement.style.setProperty('--accent', data.accent);
+            if(data.badge) document.getElementById('dyn-badge').innerText = data.badge;
+            if(data.title) document.getElementById('dyn-title').innerHTML = data.title;
+            if(data.desc) document.getElementById('dyn-desc').innerText = data.desc;
+            
+            // Update Hero Images
+            if(data.images) {
+                if(data.images[0]) document.getElementById('dyn-img-1').src = data.images[0];
+                if(data.images[1]) document.getElementById('dyn-img-2').src = data.images[1];
+                if(data.images[2]) document.getElementById('dyn-img-3').src = data.images[2];
+            }
 
-        return `
-            <div class="trend-card" onclick="window.open('${targetLink}', '_blank')" style="cursor:pointer;">
-                <img src="${activity.image}" class="trend-img" onerror="this.src='https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=200'">
-                <div class="trend-info">
-                    <div class="trend-top">
-                        <strong>${i+1}. ${activity.title}</strong>
-                        <span style="color:var(--accent)">${p}% match</span>
+            // Update Why Section
+            if(data.whyTitle) document.getElementById('dyn-why-title').innerText = data.whyTitle;
+            if(data.whyText) document.getElementById('dyn-why-text').innerText = data.whyText;
+            if(data.whyImage) document.getElementById('dyn-why-img').src = data.whyImage;
+
+            // FAQ DYNAMISCH LADEN
+            const faqContainer = document.getElementById('faq-section');
+            const faqList = document.getElementById('faq-list');
+
+            if (data.faqs && data.faqs.length > 0) {
+                faqContainer.style.display = 'block';
+                faqList.innerHTML = data.faqs.map(faq => `
+                    <div class="faq-item">
+                        <button class="faq-question">
+                            ${faq.q}
+                            <div class="faq-icon"></div>
+                        </button>
+                        <div class="faq-answer">
+                            <p>${faq.a}</p>
+                        </div>
                     </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width:${p}%"></div>
+                `).join('');
+                
+                if(window.attachFaqLogic) window.attachFaqLogic();
+            } else {
+                faqContainer.style.display = 'none';
+            }
+
+            // SEO & Titels
+            document.title = `Flip 2 Trip | ${formattedCity}`;
+            document.getElementById('dyn-trend-city').innerText = `LIVE TRENDS ${formattedCity.toUpperCase()}`;
+            
+            // Meta Description Update
+            let metaDesc = document.querySelector('meta[name="description"]');
+            if (!metaDesc) {
+                metaDesc = document.createElement('meta');
+                metaDesc.name = "description";
+                document.head.appendChild(metaDesc);
+            }
+            metaDesc.content = `Plan je perfecte groepsreis naar ${formattedCity}. Bekijk trending activiteiten, swipe met je vrienden en vind de ideale match met Flip 2 Trip.`;
+        }
+
+        initLiveTrends();
+    }
+
+    async function initLiveTrends() {
+        const actSnap = await getDocs(collection(db, "activities"));
+        const lib = {};
+        
+        actSnap.forEach(d => { 
+            const activityData = d.data();
+            if(activityData.city && activityData.city.toLowerCase().trim() === STAD.toLowerCase().trim()) { 
+                lib[d.id] = activityData; 
+            } 
+        });
+
+        onSnapshot(collection(db, "rooms"), (snap) => {
+            let votes = {}, total = 0;
+            snap.forEach(doc => {
+                const r = doc.data();
+                if(r.votes && r.destination && r.destination.toLowerCase().trim() === STAD.toLowerCase().trim()) {
+                    Object.keys(r.votes).forEach(id => {
+                        if(lib[id]) { 
+                            votes[id] = (votes[id] || 0) + r.votes[id]; 
+                            total += r.votes[id]; 
+                        }
+                    });
+                }
+            });
+            renderUI(votes, lib, total);
+        });
+    }
+
+    function renderUI(votes, lib, total) {
+        const feed = document.getElementById('live-feed');
+        const titleElement = document.getElementById('trend-title-main');
+        
+        if(titleElement) {
+            titleElement.innerText = `De meest trending activiteiten op dit moment in ${formattedCity}`;
+        }
+
+        if(total === 0) {
+            feed.innerHTML = '<p style="color:var(--text-light)">Nog geen live data voor deze regio...</p>';
+            return;
+        }
+
+        const top = Object.keys(votes).sort((a,b) => votes[b] - votes[a]).slice(0, 5);
+        
+        feed.innerHTML = top.map((id, i) => {
+            const p = Math.round((votes[id]/total)*100);
+            const activity = lib[id];
+            const targetLink = activity.link || `/app?activity=${id}`;
+
+            return `
+                <div class="trend-card" onclick="window.open('${targetLink}', '_blank')">
+                    <img src="${activity.image}" class="trend-img" onerror="this.src='https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=200'">
+                    <div class="trend-info">
+                        <div class="trend-top">
+                            <strong>${i+1}. ${activity.title}</strong>
+                            <span style="color:var(--accent)">${p}% match</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width:${p}%"></div>
+                        </div>
                     </div>
-                </div>
-                <div class="trend-arrow">→</div>
-            </div>`;
-    }).join('');
-}
-        window.onload = initPage;
-    </script>
+                    <div class="trend-arrow">→</div>
+                </div>`;
+        }).join('');
+    }
+    
+    window.onload = initPage;
+</script>
 
     <style>
     :root { 
