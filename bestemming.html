@@ -104,9 +104,9 @@
 
         function renderUI(votes, lib, total) {
     const feed = document.getElementById('live-feed');
-    const titleElement = document.getElementById('trend-title-main');
-    
-    titleElement.innerText = `De meest trending activiteiten op dit moment in ${STAD}`;
+    const formattedCity = STAD.charAt(0).toUpperCase() + STAD.slice(1).toLowerCase();
+
+titleElement.innerText = `De meest trending activiteiten op dit moment in ${formattedCity}`;
 
     if(total === 0) {
         feed.innerHTML = '<p style="color:var(--text-light)">Nog geen live data voor deze regio...</p>';
