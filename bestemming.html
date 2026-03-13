@@ -327,6 +327,53 @@ nav {
         height: 250px !important; /* Iets compacter op mobiel */
     }
 }
+
+        .usp-item-new {
+    text-align: left;
+    padding: 20px;
+}
+
+.usp-item-new h4 {
+    font-size: 18px;
+    margin-bottom: 12px;
+    color: white;
+}
+
+.usp-item-new p {
+    font-size: 14px;
+    color: #94a3b8;
+    line-height: 1.6;
+}
+
+.usp-icon-circle {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.07);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: 0.3s;
+}
+
+.usp-item-new:hover .usp-icon-circle {
+    background: var(--accent);
+    transform: rotate(-5deg) scale(1.1);
+    color: white;
+}
+
+/* De knop in de CTA */
+.btn-main {
+    transition: all 0.3s ease;
+}
+.btn-main:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+    filter: brightness(1.2);
+}
     /* --- FAQ --- */
     .faq-section { padding: 80px 5%; background: var(--bg-light); }
     .faq-container { max-width: 800px; margin: 0 auto; }
