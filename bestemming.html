@@ -115,6 +115,25 @@
     }
 
     if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initPage); } else { initPage(); }
+    
+    const mobileToggle = document.getElementById('mobile-toggle');
+const navContent = document.getElementById('nav-content');
+
+mobileToggle.onclick = () => {
+    mobileToggle.classList.toggle('active');
+    navContent.classList.toggle('active');
+    // Voorkom scrollen als menu open is
+    document.body.style.overflow = navContent.classList.contains('active') ? 'hidden' : 'auto';
+};
+
+// Sluit menu bij klik op link
+document.querySelectorAll('.nav-links a').forEach(link => {
+    link.onclick = () => {
+        mobileToggle.classList.remove('active');
+        navContent.classList.remove('active');
+        document.body.style.overflow = 'auto';
+    };
+});
     </script>
 
     <style>
@@ -122,41 +141,66 @@
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
     body { font-family: 'Plus Jakarta Sans', sans-serif; color: var(--indigo); overflow-x: hidden; background: #fff; line-height: 1.5; width: 100%; }
 
-    /* --- NAV --- */
-    nav { position: fixed; width: 100%; top: 0; height: 80px; z-index: 2000; background: rgba(255,255,255,0.95); backdrop-filter: blur(15px); display: flex; justify-content: space-between; align-items: center; padding: 0 5%; border-bottom: 1px solid rgba(0,0,0,0.05); }
-    .logo img { height: 40px; }
+    /* --- NAVIGATIE DESKTOP --- */
+nav {
+    padding: 0 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: rgba(255,255,255,0.8);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    height: 75px;
+}
 
-        /* --- NAV STYLING --- */
-.nav-links { display: flex; list-style: none; gap: 30px; align-items: center; }
-.nav-links a { text-decoration: none; color: var(--indigo); font-weight: 600; font-size: 15px; transition: 0.3s; }
+.nav-logo { height: 75px; display: flex; align-items: center; z-index: 1001; }
+.nav-logo img { height: 50px; width: auto; }
+
+.menu-toggle {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    z-index: 1002;
+}
+.menu-toggle span { width: 25px; height: 3px; background: var(--indigo); border-radius: 3px; transition: 0.3s; }
+
+.nav-links { display: flex; gap: 25px; align-items: center; }
+.nav-links a { text-decoration: none; color: var(--indigo); font-weight: 600; font-size: 13px; transition: 0.2s; }
 .nav-links a:hover { color: var(--accent); }
-.nav-btn { background: var(--obsidian); color: white !important; padding: 10px 20px; border-radius: 10px; }
 
-/* Hamburger Menu */
-.hamburger { display: none; cursor: pointer; flex-direction: column; gap: 5px; z-index: 3000; }
-.hamburger span { width: 25px; height: 3px; background: var(--indigo); border-radius: 3px; transition: 0.3s; }
-
-/* Mobiel Menu (Overlay) */
-.mobile-menu { 
-    position: fixed; top: 0; right: -100%; width: 80%; height: 100vh; 
-    background: white; z-index: 2500; display: flex; flex-direction: column; 
-    padding: 100px 40px; gap: 25px; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: -10px 0 30px rgba(0,0,0,0.05);
-}
-.mobile-menu.active { right: 0; }
-.mobile-menu a { text-decoration: none; color: var(--indigo); font-size: 20px; font-weight: 800; }
-.nav-btn-mobile { background: var(--accent); color: white !important; padding: 15px; border-radius: 12px; text-align: center; margin-top: 20px; }
-
-/* Desktop vs Mobiel weergave */
+/* --- MOBIEL MENU --- */
 @media (max-width: 900px) {
-    .nav-links { display: none; } /* Verberg gewone links */
-    .hamburger { display: flex; }  /* Toon hamburger */
+    .menu-toggle { display: flex; }
+    .nav-links {
+        display: none; /* Verberg standaard */
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background: white;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 30px;
+        z-index: 1001;
+    }
+    .nav-links.active { display: flex !important; animation: fadeIn 0.3s ease; }
+    .nav-links a { font-size: 24px; font-weight: 800; }
+
+    /* Hamburger naar X animatie */
+    .menu-toggle.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 6px); }
+    .menu-toggle.active span:nth-child(2) { opacity: 0; }
+    .menu-toggle.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -6px); }
 }
 
-/* Animatie voor hamburger naar 'X' */
-.hamburger.active span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
-.hamburger.active span:nth-child(2) { opacity: 0; }
-.hamburger.active span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
     /* --- HERO --- */
     .hero { padding: 140px 5% 60px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; max-width: 1300px; margin: 0 auto; }
@@ -245,21 +289,17 @@
 <body>
 
 <nav>
-       <div class="logo">
-        <a href="/"><img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/03/Flip2Trip-logo-landscape.png" alt="Flip 2 Trip"></a>
+    <a href="/" class="nav-logo">
+        <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/03/Flip2Trip-logo-landscape.png" alt="Logo">
+    </a>
+    <div class="menu-toggle" id="mobile-toggle">
+        <span></span><span></span><span></span>
     </div>
-    
-    <ul class="nav-links">
-        <li><a href="/">Home</a></li>
-        <li><a href="/app">Planner</a></li>
-        <li><a href="#faq-section">FAQ</a></li>
-        <li><a href="/app" class="nav-btn">Start nu</a></li>
-    </ul>
-
-    <div class="hamburger" id="hamburger">
-        <span></span>
-        <span></span>
-        <span></span>
+    <div class="nav-links" id="nav-content">
+        <a href="#hoe-werkt-het">Hoe werkt het?</a>
+        <a href="#steden">Bestemmingen</a>
+        <a href="#faq-section">FAQ</a>
+        <a href="/app" style="background: var(--obsidian); color: white; padding: 10px 20px; border-radius: 10px; font-size: 12px; font-weight: 800;">Open App</a>
     </div>
 </nav>
 
