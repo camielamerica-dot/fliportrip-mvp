@@ -1,11 +1,25 @@
-- name: 📂 Upload via FTP
+name: Deploy-Mijndomein
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  web-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛰️ Haal code op
+        uses: actions/checkout@v4
+
+      - name: 📂 Upload via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ftp.flip2trip.nl
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftp   # We proberen nu even gewoon ftp i.p.v. ftps om TLS-fouten uit te sluiten
+          protocol: ftp
           port: 21
           server-dir: httpdocs/
-          security: loose # Houd dit op loose
-          timeout: 60000  # Geef de server meer tijd om te reageren
+          security: loose
+          timeout: 60000
