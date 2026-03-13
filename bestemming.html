@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title id="page-title">Flip 2 Trip | Bestemming</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     
@@ -23,6 +23,7 @@
     const formattedCity = STAD.charAt(0).toUpperCase() + STAD.slice(1).toLowerCase();
 
     async function initPage() {
+        try {
             const contentSnap = await getDoc(doc(db, "cityContent", STAD));
             
             if(contentSnap.exists()) {
@@ -31,22 +32,18 @@
                 if(data.accent) document.documentElement.style.setProperty('--accent', data.accent);
                 
                 const badgeElem = document.getElementById('dyn-badge');
-                if(badgeElem && data.badge) badgeElem.innerText = data.badge;
+                if(badgeElem) badgeElem.innerText = data.badge || "ONTDEK";
 
                 const titleElem = document.getElementById('dyn-title');
-                if(titleElem && data.title) titleElem.innerHTML = data.title;
+                if(titleElem) titleElem.innerHTML = data.title || `Ontdek ${formattedCity}`;
 
                 const descElem = document.getElementById('dyn-desc');
-                if(descElem && data.desc) descElem.innerText = data.desc;
+                if(descElem) descElem.innerText = data.desc || "";
                 
-                // Update Hero Images (Safety check voor mobiel display)
                 if(data.images) {
-                    const img1 = document.getElementById('dyn-img-1');
-                    const img2 = document.getElementById('dyn-img-2');
-                    const img3 = document.getElementById('dyn-img-3');
-                    if(img1 && data.images[0]) img1.src = data.images[0];
-                    if(img2 && data.images[1]) img2.src = data.images[1];
-                    if(img3 && data.images[2]) img3.src = data.images[2];
+                    if(document.getElementById('dyn-img-1')) document.getElementById('dyn-img-1').src = data.images[0] || "";
+                    if(document.getElementById('dyn-img-2')) document.getElementById('dyn-img-2').src = data.images[1] || "";
+                    if(document.getElementById('dyn-img-3')) document.getElementById('dyn-img-3').src = data.images[2] || "";
                 }
 
                 if(data.whyTitle) document.getElementById('dyn-why-title').innerText = data.whyTitle;
@@ -54,10 +51,9 @@
                 if(data.whyImage) document.getElementById('dyn-why-img').src = data.whyImage;
 
                 const faqContainer = document.getElementById('faq-section');
-                const faqList = document.getElementById('faq-list');
-
                 if (data.faqs && data.faqs.length > 0) {
                     faqContainer.style.display = 'block';
+                    const faqList = document.getElementById('faq-list');
                     faqList.innerHTML = data.faqs.map(faq => `
                         <div class="faq-item">
                             <button class="faq-question">
@@ -87,11 +83,15 @@
                 metaDesc.content = `Plan je perfecte groepsreis naar ${formattedCity}. Bekijk trending activiteiten, swipe met je vrienden en vind de ideale match met Flip 2 Trip.`;
             }
             initLiveTrends();
+        } catch (error) {
+            console.error("Error loading page content:", error);
         }
+    }
 
     async function initLiveTrends() {
         const actSnap = await getDocs(collection(db, "activities"));
         const lib = {};
+        
         actSnap.forEach(d => { 
             const activityData = d.data();
             if(activityData.city && activityData.city.toLowerCase().trim() === STAD.toLowerCase().trim()) { 
@@ -119,16 +119,23 @@
     function renderUI(votes, lib, total) {
         const feed = document.getElementById('live-feed');
         const titleElement = document.getElementById('trend-title-main');
-        if(titleElement) titleElement.innerText = `De meest trending activiteiten op dit moment in ${formattedCity}`;
+        
+        if(titleElement) {
+            titleElement.innerText = `De meest trending activiteiten op dit moment in ${formattedCity}`;
+        }
+
         if(total === 0) {
             feed.innerHTML = '<p style="color:var(--text-light)">Nog geen live data voor deze regio...</p>';
             return;
         }
+
         const top = Object.keys(votes).sort((a,b) => votes[b] - votes[a]).slice(0, 5);
+        
         feed.innerHTML = top.map((id, i) => {
             const p = Math.round((votes[id]/total)*100);
             const activity = lib[id];
             const targetLink = activity.link || `/app?activity=${id}`;
+
             return `
                 <div class="trend-card" onclick="window.open('${targetLink}', '_blank')">
                     <img src="${activity.image}" class="trend-img" onerror="this.src='https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=200'">
@@ -145,6 +152,7 @@
                 </div>`;
         }).join('');
     }
+    
     window.onload = initPage;
 </script>
 
@@ -159,24 +167,34 @@
         --lavendel: #f0f7ff;
     }
 
+    * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
     body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--indigo); background: #ffffff; overflow-x: hidden; width: 100%; }
 
     h2 { font-size: clamp(32px, 5vw, 42px); font-weight: 800; color: var(--indigo); letter-spacing: -1.5px; margin-bottom: 20px; line-height: 1.2; }
 
-    nav { position: fixed; width: 100%; top: 0; height: 90px; z-index: 1000; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); display: flex; justify-content: space-between; align-items: center; padding: 0 5%; border-bottom: 1px solid rgba(0,0,0,0.03); box-sizing: border-box; }
+    nav { position: fixed; width: 100%; top: 0; height: 90px; z-index: 1000; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); display: flex; justify-content: space-between; align-items: center; padding: 0 5%; border-bottom: 1px solid rgba(0,0,0,0.03); }
     .logo img { height: 60px; }
     .nav-links { display: flex; gap: 30px; align-items: center; }
-    .nav-links a { text-decoration: none; color: var(--indigo); font-weight: 600; font-size: 14px; }
-    .btn-open { background: white; color: var(--indigo); padding: 10px 22px; border-radius: 12px; border: 1px solid #eee; font-weight: 700; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+    .nav-links a { text-decoration: none; color: var(--indigo); font-weight: 600; font-size: 14px; transition: 0.3s; }
+    .btn-open { background: var(--obsidian); color: white !important; padding: 12px 24px; border-radius: 12px; font-weight: 700; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
 
-    .hero { padding: 160px 5% 100px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; background: linear-gradient(-45deg, #ffffff, #f1f8f4, #fdfcf0, #ffffff); background-size: 400% 400%; animation: aurora 15s ease infinite; box-sizing: border-box; }
+    .hero { 
+        padding: 160px 5% 100px; 
+        display: grid; 
+        grid-template-columns: 1fr 1fr; 
+        gap: 40px; 
+        align-items: center; 
+        background: linear-gradient(-45deg, #ffffff, #f1f8f4, #fdfcf0, #ffffff); 
+        background-size: 400% 400%; 
+        animation: aurora 15s ease infinite; 
+        width: 100%;
+    }
     @keyframes aurora { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
     
     .badge { background: var(--accent); color: white; padding: 8px 16px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 30px; display: inline-block; letter-spacing: 0.5px; }
     h1 { font-size: clamp(40px, 8vw, 64px); font-weight: 800; margin: 0 0 25px; line-height: 1.05; letter-spacing: -2.5px; color: var(--obsidian); }
     .hero p { font-size: 18px; color: var(--text-light); margin-bottom: 40px; max-width: 480px; line-height: 1.5; }
-    .btn-main { background: var(--obsidian); color: white; padding: 20px 35px; border-radius: 14px; text-decoration: none; font-weight: 700; display: inline-block; transition: 0.3s; }
 
     .hero-images { display: flex; align-items: center; gap: 20px; justify-content: flex-end; position: relative; }
     .hero-card { border-radius: 20px; box-shadow: 0 30px 60px rgba(0,0,0,0.12); border: 4px solid white; object-fit: cover; }
@@ -187,7 +205,7 @@
     .section-steps { padding: 100px 5%; background: linear-gradient(-45deg, #ffffff, var(--lila), var(--geel), #ffffff); background-size: 400% 400%; animation: aurora 15s ease infinite; }
     .center-text { text-align: center; max-width: 700px; margin: 0 auto 60px; }
     .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; max-width: 1200px; margin: 0 auto; }
-    .step-item { background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 40px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.7); }
+    .step-item { background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(10px); padding: 40px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.7); }
     .step-num { width: 40px; height: 40px; background: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; margin-bottom: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
 
     .section-trends { padding: 100px 5%; max-width: 1200px; margin: 0 auto; }
@@ -198,20 +216,18 @@
     .pulse { width: 8px; height: 8px; background: #ff4b4b; border-radius: 50%; box-shadow: 0 0 0 0 rgba(255, 75, 75, 0.7); animation: pulse-red 2s infinite; }
     @keyframes pulse-red { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 75, 75, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 10px 10px rgba(255, 75, 75, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 75, 75, 0); } }
 
-    .trend-card { display: flex; align-items: center; gap: 15px; background: white; padding: 12px; border-radius: 18px; margin-bottom: 12px; transition: 0.3s; border: 1px solid rgba(0,0,0,0.03); position: relative; cursor: pointer; }
-    .trend-card:hover { transform: translateX(8px); border-color: var(--accent); background: #f8fafc; }
+    .trend-card { display: flex; align-items: center; gap: 15px; background: white; padding: 12px; border-radius: 18px; margin-bottom: 12px; transition: 0.3s; border: 1px solid rgba(0,0,0,0.03); cursor: pointer; }
     .trend-img { width: 50px; height: 50px; border-radius: 12px; object-fit: cover; }
     .trend-info { flex: 1; }
     .trend-top { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; font-weight: 700; }
     .progress-bar { height: 8px; background: #f1f5f9; border-radius: 10px; overflow: hidden; }
     .progress-fill { height: 100%; background: var(--accent); transition: 1.5s ease; }
-    .trend-arrow { margin-left: 10px; font-weight: 800; color: var(--text-light); opacity: 0; transition: 0.3s; }
-    .trend-card:hover .trend-arrow { opacity: 1; color: var(--accent); }
+    .trend-arrow { margin-left: 10px; font-weight: 800; color: var(--text-light); transition: 0.3s; }
 
     .why-section { padding: 80px 5%; background: var(--obsidian); color: white; display: flex; justify-content: center; }
     .split-section { display: grid; grid-template-columns: 1.2fr 1fr; gap: 80px; align-items: center; max-width: 1200px; width: 100%; }
-    .why-content h2 { color: white; margin-bottom: 24px; font-size: clamp(28px, 4vw, 38px); }
-    .why-content p { color: rgba(255,255,255,0.7); line-height: 1.7; font-size: 17px; margin-bottom: 35px; max-width: 500px; }
+    .why-content h2 { color: white; }
+    .why-content p { color: rgba(255,255,255,0.7); line-height: 1.7; font-size: 17px; margin-bottom: 35px; }
     .why-image img { width: 100%; height: 450px; object-fit: cover; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
 
     .btn-white { background: white; color: var(--obsidian); padding: 18px 32px; border-radius: 14px; text-decoration: none; font-weight: 700; display: inline-block; transition: 0.3s; }
@@ -219,61 +235,58 @@
     .faq-section { padding: 100px 8%; background-color: #ffffff; }
     .faq-container { max-width: 800px; margin: 0 auto; }
     .faq-item { border-bottom: 1px solid rgba(0,0,0,0.08); padding: 10px 0; }
-    .faq-question { width: 100%; padding: 25px 0; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: none; border: none; text-align: left; font-size: 18px; font-weight: 700; color: var(--indigo); font-family: inherit; }
-    .faq-answer { max-height: 0; overflow: hidden; transition: 0.3s ease-out; color: var(--text-light); font-size: 16px; line-height: 1.6; }
+    .faq-question { width: 100%; padding: 25px 0; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: none; border: none; font-size: 18px; font-weight: 700; color: var(--indigo); font-family: inherit; }
+    .faq-answer { max-height: 0; overflow: hidden; transition: 0.3s ease-out; color: var(--text-light); font-size: 16px; }
     .faq-item.active .faq-answer { max-height: 500px; padding-bottom: 25px; }
     .faq-icon { width: 20px; height: 20px; position: relative; transition: 0.3s ease; }
     .faq-icon::before { content: ''; position: absolute; width: 14px; height: 2px; background: var(--indigo); top: 9px; left: 3px; }
     .faq-icon::after { content: ''; position: absolute; width: 2px; height: 14px; background: var(--indigo); top: 3px; left: 9px; }
     .faq-item.active .faq-icon { transform: rotate(45deg); }
 
-    footer { background-color: #f8fafc; padding: 100px 8% 50px; border-top: 1px solid rgba(0,0,0,0.05); color: var(--indigo); }
+    footer { background-color: #f8fafc; padding: 100px 8% 50px; border-top: 1px solid rgba(0,0,0,0.05); }
     .footer-container { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 60px; max-width: 1400px; margin: 0 auto; }
     .footer-brand img { height: 45px; margin-bottom: 20px; }
     .footer-brand p { color: var(--text-light); font-size: 14px; line-height: 1.6; }
-    .footer-column h4 { font-size: 16px; font-weight: 800; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 1px; }
+    .footer-column h4 { font-size: 16px; font-weight: 800; margin-bottom: 25px; text-transform: uppercase; }
     .footer-column ul { list-style: none; padding: 0; }
     .footer-column ul li { margin-bottom: 12px; }
-    .footer-column ul li a { text-decoration: none; color: var(--text-light); font-size: 14px; transition: 0.2s; }
-    .footer-bottom { margin-top: 80px; padding-top: 30px; border-top: 1px solid rgba(0,0,0,0.05); font-size: 13px; color: var(--text-light); text-align: center; }
+    .footer-column ul li a { text-decoration: none; color: var(--text-light); font-size: 14px; }
+    .footer-bottom { margin-top: 80px; padding-top: 30px; border-top: 1px solid rgba(0,0,0,0.05); font-size: 13px; text-align: center; }
 
-    /* --- MOBILE OPTIMIZATION (VERBETERD) --- */
+    /* --- MOBILE OPTIMIZATION (STRICTE FIXES) --- */
     @media (max-width: 900px) {
-        nav { height: 75px; }
+        nav { height: 75px; padding: 0 5%; }
         .logo img { height: 45px; }
-        .nav-links a:not(.btn-open) { display: none; }
+        .nav-links a:not(.btn-open) { display: inline-block; font-size: 12px; margin-right: 10px; } 
+        .btn-open { padding: 10px 16px; font-size: 12px; }
         
-        .hero { padding: 120px 6% 60px; grid-template-columns: 1fr; text-align: center; width: 100%; }
-        
-        /* Foto's weergeven op mobiel zoals home.html */
+        .hero { 
+            padding: 120px 5% 60px; 
+            grid-template-columns: 1fr; 
+            text-align: center; 
+            overflow: hidden;
+            width: 100%;
+        }
         .hero-images { 
             display: flex !important; 
             justify-content: center; 
-            transform: scale(0.7); 
-            margin-top: 20px; 
+            margin-top: 40px; 
+            transform: scale(0.85);
             width: 100%;
         }
-        .h-1 { width: 110px; height: 200px; margin-top: -30px; }
-        .h-2 { width: 150px; height: 260px; }
-        .h-3 { width: 110px; height: 180px; margin-top: 30px; }
+        .h-1 { width: 100px; height: 160px; margin-top: -20px; }
+        .h-2 { width: 140px; height: 220px; }
+        .h-3 { width: 100px; height: 150px; margin-top: 20px; }
 
-        .hero p { margin: 0 auto 30px; font-size: 16px; }
-        h1 { font-size: 36px; letter-spacing: -1.5px; }
+        .hero p { margin: 0 auto 30px; }
+        h1 { font-size: 38px; }
         
-        .steps-grid { grid-template-columns: 1fr; gap: 20px; }
-        .step-item { padding: 30px; text-align: left; }
-        
-        .section-trends { padding: 40px 4%; }
+        .steps-grid { grid-template-columns: 1fr; }
         .glass-box { padding: 30px 20px; border-radius: 25px; }
-        .trend-layout { grid-template-columns: 1fr; gap: 30px; text-align: center; }
-        .trend-card { text-align: left; }
-        
-        .split-section { grid-template-columns: 1fr; gap: 40px; text-align: center; }
-        .why-content p { margin: 0 auto 30px; }
+        .trend-layout { grid-template-columns: 1fr; text-align: center; }
+        .split-section { grid-template-columns: 1fr; text-align: center; }
         .why-image img { height: 300px; }
-        
-        .footer-container { grid-template-columns: 1fr; gap: 40px; text-align: center; }
-        .footer-brand p { margin: 0 auto; max-width: 300px; }
+        .footer-container { grid-template-columns: 1fr; text-align: center; }
     }
 </style>
 </head>
@@ -283,22 +296,22 @@
     <div class="logo"><a href="/"><img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/03/Flip2Trip-logo-landscape.png" alt="Logo"></a></div>
     <div class="nav-links">
         <a href="#hoe-werkt-het">Hoe werkt het?</a>
-        <a href="#activiteiten">Activiteiten</a>
+        <a href="#activiteiten">Trends</a>
         <a href="/app" class="btn-open">Open App</a>
     </div>
 </nav>
 
 <header class="hero">
-    <div>
+    <div class="hero-content">
         <span class="badge" id="dyn-badge">Laden...</span>
         <h1 id="dyn-title">Plannen maken <br>was nog nooit zo simpel.</h1>
         <p id="dyn-desc">Selecteer je favoriete regio en ontdek wat je vrienden echt willen doen.</p>
-        <a href="/app" class="btn-main">Ontdek de regio</a>
+        <a href="/app" class="btn-white" style="background:var(--obsidian); color:white; border-radius: 12px;">Start jullie avontuur</a>
     </div>
     <div class="hero-images">
-        <img src="" id="dyn-img-1" class="hero-card h-1">
-        <img src="" id="dyn-img-2" class="hero-card h-2">
-        <img src="" id="dyn-img-3" class="hero-card h-3">
+        <img src="" id="dyn-img-1" class="hero-card h-1" alt="Bestemming 1">
+        <img src="" id="dyn-img-2" class="hero-card h-2" alt="Bestemming 2">
+        <img src="" id="dyn-img-3" class="hero-card h-3" alt="Bestemming 3">
     </div>
 </header>
 
@@ -321,12 +334,9 @@
                 <div class="pulse"></div> 
                 <span id="dyn-trend-city">LIVE TRENDS</span>
             </div>
-            <h2 id="trend-title-main">De meest trending activiteiten op dit moment</h2>
-            <p style="color:var(--text-light); line-height: 1.6;">
-                Gebaseerd op de real-time swipes en matches van groepen die momenteel hun trip naar deze bestemming plannen.
-            </p>
+            <h2 id="trend-title-main">De meest trending activiteiten</h2>
+            <p style="color:var(--text-light); line-height: 1.6;">Gebaseerd op real-time swipes van groepen die momenteel plannen.</p>
         </div>
-
         <div class="trend-feed-container">
             <div id="live-feed">
                 <p style="color:var(--text-light)">Trends worden geladen...</p>
@@ -359,20 +369,18 @@
     <div class="footer-container">
         <div class="footer-brand">
             <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/03/Flip2Trip-logo-landscape.png" alt="Flip 2 Trip">
-            <p>De nieuwe standaard voor collectieve besluitvorming. Wij maken het plannen van groepsreizen weer leuk, simpel en eerlijk.</p>
+            <p>De nieuwe standaard voor collectieve besluitvorming.</p>
         </div>
         <div class="footer-column">
             <h4>Bestemmingen</h4>
             <ul>
                 <li><a href="bestemming.html?city=Valkenburg">Valkenburg</a></li>
                 <li><a href="bestemming.html?city=Maastricht">Maastricht</a></li>
-                <li><a href="bestemming.html?city=Ardennen">Ardennen</a></li>
             </ul>
         </div>
         <div class="footer-column">
             <h4>Info</h4>
             <ul>
-                <li><a href="/partner-worden">Partner worden</a></li>
                 <li><a href="/privacy">Privacy</a></li>
             </ul>
         </div>
@@ -390,20 +398,14 @@
     window.attachFaqLogic = function() {
         const questions = document.querySelectorAll('.faq-question');
         questions.forEach(question => {
-            question.onclick = null; 
             question.onclick = function() {
                 const item = this.parentElement;
                 item.classList.toggle('active');
                 const answer = this.nextElementSibling;
-                if (item.classList.contains('active')) {
-                    answer.style.maxHeight = answer.scrollHeight + "px";
-                } else {
-                    answer.style.maxHeight = null;
-                }
+                answer.style.maxHeight = item.classList.contains('active') ? answer.scrollHeight + "px" : null;
             };
         });
     }
 </script>
-
 </body>
 </html>
