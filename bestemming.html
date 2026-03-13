@@ -42,6 +42,15 @@
                 if(data.whyTitle) document.getElementById('dyn-why-title').innerText = data.whyTitle;
                 if(data.whyText) document.getElementById('dyn-why-text').innerText = data.whyText;
                 if(data.whyImage) document.getElementById('dyn-why-img').src = data.whyImage;
+                if(data.faqs && data.faqs.length > 0) {
+    const faqList = document.getElementById('faq-list');
+    faqList.innerHTML = data.faqs.map(faq => `
+        <div class="faq-item">
+            <button class="faq-question">${faq.q}<div class="faq-icon"></div></button>
+            <div class="faq-answer"><p>${faq.a}</p></div>
+        </div>
+    `).join('');
+}
 
                 document.title = `Flip 2 Trip | ${STAD}`;
                 document.getElementById('dyn-trend-city').innerText = `LIVE TRENDS ${STAD.toUpperCase()}`;
