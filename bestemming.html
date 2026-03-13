@@ -51,7 +51,29 @@
         </div>
     `).join('');
 }
+// --- FAQ DYNAMISCH LADEN ---
+const faqContainer = document.getElementById('faq-section'); // De hele sectie
+const faqList = document.getElementById('faq-list');       // De lijst met vragen
 
+if (data.faqs && data.faqs.length > 0) {
+    faqContainer.style.display = 'block'; // Toon de sectie als er data is
+    faqList.innerHTML = data.faqs.map(faq => `
+        <div class="faq-item">
+            <button class="faq-question">
+                ${faq.q}
+                <div class="faq-icon"></div>
+            </button>
+            <div class="faq-answer">
+                <p>${faq.a}</p>
+            </div>
+        </div>
+    `).join('');
+
+    // Voeg de klik-functionaliteit opnieuw toe aan de nieuwe elementen
+    attachFaqLogic();
+} else {
+    faqContainer.style.display = 'none'; // Verberg de sectie als er geen FAQ's zijn
+}
                 document.title = `Flip 2 Trip | ${STAD}`;
                 document.getElementById('dyn-trend-city').innerText = `LIVE TRENDS ${STAD.toUpperCase()}`;
             }
