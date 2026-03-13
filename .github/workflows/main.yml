@@ -18,8 +18,10 @@ jobs:
           server: ftp.flip2trip.nl
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftp
+          protocol: ftps
           port: 21
           server-dir: httpdocs/
+          # Dit is cruciaal voor Mijndomein:
           security: loose
-          timeout: 60000
+          # We voegen deze toe om te voorkomen dat de data-socket bevriest:
+          log-level: verbose
