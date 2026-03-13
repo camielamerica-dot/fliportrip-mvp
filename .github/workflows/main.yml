@@ -19,12 +19,10 @@ jobs:
           server: ftp.flip2trip.nl
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
+          protocol: ftp
           port: 21
-          security: loose
-          timeout: 120000
           server-dir: ./
+          timeout: 120000
           exclude: |
             **/.git*
             **/.git*/**
-            **/.htaccess
