@@ -1,18 +1,4 @@
-name: 🚀 Deploy naar Mijndomein
-
-on:
-  push:
-    branches:
-      - main
-
-jobs:
-  web-deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: 🛰️ Haal code op
-        uses: actions/checkout@v4
-
-      - name: 📂 Upload via FTP
+- name: 📂 Upload via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ftp.flip2trip.nl
@@ -20,7 +6,9 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           port: 21
-          # De truc: stap uit de standaardmap en ga httpdocs in
-          server-dir: ../httpdocs/
+          # We proberen nu het pad zonder enige puntjes of slashes aan het begin
+          # De robot begint in de map waar de FTP-gebruiker landt.
+          server-dir: ./httpdocs/ 
           security: loose
-          timeout: 60000
+          # Voeg dit toe om precies te zien wat de robot doet in de logs:
+          log-level: verbose
