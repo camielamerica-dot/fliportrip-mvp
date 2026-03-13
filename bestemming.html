@@ -148,7 +148,33 @@
     .trend-percentage { font-weight: 800; color: var(--accent); font-size: 13px; }
     .progress-bar { height: 6px; background: #f1f5f9; border-radius: 10px; margin-top: 6px; overflow: hidden; }
     .progress-fill { height: 100%; background: var(--accent); transition: width 1s ease; }
+/* Specifieke fix voor de Bestemming sectie */
+.dest-container {
+    display: flex;
+    flex-direction: row; /* Naast elkaar op desktop */
+    align-items: center;
+    gap: 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 80px 5%;
+}
 
+.dest-content { flex: 1; }
+.dest-image { flex: 1; }
+
+@media (max-width: 900px) {
+    .dest-container {
+        flex-direction: column; /* Onder elkaar op mobiel */
+        text-align: center;
+    }
+    .dest-image {
+        order: -1; /* Foto boven de tekst op mobiel */
+        width: 100%;
+    }
+    .dest-image img {
+        height: 250px !important; /* Iets compacter op mobiel */
+    }
+}
     /* --- FAQ --- */
     .faq-section { padding: 80px 5%; background: var(--bg-light); }
     .faq-container { max-width: 800px; margin: 0 auto; }
@@ -235,13 +261,15 @@
     </div>
 </section>
 
-<section class="section-dest" style="display: flex; flex-wrap: wrap; gap: 40px; align-items: center; justify-content: center; max-width: 1200px; margin: 0 auto; padding: 80px 5%;">
+<section class="dest-container">
     <div class="dest-content">
         <h2 id="dyn-why-dest-title" style="font-size:34px; font-weight:800; margin-bottom:20px;">...</h2>
-        <p id="dyn-why-dest-text" style="color:var(--text-light); margin-bottom:25px;">...</p>
-        <a href="/app" style="color:var(--accent); font-weight:800; text-decoration:none;">Bekijk alle activiteiten →</a>
+        <p id="dyn-why-dest-text" style="color:var(--text-light); margin-bottom:25px; font-size: 16px;">...</p>
+        <a href="/app" style="background:var(--accent); color:white; padding:15px 30px; border-radius:12px; font-weight:800; display:inline-block; text-decoration:none;">Bekijk alle activiteiten</a>
     </div>
-    <div class="dest-image"><img src="" id="dyn-dest-img" style="width:100%; border-radius:30px; object-fit:cover; height:400px;"></div>
+    <div class="dest-image">
+        <img src="" id="dyn-dest-img" style="width:100%; border-radius:30px; object-fit:cover; height:450px; box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
+    </div>
 </section>
 
     <section class="section-usp" style="padding: 80px 5%; background: var(--obsidian); color: white; text-align: center;">
