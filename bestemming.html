@@ -70,6 +70,14 @@
             }
 
             initLiveTrends();
+            // Zoek de meta description tag of maak hem aan
+let metaDesc = document.querySelector('meta[name="description"]');
+if (!metaDesc) {
+    metaDesc = document.createElement('meta');
+    metaDesc.name = "description";
+    document.head.appendChild(metaDesc);
+}
+metaDesc.content = `Plan je perfecte groepsreis naar ${formattedCity}. Bekijk trending activiteiten, swipe met je vrienden en vind de ideale match met Flip 2 Trip.`;
         }
 
         async function initLiveTrends() {
