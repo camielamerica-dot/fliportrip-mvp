@@ -1,4 +1,18 @@
-- name: 📂 Upload via FTP
+name: 🚀 Deploy naar Mijndomein
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  web-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛰️ Haal code op
+        uses: actions/checkout@v4
+
+      - name: 📂 Upload via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ftp.flip2trip.nl
@@ -6,6 +20,9 @@
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           port: 21
-          # DIT IS DE KEY: Ga specifiek naar httpdocs zonder punt of slash ervoor
-          server-dir: httpdocs/
+          # We dwingen de robot om naar de httpdocs map te gaan vanaf de root
+          server-dir: /httpdocs/
+          # Belangrijk voor servers die eigenwijs zijn met SSL-certificaten
           security: loose
+          # Voorkomt dat de verbinding te snel verbreekt
+          timeout: 60000
