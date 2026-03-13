@@ -1,27 +1,11 @@
-name: 🚀 Deploy naar Mijndomein
-
-on:
-  push:
-    branches:
-      - main
-
-jobs:
-  web-deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: 🛰️ Haal code op
-        uses: actions/checkout@v4
-
-      - name: 📂 Upload via FTP
+- name: 📂 Upload via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ftp.flip2trip.nl
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
+          protocol: ftp   # We proberen nu even gewoon ftp i.p.v. ftps om TLS-fouten uit te sluiten
           port: 21
-          # Hier stond eerst public_html, dat moet httpdocs zijn:
           server-dir: httpdocs/
-          # Dit zorgt dat hij niet de hele geschiedenis hoeft te scannen:
-          dangerous-clean-slate: false
+          security: loose # Houd dit op loose
+          timeout: 60000  # Geef de server meer tijd om te reageren
