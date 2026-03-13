@@ -104,21 +104,30 @@
 
         function renderUI(votes, lib, total) {
     const feed = document.getElementById('live-feed');
+    // FIX: We moeten dit element eerst 'vinden' voordat we het kunnen gebruiken
+    const titleElement = document.getElementById('trend-title-main');
+    
+    // Netjes maken van de stadsnaam
     const formattedCity = STAD.charAt(0).toUpperCase() + STAD.slice(1).toLowerCase();
 
-titleElement.innerText = `De meest trending activiteiten op dit moment in ${formattedCity}`;
+    // Alleen updaten als het element ook echt bestaat in de HTML
+    if(titleElement) {
+        titleElement.innerText = `De meest trending activiteiten op dit moment in ${formattedCity}`;
+    }
 
     if(total === 0) {
         feed.innerHTML = '<p style="color:var(--text-light)">Nog geen live data voor deze regio...</p>';
         return;
     }
 
+    // Pak de Top 5
     const top = Object.keys(votes).sort((a,b) => votes[b] - votes[a]).slice(0, 5);
     
     feed.innerHTML = top.map((id, i) => {
         const p = Math.round((votes[id]/total)*100);
         const activity = lib[id];
-        // We pakken de link uit de database, of sturen ze naar de app als er geen link is
+        
+        // Gebruik de link uit de database, anders een fallback naar de app
         const targetLink = activity.link || `/app?activity=${id}`;
 
         return `
