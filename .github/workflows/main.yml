@@ -1,18 +1,4 @@
-name: Deploy-Mijndomein
-
-on:
-  push:
-    branches:
-      - main
-
-jobs:
-  web-deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: 🛰️ Haal code op
-        uses: actions/checkout@v4
-
-      - name: 📂 Upload via FTP
+- name: 📂 Upload via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ftp.flip2trip.nl
@@ -20,8 +6,6 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           port: 21
-          server-dir: ./
-          # Dit is cruciaal voor Mijndomein:
+          # DIT IS DE KEY: Ga specifiek naar httpdocs zonder punt of slash ervoor
+          server-dir: httpdocs/
           security: loose
-          # We voegen deze toe om te voorkomen dat de data-socket bevriest:
-          log-level: verbose
