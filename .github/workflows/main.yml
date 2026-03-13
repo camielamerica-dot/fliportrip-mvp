@@ -13,14 +13,14 @@ jobs:
       - name: 🛰️ Haal code op
         uses: actions/checkout@v4
 
-      - name: 📂 Upload via FTP
+      - name: 📂 Upload website
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ${{ secrets.FTP_SERVER }}
+          server: ftp.flip2trip.nl
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           port: 21
-          # DIT IS DE BELANGRIJKSTE WIJZIGING:
-          server-dir: httpdocs/
           security: loose
+          passive: true
+          server-dir: /httpdocs/
