@@ -20,8 +20,6 @@ jobs:
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
         server-dir: ./
-        protocol: ftp
+        protocol: ftps # We zetten het protocol direct op FTPS
         port: 21
-        security: ftps
-        # Dit negeert eventuele certificaatfouten die bij shared hosting vaak voorkomen
-        ignore-ssl-errors: true
+        ftp-ssl: true # Forceer SSL
