@@ -1,22 +1,23 @@
-name: 🎉 Deploy naar Mijndomein
+name: 🚀 Deploy naar Mijndomein
+
 on:
   push:
     branches:
-      - main  # Of 'master', check even hoe je hoofdbranch heet
+      - main
 
 jobs:
   web-deploy:
-    name: 🚀 Deploy
+    name: 🚚 Uploaden
     runs-on: ubuntu-latest
     steps:
-    - name: 🚚 Haal de laatste code op
+    - name: 🛰️ Haal code op
       uses: actions/checkout@v3
 
-    - name: 📂 Upload naar Mijndomein via FTP
+    - name: 📂 Bestanden overzetten
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
         server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        # Let op: Mijndomein gebruikt meestal 'public_html' als hoofdmap
-        server-dir: public_html/
+        server-dir: ./
+        protocol: ftp
