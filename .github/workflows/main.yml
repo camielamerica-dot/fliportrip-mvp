@@ -5,21 +5,27 @@ on:
     branches:
       - main
 
+# Zorgt dat we de nieuwste Node.js versie gebruiken zoals GitHub adviseert
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   web-deploy:
     name: 🚚 Uploaden
     runs-on: ubuntu-latest
     steps:
     - name: 🛰️ Haal code op
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4 # Geüpdatet naar v4
 
-    - name: 📂 Bestanden overzetten via FTPS
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+    - name: 📂 Bestanden overzetten
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5 # Geüpdatet naar v4.3.5
       with:
         server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
         server-dir: ./
-        protocol: ftps # We zetten het protocol direct op FTPS
+        protocol: ftp
         port: 21
-        ftp-ssl: true # Forceer SSL
+        # 'loose' zorgt ervoor dat hij niet crasht op kleine certificaatfouten van de host
+        security: ftps
+        timeout: 60000 # Iets meer tijd geven voor de verbinding
