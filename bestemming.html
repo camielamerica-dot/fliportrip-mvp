@@ -20,8 +20,6 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     const STAD = urlParams.get('city') || "Ardennen";
-    
-    // Formatteer de stad direct globaal zodat we deze overal kunnen gebruiken
     const formattedCity = STAD.charAt(0).toUpperCase() + STAD.slice(1).toLowerCase();
 
     async function initPage() {
@@ -30,7 +28,6 @@
             if(contentSnap.exists()) {
                 const data = contentSnap.data();
                 
-                // --- START VAN HET GEDEELTE MET VEILIGHEIDSCHECKS ---
                 if(data.accent) document.documentElement.style.setProperty('--accent', data.accent);
                 
                 const badgeElem = document.getElementById('dyn-badge');
@@ -41,21 +38,21 @@
 
                 const descElem = document.getElementById('dyn-desc');
                 if(descElem && data.desc) descElem.innerText = data.desc;
-                // --- EINDE VEILIGHEIDSCHECKS ---
                 
-                // Update Hero Images
+                // Update Hero Images (Safety check voor mobiel display)
                 if(data.images) {
-                    if(data.images[0]) document.getElementById('dyn-img-1').src = data.images[0];
-                    if(data.images[1]) document.getElementById('dyn-img-2').src = data.images[1];
-                    if(data.images[2]) document.getElementById('dyn-img-3').src = data.images[2];
+                    const img1 = document.getElementById('dyn-img-1');
+                    const img2 = document.getElementById('dyn-img-2');
+                    const img3 = document.getElementById('dyn-img-3');
+                    if(img1 && data.images[0]) img1.src = data.images[0];
+                    if(img2 && data.images[1]) img2.src = data.images[1];
+                    if(img3 && data.images[2]) img3.src = data.images[2];
                 }
 
-                // Update Why Section
                 if(data.whyTitle) document.getElementById('dyn-why-title').innerText = data.whyTitle;
                 if(data.whyText) document.getElementById('dyn-why-text').innerText = data.whyText;
                 if(data.whyImage) document.getElementById('dyn-why-img').src = data.whyImage;
 
-                // FAQ DYNAMISCH LADEN
                 const faqContainer = document.getElementById('faq-section');
                 const faqList = document.getElementById('faq-list');
 
@@ -72,14 +69,14 @@
                             </div>
                         </div>
                     `).join('');
-                    
                     if(window.attachFaqLogic) window.attachFaqLogic();
                 } else {
                     faqContainer.style.display = 'none';
                 }
 
                 document.title = `Flip 2 Trip | ${formattedCity}`;
-                document.getElementById('dyn-trend-city').innerText = `LIVE TRENDS ${formattedCity.toUpperCase()}`;
+                const trendCityElem = document.getElementById('dyn-trend-city');
+                if(trendCityElem) trendCityElem.innerText = `LIVE TRENDS ${formattedCity.toUpperCase()}`;
                 
                 let metaDesc = document.querySelector('meta[name="description"]');
                 if (!metaDesc) {
@@ -89,14 +86,12 @@
                 }
                 metaDesc.content = `Plan je perfecte groepsreis naar ${formattedCity}. Bekijk trending activiteiten, swipe met je vrienden en vind de ideale match met Flip 2 Trip.`;
             }
-
             initLiveTrends();
         }
 
     async function initLiveTrends() {
         const actSnap = await getDocs(collection(db, "activities"));
         const lib = {};
-        
         actSnap.forEach(d => { 
             const activityData = d.data();
             if(activityData.city && activityData.city.toLowerCase().trim() === STAD.toLowerCase().trim()) { 
@@ -124,23 +119,16 @@
     function renderUI(votes, lib, total) {
         const feed = document.getElementById('live-feed');
         const titleElement = document.getElementById('trend-title-main');
-        
-        if(titleElement) {
-            titleElement.innerText = `De meest trending activiteiten op dit moment in ${formattedCity}`;
-        }
-
+        if(titleElement) titleElement.innerText = `De meest trending activiteiten op dit moment in ${formattedCity}`;
         if(total === 0) {
             feed.innerHTML = '<p style="color:var(--text-light)">Nog geen live data voor deze regio...</p>';
             return;
         }
-
         const top = Object.keys(votes).sort((a,b) => votes[b] - votes[a]).slice(0, 5);
-        
         feed.innerHTML = top.map((id, i) => {
             const p = Math.round((votes[id]/total)*100);
             const activity = lib[id];
             const targetLink = activity.link || `/app?activity=${id}`;
-
             return `
                 <div class="trend-card" onclick="window.open('${targetLink}', '_blank')">
                     <img src="${activity.image}" class="trend-img" onerror="this.src='https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=200'">
@@ -157,7 +145,6 @@
                 </div>`;
         }).join('');
     }
-    
     window.onload = initPage;
 </script>
 
@@ -173,7 +160,7 @@
     }
 
     html { scroll-behavior: smooth; }
-    body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--indigo); background: #ffffff; overflow-x: hidden; }
+    body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--indigo); background: #ffffff; overflow-x: hidden; width: 100%; }
 
     h2 { font-size: clamp(32px, 5vw, 42px); font-weight: 800; color: var(--indigo); letter-spacing: -1.5px; margin-bottom: 20px; line-height: 1.2; }
 
@@ -183,7 +170,7 @@
     .nav-links a { text-decoration: none; color: var(--indigo); font-weight: 600; font-size: 14px; }
     .btn-open { background: white; color: var(--indigo); padding: 10px 22px; border-radius: 12px; border: 1px solid #eee; font-weight: 700; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
 
-    .hero { padding: 160px 5% 100px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; background: linear-gradient(-45deg, #ffffff, #f1f8f4, #fdfcf0, #ffffff); background-size: 400% 400%; animation: aurora 15s ease infinite; }
+    .hero { padding: 160px 5% 100px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; background: linear-gradient(-45deg, #ffffff, #f1f8f4, #fdfcf0, #ffffff); background-size: 400% 400%; animation: aurora 15s ease infinite; box-sizing: border-box; }
     @keyframes aurora { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
     
     .badge { background: var(--accent); color: white; padding: 8px 16px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 30px; display: inline-block; letter-spacing: 0.5px; }
@@ -203,7 +190,6 @@
     .step-item { background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 40px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.7); }
     .step-num { width: 40px; height: 40px; background: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; margin-bottom: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
 
-    /* Trends Styling */
     .section-trends { padding: 100px 5%; max-width: 1200px; margin: 0 auto; }
     .glass-box { background: rgba(255,255,255,0.6); backdrop-filter: blur(20px); border: 1px solid white; border-radius: 40px; padding: 50px; box-shadow: 0 40px 100px rgba(0,0,0,0.03); }
     .trend-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 60px; align-items: center; }
@@ -251,14 +237,26 @@
     .footer-column ul li a { text-decoration: none; color: var(--text-light); font-size: 14px; transition: 0.2s; }
     .footer-bottom { margin-top: 80px; padding-top: 30px; border-top: 1px solid rgba(0,0,0,0.05); font-size: 13px; color: var(--text-light); text-align: center; }
 
-    /* --- MOBILE OPTIMIZATION --- */
+    /* --- MOBILE OPTIMIZATION (VERBETERD) --- */
     @media (max-width: 900px) {
         nav { height: 75px; }
         .logo img { height: 45px; }
-        .nav-links a:not(.btn-open) { display: none; } /* Verberg tekstlinks op mobiel */
+        .nav-links a:not(.btn-open) { display: none; }
         
-        .hero { padding: 120px 6% 60px; grid-template-columns: 1fr; text-align: center; }
-        .hero-images, { display: none; }
+        .hero { padding: 120px 6% 60px; grid-template-columns: 1fr; text-align: center; width: 100%; }
+        
+        /* Foto's weergeven op mobiel zoals home.html */
+        .hero-images { 
+            display: flex !important; 
+            justify-content: center; 
+            transform: scale(0.7); 
+            margin-top: 20px; 
+            width: 100%;
+        }
+        .h-1 { width: 110px; height: 200px; margin-top: -30px; }
+        .h-2 { width: 150px; height: 260px; }
+        .h-3 { width: 110px; height: 180px; margin-top: 30px; }
+
         .hero p { margin: 0 auto 30px; font-size: 16px; }
         h1 { font-size: 36px; letter-spacing: -1.5px; }
         
@@ -353,8 +351,7 @@
 <section class="faq-section" id="faq-section" style="display:none;">
     <div class="faq-container">
         <h2 style="text-align: center; margin-bottom: 50px;">Veelgestelde vragen</h2>
-        <div id="faq-list">
-            </div>
+        <div id="faq-list"></div>
     </div>
 </section>
 
@@ -390,11 +387,9 @@
 </footer>
 
 <script>
-    // FAQ Logica globaal beschikbaar maken
     window.attachFaqLogic = function() {
         const questions = document.querySelectorAll('.faq-question');
         questions.forEach(question => {
-            // Verwijder oude listener om dubbelklikken te voorkomen
             question.onclick = null; 
             question.onclick = function() {
                 const item = this.parentElement;
