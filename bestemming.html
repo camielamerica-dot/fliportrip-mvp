@@ -113,7 +113,11 @@
         });
     }
 
-    window.addEventListener('load', initPage);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPage);
+    } else {
+        initPage();
+    }
     </script>
 
     <style>
