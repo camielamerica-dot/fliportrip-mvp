@@ -5,7 +5,6 @@ on:
     branches:
       - main
 
-# Zorgt dat we de nieuwste Node.js versie gebruiken zoals GitHub adviseert
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -15,10 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: 🛰️ Haal code op
-      uses: actions/checkout@v4 # Geüpdatet naar v4
+      uses: actions/checkout@v4
 
     - name: 📂 Bestanden overzetten
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.5 # Geüpdatet naar v4.3.5
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
         server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
@@ -26,6 +25,6 @@ jobs:
         server-dir: ./
         protocol: ftp
         port: 21
-        # 'loose' zorgt ervoor dat hij niet crasht op kleine certificaatfouten van de host
-        security: ftps
-        timeout: 60000 # Iets meer tijd geven voor de verbinding
+        # 'loose' dwingt encryptie af maar is flexibel met certificaten
+        security: loose 
+        timeout: 60000
