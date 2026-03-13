@@ -324,14 +324,20 @@ if (data.faqs && data.faqs.length > 0) {
 </footer>
 
 <script>
-    // FAQ Toggle logica
-    document.addEventListener('click', (e) => {
-        if (e.target.classList.contains('faq-question') || e.target.closest('.faq-question')) {
-            const btn = e.target.classList.contains('faq-question') ? e.target : e.target.closest('.faq-question');
-            const faqItem = btn.parentElement;
-            faqItem.classList.toggle('active');
-        }
+    function attachFaqLogic() {
+    const questions = document.querySelectorAll('.faq-question');
+    questions.forEach(question => {
+        question.onclick = function() {
+            this.classList.toggle('active');
+            const answer = this.nextElementSibling;
+            if (answer.style.maxHeight) {
+                answer.style.maxHeight = null;
+            } else {
+                answer.style.maxHeight = answer.scrollHeight + "px";
+            }
+        };
     });
+}
 </script>
 
 </body>
