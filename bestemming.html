@@ -28,88 +28,53 @@
             
             if(contentSnap.exists()) {
                 const data = contentSnap.data();
-                
                 if(data.accent) document.documentElement.style.setProperty('--accent', data.accent);
                 
-                const badgeElem = document.getElementById('dyn-badge');
-                if(badgeElem) badgeElem.innerText = data.badge || "ONTDEK";
+                const setElem = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val; };
+                const setImg = (id, val) => { const el = document.getElementById(id); if(el && val) el.src = val; };
 
+                setElem('dyn-badge', data.badge || "ONTDEK");
                 const titleElem = document.getElementById('dyn-title');
                 if(titleElem) titleElem.innerHTML = data.title || `Ontdek ${formattedCity}`;
-
-                const descElem = document.getElementById('dyn-desc');
-                if(descElem) descElem.innerText = data.desc || "";
+                setElem('dyn-desc', data.desc || "Plan je perfecte groepsreis.");
                 
                 if(data.images) {
-                    if(document.getElementById('dyn-img-1')) document.getElementById('dyn-img-1').src = data.images[0] || "";
-                    if(document.getElementById('dyn-img-2')) document.getElementById('dyn-img-2').src = data.images[1] || "";
-                    if(document.getElementById('dyn-img-3')) document.getElementById('dyn-img-3').src = data.images[2] || "";
+                    setImg('dyn-img-1', data.images[0]);
+                    setImg('dyn-img-2', data.images[1]);
+                    setImg('dyn-img-3', data.images[2]);
                 }
 
-                if(data.whyTitle) document.getElementById('dyn-why-title').innerText = data.whyTitle;
-                if(data.whyText) document.getElementById('dyn-why-text').innerText = data.whyText;
-                if(data.whyImage) document.getElementById('dyn-why-img').src = data.whyImage;
+                setElem('dyn-why-title', data.whyTitle || "Waarom Flip 2 Trip?");
+                setElem('dyn-why-text', data.whyText || "");
+                setImg('dyn-why-img', data.whyImage);
 
                 const faqContainer = document.getElementById('faq-section');
                 if (data.faqs && data.faqs.length > 0) {
                     faqContainer.style.display = 'block';
-                    const faqList = document.getElementById('faq-list');
-                    faqList.innerHTML = data.faqs.map(faq => `
+                    document.getElementById('faq-list').innerHTML = data.faqs.map(faq => `
                         <div class="faq-item">
-                            <button class="faq-question">
-                                ${faq.q}
-                                <div class="faq-icon"></div>
-                            </button>
-                            <div class="faq-answer">
-                                <p>${faq.a}</p>
-                            </div>
-                        </div>
-                    `).join('');
+                            <button class="faq-question">${faq.q}<div class="faq-icon"></div></button>
+                            <div class="faq-answer"><p>${faq.a}</p></div>
+                        </div>`).join('');
                     if(window.attachFaqLogic) window.attachFaqLogic();
-                } else {
-                    faqContainer.style.display = 'none';
                 }
-
-                document.title = `Flip 2 Trip | ${formattedCity}`;
-                const trendCityElem = document.getElementById('dyn-trend-city');
-                if(trendCityElem) trendCityElem.innerText = `LIVE TRENDS ${formattedCity.toUpperCase()}`;
-                
-                let metaDesc = document.querySelector('meta[name="description"]');
-                if (!metaDesc) {
-                    metaDesc = document.createElement('meta');
-                    metaDesc.name = "description";
-                    document.head.appendChild(metaDesc);
-                }
-                metaDesc.content = `Plan je perfecte groepsreis naar ${formattedCity}. Bekijk trending activiteiten, swipe met je vrienden en vind de ideale match met Flip 2 Trip.`;
             }
+            document.title = `Flip 2 Trip | ${formattedCity}`;
             initLiveTrends();
-        } catch (error) {
-            console.error("Error loading page content:", error);
-        }
+        } catch (e) { console.error("Fout:", e); }
     }
 
     async function initLiveTrends() {
         const actSnap = await getDocs(collection(db, "activities"));
         const lib = {};
-        
-        actSnap.forEach(d => { 
-            const activityData = d.data();
-            if(activityData.city && activityData.city.toLowerCase().trim() === STAD.toLowerCase().trim()) { 
-                lib[d.id] = activityData; 
-            } 
-        });
+        actSnap.forEach(d => { if(d.data().city?.toLowerCase() === STAD.toLowerCase()) lib[d.id] = d.data(); });
 
         onSnapshot(collection(db, "rooms"), (snap) => {
             let votes = {}, total = 0;
             snap.forEach(doc => {
                 const r = doc.data();
-                if(r.votes && r.destination && r.destination.toLowerCase().trim() === STAD.toLowerCase().trim()) {
-                    Object.keys(r.votes).forEach(id => {
-                        if(lib[id]) { 
-                            votes[id] = (votes[id] || 0) + r.votes[id]; 
-                            total += r.votes[id]; 
-                        }
-                    });
+                if(r.votes && r.destination?.toLowerCase() === STAD.toLowerCase()) {
+                    Object.keys(r.votes).forEach(id => { if(lib[id]) { votes[id] = (votes[id] || 0) + r.votes[id]; total += r.votes[id]; } });
                 }
             });
             renderUI(votes, lib, total);
@@ -118,292 +83,191 @@
 
     function renderUI(votes, lib, total) {
         const feed = document.getElementById('live-feed');
-        const titleElement = document.getElementById('trend-title-main');
-        
-        if(titleElement) {
-            titleElement.innerText = `De meest trending activiteiten op dit moment in ${formattedCity}`;
-        }
-
-        if(total === 0) {
-            feed.innerHTML = '<p style="color:var(--text-light)">Nog geen live data voor deze regio...</p>';
-            return;
-        }
-
+        if(!feed) return;
+        if(total === 0) { feed.innerHTML = '<p>Geen live data...</p>'; return; }
         const top = Object.keys(votes).sort((a,b) => votes[b] - votes[a]).slice(0, 5);
-        
         feed.innerHTML = top.map((id, i) => {
             const p = Math.round((votes[id]/total)*100);
-            const activity = lib[id];
-            const targetLink = activity.link || `/app?activity=${id}`;
-
-            return `
-                <div class="trend-card" onclick="window.open('${targetLink}', '_blank')">
-                    <img src="${activity.image}" class="trend-img" onerror="this.src='https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=200'">
-                    <div class="trend-info">
-                        <div class="trend-top">
-                            <strong>${i+1}. ${activity.title}</strong>
-                            <span style="color:var(--accent)">${p}% match</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width:${p}%"></div>
-                        </div>
-                    </div>
-                    <div class="trend-arrow">→</div>
-                </div>`;
+            return `<div class="trend-card">
+                <img src="${lib[id].image}" class="trend-img">
+                <div class="trend-info">
+                    <div class="trend-top"><strong>${lib[id].title}</strong><span>${p}%</span></div>
+                    <div class="progress-bar"><div class="progress-fill" style="width:${p}%"></div></div>
+                </div>
+            </div>`;
         }).join('');
     }
-    
     window.onload = initPage;
-</script>
+    </script>
 
     <style>
-    :root { 
-        --obsidian: #161B22; 
-        --indigo: #1e293b; 
-        --accent: #2D6A4F; 
-        --text-light: #64748b; 
-        --lila: #f0f7f4; 
-        --geel: #fff9e6;
-        --lavendel: #f0f7ff;
-    }
+    :root { --obsidian: #161B22; --indigo: #1e293b; --accent: #2D6A4F; --text-light: #64748b; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--indigo); overflow-x: hidden; }
 
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--indigo); background: #ffffff; overflow-x: hidden; width: 100%; }
-
-    h2 { font-size: clamp(32px, 5vw, 42px); font-weight: 800; color: var(--indigo); letter-spacing: -1.5px; margin-bottom: 20px; line-height: 1.2; }
-
-    nav { position: fixed; width: 100%; top: 0; height: 90px; z-index: 1000; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); display: flex; justify-content: space-between; align-items: center; padding: 0 5%; border-bottom: 1px solid rgba(0,0,0,0.03); }
-    .logo img { height: 60px; }
-    .nav-links { display: flex; gap: 30px; align-items: center; }
-    .nav-links a { text-decoration: none; color: var(--indigo); font-weight: 600; font-size: 14px; transition: 0.3s; }
-    .btn-open { background: var(--obsidian); color: white !important; padding: 12px 24px; border-radius: 12px; font-weight: 700; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-
-    .hero { 
-        padding: 160px 5% 100px; 
-        display: grid; 
-        grid-template-columns: 1fr 1fr; 
-        gap: 40px; 
-        align-items: center; 
-        background: linear-gradient(-45deg, #ffffff, #f1f8f4, #fdfcf0, #ffffff); 
-        background-size: 400% 400%; 
-        animation: aurora 15s ease infinite; 
-        width: 100%;
-    }
-    @keyframes aurora { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    /* --- NAV & FULLSCREEN MENU --- */
+    nav { position: fixed; width: 100%; top: 0; height: 80px; z-index: 2000; background: rgba(255,255,255,0.8); backdrop-filter: blur(15px); display: flex; justify-content: space-between; align-items: center; padding: 0 5%; border-bottom: 1px solid rgba(0,0,0,0.05); }
+    .logo img { height: 45px; }
     
-    .badge { background: var(--accent); color: white; padding: 8px 16px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 30px; display: inline-block; letter-spacing: 0.5px; }
-    h1 { font-size: clamp(40px, 8vw, 64px); font-weight: 800; margin: 0 0 25px; line-height: 1.05; letter-spacing: -2.5px; color: var(--obsidian); }
-    .hero p { font-size: 18px; color: var(--text-light); margin-bottom: 40px; max-width: 480px; line-height: 1.5; }
-
-    .hero-images { display: flex; align-items: center; gap: 20px; justify-content: flex-end; position: relative; }
-    .hero-card { border-radius: 20px; box-shadow: 0 30px 60px rgba(0,0,0,0.12); border: 4px solid white; object-fit: cover; }
-    .h-1 { width: 180px; height: 300px; margin-top: -60px; }
-    .h-2 { width: 240px; height: 400px; z-index: 2; }
-    .h-3 { width: 180px; height: 280px; margin-top: 60px; }
-
-    .section-steps { padding: 100px 5%; background: linear-gradient(-45deg, #ffffff, var(--lila), var(--geel), #ffffff); background-size: 400% 400%; animation: aurora 15s ease infinite; }
-    .center-text { text-align: center; max-width: 700px; margin: 0 auto 60px; }
-    .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; max-width: 1200px; margin: 0 auto; }
-    .step-item { background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(10px); padding: 40px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.7); }
-    .step-num { width: 40px; height: 40px; background: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; margin-bottom: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-
-    .section-trends { padding: 100px 5%; max-width: 1200px; margin: 0 auto; }
-    .glass-box { background: rgba(255,255,255,0.6); backdrop-filter: blur(20px); border: 1px solid white; border-radius: 40px; padding: 50px; box-shadow: 0 40px 100px rgba(0,0,0,0.03); }
-    .trend-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 60px; align-items: center; }
+    .nav-desktop { display: flex; gap: 25px; align-items: center; }
+    .nav-desktop a { text-decoration: none; color: var(--indigo); font-weight: 600; font-size: 14px; }
     
-    .live-indicator { display: flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 800; color: #ff4b4b; margin-bottom: 20px; }
-    .pulse { width: 8px; height: 8px; background: #ff4b4b; border-radius: 50%; box-shadow: 0 0 0 0 rgba(255, 75, 75, 0.7); animation: pulse-red 2s infinite; }
-    @keyframes pulse-red { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 75, 75, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 10px 10px rgba(255, 75, 75, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 75, 75, 0); } }
+    .menu-toggle { display: none; flex-direction: column; gap: 6px; cursor: pointer; border: none; background: none; padding: 10px; z-index: 3001; }
+    .menu-toggle span { width: 28px; height: 3px; background: var(--obsidian); border-radius: 2px; transition: 0.3s; }
 
-    .trend-card { display: flex; align-items: center; gap: 15px; background: white; padding: 12px; border-radius: 18px; margin-bottom: 12px; transition: 0.3s; border: 1px solid rgba(0,0,0,0.03); cursor: pointer; }
+    .full-menu { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 3000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; transform: translateY(-100%); transition: 0.5s cubic-bezier(0.77, 0, 0.175, 1); }
+    .full-menu.active { transform: translateY(0); }
+    .full-menu a { font-size: 28px; font-weight: 800; color: var(--obsidian); text-decoration: none; }
+    .close-menu { position: absolute; top: 25px; right: 5%; font-size: 40px; cursor: pointer; }
+
+    /* --- HERO --- */
+    .hero { padding: 140px 5% 80px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; max-width: 1400px; margin: 0 auto; width: 100%; }
+    .hero-content { z-index: 2; }
+    .badge { background: var(--accent); color: white; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 800; margin-bottom: 20px; display: inline-block; }
+    h1 { font-size: clamp(34px, 5vw, 60px); font-weight: 800; line-height: 1.1; margin-bottom: 25px; letter-spacing: -2px; }
+    .hero p { font-size: 18px; color: var(--text-light); margin-bottom: 35px; line-height: 1.6; }
+    
+    .hero-images { display: flex; align-items: center; gap: 15px; justify-content: flex-end; }
+    .hero-card { border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); border: 4px solid white; object-fit: cover; }
+    .h-1 { width: 140px; height: 220px; margin-top: -40px; }
+    .h-2 { width: 200px; height: 320px; z-index: 2; }
+    .h-3 { width: 140px; height: 200px; margin-top: 40px; }
+
+    /* --- SECTIONS --- */
+    .section-steps { padding: 80px 5%; background: #f8fafc; text-align: center; }
+    .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin-top: 50px; max-width: 1200px; margin-left: auto; margin-right: auto; }
+    .step-item { background: white; padding: 40px; border-radius: 25px; border: 1px solid #eee; text-align: left; }
+    
+    .section-trends { padding: 80px 5%; max-width: 1200px; margin: 0 auto; }
+    .glass-box { background: white; border: 1px solid #eee; border-radius: 35px; padding: 45px; display: grid; grid-template-columns: 1fr 1.2fr; gap: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.02); }
+    .trend-card { display: flex; align-items: center; gap: 15px; padding: 15px; border-radius: 15px; border: 1px solid #f1f5f9; margin-bottom: 12px; }
     .trend-img { width: 50px; height: 50px; border-radius: 12px; object-fit: cover; }
-    .trend-info { flex: 1; }
-    .trend-top { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; font-weight: 700; }
-    .progress-bar { height: 8px; background: #f1f5f9; border-radius: 10px; overflow: hidden; }
-    .progress-fill { height: 100%; background: var(--accent); transition: 1.5s ease; }
-    .trend-arrow { margin-left: 10px; font-weight: 800; color: var(--text-light); transition: 0.3s; }
+    .progress-bar { height: 8px; background: #f1f5f9; border-radius: 10px; margin-top: 8px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--accent); border-radius: 10px; transition: 1s ease; }
 
-    .why-section { padding: 80px 5%; background: var(--obsidian); color: white; display: flex; justify-content: center; }
-    .split-section { display: grid; grid-template-columns: 1.2fr 1fr; gap: 80px; align-items: center; max-width: 1200px; width: 100%; }
-    .why-content h2 { color: white; }
-    .why-content p { color: rgba(255,255,255,0.7); line-height: 1.7; font-size: 17px; margin-bottom: 35px; }
-    .why-image img { width: 100%; height: 450px; object-fit: cover; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+    .why-section { padding: 80px 5%; background: var(--obsidian); color: white; }
+    .split-section { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center; max-width: 1200px; margin: 0 auto; }
+    .why-image img { width: 100%; height: 400px; object-fit: cover; border-radius: 25px; }
 
-    .btn-white { background: white; color: var(--obsidian); padding: 18px 32px; border-radius: 14px; text-decoration: none; font-weight: 700; display: inline-block; transition: 0.3s; }
+    .faq-section { padding: 80px 5%; max-width: 800px; margin: 0 auto; }
+    .faq-item { border-bottom: 1px solid #eee; }
+    .faq-question { width: 100%; padding: 25px 0; display: flex; justify-content: space-between; background: none; border: none; font-weight: 700; cursor: pointer; text-align: left; font-size: 16px; }
+    .faq-answer { max-height: 0; overflow: hidden; transition: 0.3s; color: var(--text-light); }
+    .faq-item.active .faq-answer { max-height: 200px; padding-bottom: 25px; }
 
-    .faq-section { padding: 100px 8%; background-color: #ffffff; }
-    .faq-container { max-width: 800px; margin: 0 auto; }
-    .faq-item { border-bottom: 1px solid rgba(0,0,0,0.08); padding: 10px 0; }
-    .faq-question { width: 100%; padding: 25px 0; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: none; border: none; font-size: 18px; font-weight: 700; color: var(--indigo); font-family: inherit; }
-    .faq-answer { max-height: 0; overflow: hidden; transition: 0.3s ease-out; color: var(--text-light); font-size: 16px; }
-    .faq-item.active .faq-answer { max-height: 500px; padding-bottom: 25px; }
-    .faq-icon { width: 20px; height: 20px; position: relative; transition: 0.3s ease; }
-    .faq-icon::before { content: ''; position: absolute; width: 14px; height: 2px; background: var(--indigo); top: 9px; left: 3px; }
-    .faq-icon::after { content: ''; position: absolute; width: 2px; height: 14px; background: var(--indigo); top: 3px; left: 9px; }
-    .faq-item.active .faq-icon { transform: rotate(45deg); }
+    .btn-cta { background: var(--obsidian); color: white; padding: 16px 32px; border-radius: 14px; text-decoration: none; font-weight: 700; display: inline-block; transition: 0.3s; }
+    .btn-cta:hover { transform: translateY(-2px); }
 
-    footer { background-color: #f8fafc; padding: 100px 8% 50px; border-top: 1px solid rgba(0,0,0,0.05); }
-    .footer-container { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 60px; max-width: 1400px; margin: 0 auto; }
-    .footer-brand img { height: 45px; margin-bottom: 20px; }
-    .footer-brand p { color: var(--text-light); font-size: 14px; line-height: 1.6; }
-    .footer-column h4 { font-size: 16px; font-weight: 800; margin-bottom: 25px; text-transform: uppercase; }
-    .footer-column ul { list-style: none; padding: 0; }
-    .footer-column ul li { margin-bottom: 12px; }
-    .footer-column ul li a { text-decoration: none; color: var(--text-light); font-size: 14px; }
-    .footer-bottom { margin-top: 80px; padding-top: 30px; border-top: 1px solid rgba(0,0,0,0.05); font-size: 13px; text-align: center; }
-
-    /* --- MOBILE OPTIMIZATION (STRICTE FIXES) --- */
+    /* --- MOBILE FIXES --- */
     @media (max-width: 900px) {
-        nav { height: 75px; padding: 0 5%; }
-        .logo img { height: 45px; }
-        .nav-links a:not(.btn-open) { display: inline-block; font-size: 12px; margin-right: 10px; } 
-        .btn-open { padding: 10px 16px; font-size: 12px; }
+        .nav-desktop { display: none; }
+        .menu-toggle { display: flex; }
         
-        .hero { 
-            padding: 120px 5% 60px; 
-            grid-template-columns: 1fr; 
-            text-align: center; 
-            overflow: hidden;
-            width: 100%;
-        }
-        .hero-images { 
-            display: flex !important; 
-            justify-content: center; 
-            margin-top: 40px; 
-            transform: scale(0.85);
-            width: 100%;
-        }
+        .hero { grid-template-columns: 1fr; text-align: center; padding-top: 120px; gap: 20px; }
+        .hero-content { padding: 0 10px; }
+        .hero-images { justify-content: center; margin-top: 20px; gap: 10px; }
         .h-1 { width: 100px; height: 160px; margin-top: -20px; }
         .h-2 { width: 140px; height: 220px; }
-        .h-3 { width: 100px; height: 150px; margin-top: 20px; }
-
-        .hero p { margin: 0 auto 30px; }
-        h1 { font-size: 38px; }
+        .h-3 { width: 100px; height: 140px; margin-top: 20px; }
         
-        .steps-grid { grid-template-columns: 1fr; }
-        .glass-box { padding: 30px 20px; border-radius: 25px; }
-        .trend-layout { grid-template-columns: 1fr; text-align: center; }
-        .split-section { grid-template-columns: 1fr; text-align: center; }
-        .why-image img { height: 300px; }
-        .footer-container { grid-template-columns: 1fr; text-align: center; }
+        .steps-grid, .glass-box, .split-section { grid-template-columns: 1fr; }
+        .glass-box { padding: 30px 20px; }
+        .why-image img { height: 250px; }
     }
-</style>
+    </style>
 </head>
 <body>
 
 <nav>
     <div class="logo"><a href="/"><img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/03/Flip2Trip-logo-landscape.png" alt="Logo"></a></div>
-    <div class="nav-links">
+    
+    <div class="nav-desktop">
         <a href="#hoe-werkt-het">Hoe werkt het?</a>
         <a href="#activiteiten">Trends</a>
-        <a href="/app" class="btn-open">Open App</a>
+        <a href="/app" class="btn-cta" style="padding: 10px 20px;">Open App</a>
     </div>
+
+    <button class="menu-toggle" id="menu-btn">
+        <span></span><span></span><span></span>
+    </button>
 </nav>
+
+<div class="full-menu" id="full-menu">
+    <div class="close-menu" id="close-btn">&times;</div>
+    <a href="#hoe-werkt-het">Hoe werkt het?</a>
+    <a href="#activiteiten">Live Trends</a>
+    <a href="/app" class="btn-cta">Start de App</a>
+</div>
 
 <header class="hero">
     <div class="hero-content">
         <span class="badge" id="dyn-badge">Laden...</span>
-        <h1 id="dyn-title">Plannen maken <br>was nog nooit zo simpel.</h1>
-        <p id="dyn-desc">Selecteer je favoriete regio en ontdek wat je vrienden echt willen doen.</p>
-        <a href="/app" class="btn-white" style="background:var(--obsidian); color:white; border-radius: 12px;">Start jullie avontuur</a>
+        <h1 id="dyn-title">Samen kiezen <br>was nog nooit zo leuk.</h1>
+        <p id="dyn-desc">Swipe door de leukste activiteiten en vind direct de perfecte match voor jullie groep.</p>
+        <a href="/app" class="btn-cta">Start jullie trip</a>
     </div>
     <div class="hero-images">
-        <img src="" id="dyn-img-1" class="hero-card h-1" alt="Bestemming 1">
-        <img src="" id="dyn-img-2" class="hero-card h-2" alt="Bestemming 2">
-        <img src="" id="dyn-img-3" class="hero-card h-3" alt="Bestemming 3">
+        <img src="" id="dyn-img-1" class="hero-card h-1">
+        <img src="" id="dyn-img-2" class="hero-card h-2">
+        <img src="" id="dyn-img-3" class="hero-card h-3">
     </div>
 </header>
 
 <section class="section-steps" id="hoe-werkt-het">
-    <div class="center-text">
-        <h2>Jullie trip in 3 stappen</h2>
-        <p style="color:var(--text-light)">Samen op pad, zonder gedoe.</p>
-    </div>
+    <h2>Eenvoudig voor iedereen</h2>
     <div class="steps-grid">
-        <div class="step-item"><div class="step-num">1</div><strong>Swipe Actie</strong><p>Iedereen swipet op zijn eigen mobiel naar de leukste activiteiten.</p></div>
-        <div class="step-item"><div class="step-num">2</div><strong>Deep Match</strong><p>Onze AI ziet precies waar de groep energie van krijgt.</p></div>
-        <div class="step-item"><div class="step-num">3</div><strong>Go!</strong><p>Planning klaar? Tijd om de regio onveilig te maken.</p></div>
+        <div class="step-item"><strong>1. Nodig uit</strong><p>Deel de link met je vrienden of familie.</p></div>
+        <div class="step-item"><strong>2. Swipe</strong><p>Iedereen geeft anoniem zijn voorkeuren door.</p></div>
+        <div class="step-item"><strong>3. Match!</strong><p>Wij tonen direct wat jullie samen gaan doen.</p></div>
     </div>
 </section>
 
 <section class="section-trends" id="activiteiten">
-    <div class="glass-box trend-layout">
-        <div class="trend-intro">
-            <div class="live-indicator">
-                <div class="pulse"></div> 
-                <span id="dyn-trend-city">LIVE TRENDS</span>
-            </div>
-            <h2 id="trend-title-main">De meest trending activiteiten</h2>
-            <p style="color:var(--text-light); line-height: 1.6;">Gebaseerd op real-time swipes van groepen die momenteel plannen.</p>
+    <div class="glass-box">
+        <div>
+            <h2>Populair in de regio</h2>
+            <p>Real-time data van actieve groepen.</p>
         </div>
-        <div class="trend-feed-container">
-            <div id="live-feed">
-                <p style="color:var(--text-light)">Trends worden geladen...</p>
-            </div>
-        </div>
+        <div id="live-feed">Laden...</div>
     </div>
 </section>
 
 <section class="why-section">
     <div class="split-section">
-        <div class="why-content">
-            <h2 id="dyn-why-title">Waarom Flip 2 Trip?</h2>
-            <p id="dyn-why-text">Bespaar uren uitzoekwerk en focus op het avontuur.</p>
-            <a href="/app" class="btn-white">Start jullie avontuur</a>
+        <div>
+            <h2 id="dyn-why-title">Geen keuzestress meer</h2>
+            <p id="dyn-why-text">Met Flip 2 Trip voorkom je eindeloze discussies in WhatsApp-groepen.</p>
         </div>
-        <div class="why-image">
-            <img src="" id="dyn-why-img" alt="Regio Activiteit">
-        </div>
+        <div class="why-image"><img src="" id="dyn-why-img"></div>
     </div>
 </section>
 
 <section class="faq-section" id="faq-section" style="display:none;">
-    <div class="faq-container">
-        <h2 style="text-align: center; margin-bottom: 50px;">Veelgestelde vragen</h2>
-        <div id="faq-list"></div>
-    </div>
+    <h2>Veelgestelde vragen</h2>
+    <div id="faq-list"></div>
 </section>
 
-<footer>
-    <div class="footer-container">
-        <div class="footer-brand">
-            <img src="https://wijzijnvalkenburg.nl/wp-content/uploads/2026/03/Flip2Trip-logo-landscape.png" alt="Flip 2 Trip">
-            <p>De nieuwe standaard voor collectieve besluitvorming.</p>
-        </div>
-        <div class="footer-column">
-            <h4>Bestemmingen</h4>
-            <ul>
-                <li><a href="bestemming.html?city=Valkenburg">Valkenburg</a></li>
-                <li><a href="bestemming.html?city=Maastricht">Maastricht</a></li>
-            </ul>
-        </div>
-        <div class="footer-column">
-            <h4>Info</h4>
-            <ul>
-                <li><a href="/privacy">Privacy</a></li>
-            </ul>
-        </div>
-        <div class="footer-column">
-            <h4>Contact</h4>
-            <ul>
-                <li><a href="mailto:info@flip2trip.nl">info@flip2trip.nl</a></li>
-            </ul>
-        </div>
-    </div>
-    <div class="footer-bottom"><p>&copy; 2026 Flip 2 Trip.</p></div>
+<footer style="padding: 50px 5%; text-align: center; background: #f8fafc; color: var(--text-light); border-top: 1px solid #eee;">
+    <p>&copy; 2026 Flip 2 Trip</p>
 </footer>
 
 <script>
+    // Menu Logica
+    const menuBtn = document.getElementById('menu-btn');
+    const closeBtn = document.getElementById('close-btn');
+    const fullMenu = document.getElementById('full-menu');
+    const links = document.querySelectorAll('.full-menu a');
+
+    const toggleMenu = () => fullMenu.classList.toggle('active');
+
+    menuBtn.addEventListener('click', toggleMenu);
+    closeBtn.addEventListener('click', toggleMenu);
+    links.forEach(link => link.addEventListener('click', toggleMenu));
+
+    // FAQ Logica
     window.attachFaqLogic = function() {
-        const questions = document.querySelectorAll('.faq-question');
-        questions.forEach(question => {
-            question.onclick = function() {
-                const item = this.parentElement;
-                item.classList.toggle('active');
-                const answer = this.nextElementSibling;
-                answer.style.maxHeight = item.classList.contains('active') ? answer.scrollHeight + "px" : null;
-            };
+        document.querySelectorAll('.faq-question').forEach(q => {
+            q.onclick = () => q.parentElement.classList.toggle('active');
         });
     }
 </script>
