@@ -1,4 +1,4 @@
-name: 🚀 Deploy via SFTP
+name: 🚀 Deploy naar Mijndomein
 
 on:
   push:
@@ -6,19 +6,22 @@ on:
       - main
 
 jobs:
-  deploy:
+  web-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: 🛰️ Haal code op
         uses: actions/checkout@v4
 
-      - name: Upload via SFTP
-        uses: appleboy/scp-action@v0.1.7
+      - name: 📂 Upload via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          host: ftp.flip2trip.nl
+          server: ftp.flip2trip.nl
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          port: 22
-          source: "."
-          target: "httpdocs"
+          protocol: ftps
+          port: 21
+          # Hier stond eerst public_html, dat moet httpdocs zijn:
+          server-dir: httpdocs/
+          # Dit zorgt dat hij niet de hele geschiedenis hoeft te scannen:
+          dangerous-clean-slate: false
