@@ -14,12 +14,10 @@
         const app = initializeApp(config);
         const db = getFirestore(app);
 
-        // Haal stad op uit URL (bijv: bestemming.html?city=Maastricht)
         const urlParams = new URLSearchParams(window.location.search);
         const STAD = urlParams.get('city') || "Ardennen";
 
         async function initPage() {
-            // 1. Haal de specifieke content op voor deze stad
             const contentSnap = await getDoc(doc(db, "cityContent", STAD));
             
             if(contentSnap.exists()) {
@@ -42,43 +40,35 @@
                 if(data.whyTitle) document.getElementById('dyn-why-title').innerText = data.whyTitle;
                 if(data.whyText) document.getElementById('dyn-why-text').innerText = data.whyText;
                 if(data.whyImage) document.getElementById('dyn-why-img').src = data.whyImage;
-                if(data.faqs && data.faqs.length > 0) {
-    const faqList = document.getElementById('faq-list');
-    faqList.innerHTML = data.faqs.map(faq => `
-        <div class="faq-item">
-            <button class="faq-question">${faq.q}<div class="faq-icon"></div></button>
-            <div class="faq-answer"><p>${faq.a}</p></div>
-        </div>
-    `).join('');
-}
-// --- FAQ DYNAMISCH LADEN ---
-const faqContainer = document.getElementById('faq-section'); // De hele sectie
-const faqList = document.getElementById('faq-list');       // De lijst met vragen
 
-if (data.faqs && data.faqs.length > 0) {
-    faqContainer.style.display = 'block'; // Toon de sectie als er data is
-    faqList.innerHTML = data.faqs.map(faq => `
-        <div class="faq-item">
-            <button class="faq-question">
-                ${faq.q}
-                <div class="faq-icon"></div>
-            </button>
-            <div class="faq-answer">
-                <p>${faq.a}</p>
-            </div>
-        </div>
-    `).join('');
+                // --- FAQ DYNAMISCH LADEN ---
+                const faqContainer = document.getElementById('faq-section');
+                const faqList = document.getElementById('faq-list');
 
-    // Voeg de klik-functionaliteit opnieuw toe aan de nieuwe elementen
-    attachFaqLogic();
-} else {
-    faqContainer.style.display = 'none'; // Verberg de sectie als er geen FAQ's zijn
-}
+                if (data.faqs && data.faqs.length > 0) {
+                    faqContainer.style.display = 'block';
+                    faqList.innerHTML = data.faqs.map(faq => `
+                        <div class="faq-item">
+                            <button class="faq-question">
+                                ${faq.q}
+                                <div class="faq-icon"></div>
+                            </button>
+                            <div class="faq-answer">
+                                <p>${faq.a}</p>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    // Activeer de klik-logica
+                    if(window.attachFaqLogic) window.attachFaqLogic();
+                } else {
+                    faqContainer.style.display = 'none';
+                }
+
                 document.title = `Flip 2 Trip | ${STAD}`;
                 document.getElementById('dyn-trend-city').innerText = `LIVE TRENDS ${STAD.toUpperCase()}`;
             }
 
-            // 2. Start de Live Trends (gefilterd op STAD)
             initLiveTrends();
         }
 
@@ -187,7 +177,7 @@ if (data.faqs && data.faqs.length > 0) {
         .faq-item { border-bottom: 1px solid rgba(0,0,0,0.08); padding: 10px 0; }
         .faq-question { width: 100%; padding: 25px 0; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: none; border: none; text-align: left; font-size: 18px; font-weight: 700; color: var(--indigo); font-family: inherit; }
         .faq-answer { max-height: 0; overflow: hidden; transition: 0.3s ease-out; color: var(--text-light); font-size: 16px; line-height: 1.6; }
-        .faq-item.active .faq-answer { max-height: 200px; padding-bottom: 25px; }
+        .faq-item.active .faq-answer { max-height: 300px; padding-bottom: 25px; }
         .faq-icon { width: 20px; height: 20px; position: relative; transition: 0.3s ease; }
         .faq-icon::before { content: ''; position: absolute; width: 14px; height: 2px; background: var(--indigo); top: 9px; left: 3px; }
         .faq-icon::after { content: ''; position: absolute; width: 2px; height: 14px; background: var(--indigo); top: 3px; left: 9px; }
@@ -227,15 +217,15 @@ if (data.faqs && data.faqs.length > 0) {
 
 <header class="hero">
     <div>
-        <span class="badge" id="dyn-badge">Regio Ardennen</span>
-        <h1 id="dyn-title">Avontuur wacht,<br>beslis samen.</h1>
-        <p id="dyn-desc">Van kajakken op de Ourthe tot bierproeverijen in Durbuy. Swipe door de vetste outdoor-activiteiten en vind de match voor jouw groep.</p>
+        <span class="badge" id="dyn-badge">Laden...</span>
+        <h1 id="dyn-title">Plannen maken <br>was nog nooit zo simpel.</h1>
+        <p id="dyn-desc">Selecteer je favoriete regio en ontdek wat je vrienden echt willen doen.</p>
         <a href="/app" class="btn-main">Ontdek de regio</a>
     </div>
     <div class="hero-images">
-        <img src="https://wearelocal.events/wp-content/uploads/2025/01/Ardennen-basic-programma-teambuilding-.webp" id="dyn-img-1" class="hero-card h-1">
-        <img src="https://wearelocal.events/wp-content/uploads/2025/03/fakkelwandeling-durbuy-ardennen.webp" id="dyn-img-2" class="hero-card h-2">
-        <img src="https://wearelocal.events/wp-content/uploads/2025/01/grotten-ardennen.webp" id="dyn-img-3" class="hero-card h-3">
+        <img src="" id="dyn-img-1" class="hero-card h-1">
+        <img src="" id="dyn-img-2" class="hero-card h-2">
+        <img src="" id="dyn-img-3" class="hero-card h-3">
     </div>
 </header>
 
@@ -266,29 +256,21 @@ if (data.faqs && data.faqs.length > 0) {
 <section class="why-section">
     <div class="split-section">
         <div class="why-content">
-            <h2 id="dyn-why-title">Waarom deze regio met Flip 2 Trip?</h2>
-            <p id="dyn-why-text">Wij filteren de ruis eruit en tonen alleen de best beoordeelde outdoor-centra en verborgen parels. Bespaar uren uitzoekwerk en focus op het avontuur.</p>
+            <h2 id="dyn-why-title">Waarom Flip 2 Trip?</h2>
+            <p id="dyn-why-text">Bespaar uren uitzoekwerk en focus op het avontuur.</p>
             <a href="/app" class="btn-white">Start jullie avontuur</a>
         </div>
         <div class="why-image">
-            <img src="https://wearelocal.events/wp-content/uploads/2025/12/kajakken-ardennen.webp" id="dyn-why-img" alt="Regio Activiteit">
+            <img src="" id="dyn-why-img" alt="Regio Activiteit">
         </div>
     </div>
 </section>
 
-<section class="faq-section">
+<section class="faq-section" id="faq-section" style="display:none;">
     <div class="faq-container">
         <h2 style="text-align: center; margin-bottom: 50px;">Veelgestelde vragen</h2>
         <div id="faq-list">
-            <div class="faq-item">
-                <button class="faq-question">Hoe bepalen jullie de match?<div class="faq-icon"></div></button>
-                <div class="faq-answer"><p>Ons algoritme kijkt naar de individuele swipes van de hele groep en vindt de overlap waar iedereen enthousiast over is.</p></div>
             </div>
-            <div class="faq-item">
-                <button class="faq-question">Kunnen we ook accommodaties swipen?<div class="faq-icon"></div></button>
-                <div class="faq-answer"><p>Op dit moment focussen we op activiteiten, maar we hebben wel enkele partner-locaties die vaak als suggestie verschijnen!</p></div>
-            </div>
-        </div>
     </div>
 </section>
 
@@ -324,20 +306,24 @@ if (data.faqs && data.faqs.length > 0) {
 </footer>
 
 <script>
-    function attachFaqLogic() {
-    const questions = document.querySelectorAll('.faq-question');
-    questions.forEach(question => {
-        question.onclick = function() {
-            this.classList.toggle('active');
-            const answer = this.nextElementSibling;
-            if (answer.style.maxHeight) {
-                answer.style.maxHeight = null;
-            } else {
-                answer.style.maxHeight = answer.scrollHeight + "px";
-            }
-        };
-    });
-}
+    // FAQ Logica globaal beschikbaar maken
+    window.attachFaqLogic = function() {
+        const questions = document.querySelectorAll('.faq-question');
+        questions.forEach(question => {
+            // Verwijder oude listener om dubbelklikken te voorkomen
+            question.onclick = null; 
+            question.onclick = function() {
+                const item = this.parentElement;
+                item.classList.toggle('active');
+                const answer = this.nextElementSibling;
+                if (item.classList.contains('active')) {
+                    answer.style.maxHeight = answer.scrollHeight + "px";
+                } else {
+                    answer.style.maxHeight = null;
+                }
+            };
+        });
+    }
 </script>
 
 </body>
