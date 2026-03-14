@@ -1,4 +1,4 @@
-name: Deploy-Mijndomein
+name: 🚀 Deploy naar Mijndomein
 
 on:
   push:
@@ -20,6 +20,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           port: 21
-          server-dir: ./
+          # De truc: stap uit de standaardmap en ga httpdocs in
+          server-dir: ../httpdocs/
           security: loose
           timeout: 60000
